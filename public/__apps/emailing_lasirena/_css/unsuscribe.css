@@ -1,0 +1,162 @@
+/*#####################################*/
+/*#              GENERAL              #*/
+/*#####################################*/
+* {
+    margin: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+/*#####################################*/
+
+.container{
+    display:block;
+    margin:auto;
+    width:100%;
+    max-width: 800px;
+}
+
+.container .unsuscribe_div{
+    display:block;
+    float:left;
+    width:100%;
+    border:1px solid #CCC;
+    padding: 25px;
+}
+
+@media only screen and (max-width: 768px)  {
+    .container .unsuscribe_div{
+        border:none;
+        padding: 15px;
+    }    
+}
+
+.unsuscribe_div .header_img{
+    display: block;
+    float: left;
+    width:100%;
+    background-color: #f6f6f6;
+    text-align: center;
+    margin-bottom:25px;
+}
+
+.unsuscribe_div .header_img img{
+    max-width: 100%;
+}
+
+.unsuscribe_div h1{
+    display: block;
+    float: left;
+    position: relative;
+    width: 100%;
+    font-size: 14px;
+    padding: 10px 110px 10px 150px;
+    height: 60px;
+    color: #4A1F0C;
+}
+
+@media only screen and (max-width: 768px)  {
+    .unsuscribe_div h1{
+        padding: 55px 10px;
+    }
+}
+
+.unsuscribe_div h1:before{
+    position: absolute;
+    content:'';
+    width:50px;
+    height:50px;
+    background-image: url(../_img/alerta.jpg);
+    background-repeat: no-repeat;    
+    margin-left: -55px;
+}
+
+@media only screen and (max-width: 768px)  {
+    .unsuscribe_div h1:before{
+        left: 50%;
+        top: 0px;
+        margin-left:-20px;
+    }
+}
+
+.unsuscribe_div label.check{
+    display: block;
+    float: left;
+    width: 100%;
+    color: #4A1F0C;
+    font-size: 12px;
+    padding: 10px 220px;
+    font-weight: bold;
+}
+
+@media only screen and (max-width: 768px)  {
+    .unsuscribe_div label.check{
+        padding: 20px 10px;
+    }
+}
+
+.captcha_container{
+    display: block;
+    float: left;
+    width:100%;
+    padding: 20px 220px;
+}
+
+@media only screen and (max-width: 768px)  {
+    .captcha_container{
+        padding: 20px 10px;
+    }
+}
+
+.button_container{
+    display: block;
+    float: left;
+    width:100%;
+    padding: 20px 220px 50px;
+}
+
+@media only screen and (max-width: 768px)  {
+    .button_container{
+        padding: 20px 10px;
+    }
+}
+
+.button_container a {
+    display: block;
+    float: left;
+    width: 100%;
+    border-radius: 15px;
+    padding: 10px 0px;
+    background-color: #00a2c9;
+    color: #fff;
+    font-size: 20px;
+    text-align: center;
+    text-decoration: none;
+
+
+    transition: background-color 150ms;
+}
+.button_container a:hover {
+    background-color: #007684;
+}
+
+@media only screen and (max-width: 768px)  {
+    .button_container a {
+        font-size: 17px;
+    }
+}
+
+.error .error_validacion_form {
+    display: block;
+    float: left;
+    background-image: url(../_img/error.png);
+    background-repeat: no-repeat;
+    background-position: left 3px;
+    color: #f00;
+    font-size: 13px;
+    font-weight:normal;
+    line-height: 20px;
+    padding-left: 20px;
+    padding-bottom: 5px;
+    width: 100%;
+}

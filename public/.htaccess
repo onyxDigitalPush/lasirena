@@ -1,0 +1,102 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    #####################################
+    # Habilitar cacheo
+    #####################################
+    <FilesMatch "\.(jpg|jpeg|png|gif|swf|js|css|woff)$">
+        Header set Cache-Control "max-age=604800, public"
+    </FilesMatch>
+
+    #####################################
+    # Deshabilitar la firma del servidor
+    #####################################
+    ServerSignature Off
+
+    ##############################
+    # This permit download the excel
+    ##############################
+    Options +FollowSymlinks
+    Options -SymLinksIfOwnerMatch
+
+    RewriteEngine On
+	
+	#################################
+	# Plataforma emailing
+	#################################
+	RewriteRule ^emailing-lasirena(.*?)$ __apps/emailing_lasirena/$1 [QSA,L]
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+##################################################
+# Disable the Apache Cache in PHP files
+##################################################
+<FilesMatch "\.(php)$">
+FileETag None
+    <ifModule mod_headers.c>
+        Header unset ETag
+        Header set Cache-Control "max-age=0, no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "Wed, 11 Jan 1984 05:00:00 GMT"
+    </ifModule>
+</FilesMatch>
+
+##################################################
+# Cache-Control
+##################################################
+Header set Cache-Control "max-age=2628000, private"
+
+##################################################
+# Enable HSTS (Http Strict Transport Security)
+##################################################
+Header always set Strict-Transport-Security "max-age=31536000"
+
+##################################################
+# Enable X-Xss-Protection
+##################################################
+Header always set X-Xss-Protection "1; mode=block"
+
+##############################################################################################
+# Prevents Google Chrome and Internet Explorer from trying to mime-sniff the 
+# content-type of a response away from the one being declared by the server. 
+# It reduces exposure to drive-by downloads and the risks of user uploaded content 
+# that, with clever naming, could be treated as a different content-type, like an executable
+# IMPORTANT: Es necesario incluir el encabezado http correcto para los recursos generados dinámicamente como imágenes, js etc.
+##############################################################################################
+Header always set X-Content-Type-Options "nosniff"
+
+##################################################
+# Referral policy. Default unsafe-url
+# More information: https://www.w3.org/TR/referrer-policy/
+##################################################
+Header always set Referrer-Policy unsafe-url
+
+#####################################
+# Disable directory listing
+#####################################
+Options -Indexes
+
+##################################################
+# Disable external Iframes
+##################################################
+Header set X-Frame-Options SAMEORIGIN
+
+#####################################
+# Disable the server signing
+#####################################
+ServerSignature Off

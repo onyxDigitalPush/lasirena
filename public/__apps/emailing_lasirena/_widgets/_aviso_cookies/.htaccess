@@ -1,0 +1,39 @@
+RewriteEngine On
+
+#####################################
+# Disable the server signing
+#####################################
+ServerSignature Off
+
+##################################################
+# Disable external Iframes
+##################################################
+Header set X-Frame-Options SAMEORIGIN
+
+#####################################
+# Disable directory listing
+#####################################
+Options -Indexes
+
+#####################################
+# Disable file uploads
+#####################################
+php_value upload_max_filesize 1K
+
+#####################################
+# BLOCK NOT ALLOWED HTTP METHODS
+#####################################
+RewriteCond %{REQUEST_METHOD} !^(GET|POST|HEAD)
+RewriteRule .* - [F]
+
+#####################################
+# Securized use of cookies
+#####################################
+#Forcing the use of cookies via HTTP only, never accessible via JS
+php_value session.cookie_httponly 1
+
+#Passing session ID cookie only by avoiding the step of session by url
+php_value session.use_only_cookies 1
+
+#Forcing the use of cookies only on ssl connections
+php_value session.cookie_secure 1
