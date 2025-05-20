@@ -1,0 +1,127 @@
+/*
+
+Custom style for Condis Backoffice
+
+ */
+.app-logo-inverse {
+    height: 175px !important;
+    width: 485px !important;
+}
+
+.app-header .app-header__content img.logo {
+
+    height: 55px;
+}
+
+.logo {
+    display: block;
+    position: absolute;
+    left: calc(50% - 73px);
+}
+
+.app-header__logo .logo-src {
+    height: 40px !important;
+    width: 40px !important;
+    background-repeat: no-repeat;
+}
+
+/***************************/
+/*      RADIO_OPTIONS      */
+/***************************/
+.radio_options input[type="radio"],
+.radio_options input[type="checkbox"] {
+    margin-right: -51px;
+    width: 51px;
+    height: 27px;
+}
+
+.radio_options input[type="radio"],
+.radio_options input[type="checkbox"] {
+
+    display: block;
+    position: relative;
+    float: left;
+    margin-right: -67px;
+    width: 67px;
+    height: 35px;
+    opacity: 0.01;
+    z-index: 1;
+}
+
+.radio_options span {
+    display: block;
+    position: relative;
+    float: left;
+    margin-right: 10px;
+    border: 1px solid #95989A;
+    border-radius: 17px;
+    width: 62px;
+    height: 34px;
+    transition: border-color 150ms, background-color 150ms;
+}
+
+.radio_options.pick_it_up span {
+    margin-top: 3px;
+}
+
+.radio_options input:checked+span {
+    border-color: #173250;
+    background-color: #173250;
+}
+
+.radio_options span:before {
+    display: block;
+    position: absolute;
+    top: 2px;
+    left: 3px;
+    border-radius: 50%;
+    background-color: #95989A;
+    content: '';
+    width: 28px;
+    height: 28px;
+    transition: left 150ms, background-color 150ms;
+}
+
+.radio_options input:checked+span:before {
+    left: 30px;
+    background-color: #fff;
+}
+
+.color_red {
+    color: red;
+}
+
+.red_sm_bo {
+    color: #de685c !important;
+}
+
+.green_sm_bo {
+    color: #609f5b !important;
+}
+
+#projectExcelTbl_length {
+    padding-top: 15px;
+}
+
+.app-main .app-main__inner {
+    padding: 0px 30px !important;
+    min-height: 1200px;
+}
+
+.vertical-nav-menu li a i {
+    color: #002655 !important;
+    opacity: 1 !important;
+}
+
+.fixed-sidebar .app-main .app-main__outer {
+    max-width: 100%;
+}
+
+div.dataTables_wrapper div.dataTables_paginate {
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+#shippingReferenceTbl_info {
+    padding-top: 30px !important;
+}

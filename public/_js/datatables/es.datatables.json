@@ -1,0 +1,17 @@
+{
+    "sProcessing":   "Procesando ...",
+    "sLengthMenu":   "Muestra _MENU_ registros",
+    "sZeroRecords":  "No se ha encontrado registros.",
+    "sInfo":         "Mostrando de _START_ a _END_ de _TOTAL_ registros",
+    "sInfoEmpty":    "Mostrando de 0 a 0 de 0 registros",
+    "sInfoFiltered": "(Filtrado de _MAX_ total registros)",
+    "sInfoPostFix":  "",
+    "sSearch":       "Filtrar:",
+    "sUrl":          "",
+    "oPaginate": {
+        "sFirst":    "Primero",
+        "sPrevious": "Anterior",
+        "sNext":     "Siguiente",
+        "sLast":     "Ultimo"
+    }
+}

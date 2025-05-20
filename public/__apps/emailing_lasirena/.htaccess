@@ -1,0 +1,159 @@
+RewriteEngine On
+
+#php_value upload_max_filesize 768M
+#php_value post_max_size 768M
+#php_value max_execution_time 800
+#php_value memory_limit 768M
+
+##################################################
+# Disable APC
+##################################################
+#php_flag apc.cache_by_default Off
+
+#####################################
+# COMPRESSION GZIP/DEFLATE
+#####################################
+<IfModule mod_deflate.c>
+    <IfModule mod_setenvif.c>
+        <IfModule mod_headers.c>
+            SetEnvIfNoCase ^(Accept-EncodXng|X-cept-Encoding|X{15}|~{15}|-{15})$ ^((gzip|deflate)\s*,?\s*)+|[X~-]{4,13}$ HAVE_Accept-Encoding
+            RequestHeader append Accept-Encoding "gzip,deflate" env=HAVE_Accept-Encoding
+        </IfModule>
+    </IfModule>
+
+    <IfModule mod_filter.c>
+        AddOutputFilterByType DEFLATE application/atom+xml \
+                                      application/javascript \
+                                      application/json \
+                                      application/rss+xml \
+                                      application/vnd.ms-fontobject \
+                                      application/x-font-ttf \
+                                      application/x-web-app-manifest+json \
+                                      application/xhtml+xml \
+                                      application/xml \
+                                      font/opentype \
+                                      image/svg+xml \
+                                      image/x-icon \
+                                      text/css \
+                                      text/html \
+                                      text/plain \
+                                      text/x-component \
+                                      text/xml
+    </IfModule>
+
+</IfModule>
+
+##################################################
+# Disable the Apache Cache in PHP files
+##################################################
+<FilesMatch "\.(php)$">
+FileETag None
+<ifModule mod_headers.c>
+Header unset ETag
+Header set Cache-Control "max-age=0, no-cache, no-store, must-revalidate"
+Header set Pragma "no-cache"
+Header set Expires "Wed, 11 Jan 1984 05:00:00 GMT"
+</ifModule>
+</FilesMatch>
+
+##################################################
+# Cache-Control
+##################################################
+Header set Cache-Control "max-age=2628000, private"
+
+##################################################
+# Enable HSTS (Http Strict Transport Security)
+##################################################
+Header always set Strict-Transport-Security "max-age=31536000"
+
+##################################################
+# Enable X-Xss-Protection
+##################################################
+Header always set X-Xss-Protection "1; mode=block"
+
+##############################################################################################
+# Prevents Google Chrome and Internet Explorer from trying to mime-sniff the 
+# content-type of a response away from the one being declared by the server. 
+# It reduces exposure to drive-by downloads and the risks of user uploaded content 
+# that, with clever naming, could be treated as a different content-type, like an executable
+# IMPORTANT: Es necesario incluir el encabezado http correcto para los recursos generados dinámicamente como imágenes, js etc.
+##############################################################################################
+Header always set X-Content-Type-Options "nosniff"
+
+##################################################
+# Referral policy. Default unsafe-url
+# More information: https://www.w3.org/TR/referrer-policy/
+##################################################
+Header always set Referrer-Policy unsafe-url
+
+#####################################
+# Disable the server signing
+#####################################
+ServerSignature Off
+
+##################################################
+# Disable external Iframes
+##################################################
+Header set X-Frame-Options SAMEORIGIN
+#Set header excluding folders
+#SetEnvIf Request_URI (AppsFacebook|dolcegusto) sameorigin
+#Header set X-Frame-Options SAMEORIGIN env=!sameorigin
+
+#####################################
+# Disable directory listing
+#####################################
+Options -Indexes
+
+#####################################
+# Disable file uploads
+#####################################
+#php_value upload_max_filesize 1byte
+
+#####################################
+# BLOCK NOT ALLOWED HTTP METHODS
+#####################################
+<LimitExcept GET POST>
+    Order Allow,Deny
+    Deny from all 
+</LimitExcept>
+
+RewriteCond %{REQUEST_METHOD} !^(GET|POST) [NC]
+RewriteRule .* - [F,L]
+
+#####################################
+# Securized use of cookies
+#####################################
+#Forcing the use of cookies via HTTP only, never accessible via JS
+#php_value session.cookie_httponly 1
+
+#Passing session ID cookie only by avoiding the step of session by url
+#php_value session.use_only_cookies 1 
+
+#Forcing the use of cookies only on ssl connections
+#php_value session.cookie_secure 1
+
+#################################
+# Rewrites
+#################################
+RewriteRule ^$ index.html [L,QSA]
+RewriteRule ^index\.html$ _app/_controllers/index.cntrl.php [L,QSA]
+RewriteRule ^error\.html$ _app/_controllers/error.cntrl.php [L,QSA]
+RewriteRule ^notificacion\.html$ _app/_controllers/notifications.cntrl.php [L,QSA]
+RewriteRule ^link\.html$ _app/_controllers/link_tracking.cntrl.php [L,QSA]
+RewriteRule ^open_rate_tracking\.html$ _app/_controllers/open_rate_tracking.cntrl.php [L,QSA]
+RewriteRule ^send_queue\.html$ _app/_controllers/send_queue.cntrl.php [L,QSA]
+RewriteRule ^create_emailing\.html$ _app/_controllers/create_emailing.cntrl.php [L,QSA]
+RewriteRule ^baja\.html$ _app/_controllers/unsuscribe.cntrl.php [L,QSA]
+RewriteRule ^gracias\.html$ _app/_controllers/see_you_soon.cntrl.php [L,QSA]
+#################################
+# Old browser version
+#################################
+RewriteRule ^old-browser\.html$ _app/_views/old_browser.view.php [L,QSA]
+
+
+#################################
+# Last block filter 404 error
+#################################
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ _app/_controllers/error.cntrl.php?error_404=1 [L,QSA]

@@ -1,0 +1,110 @@
+/*#####################################*/
+/*#              GENERAL              #*/
+/*#####################################*/
+* {
+    margin: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+/*#####################################*/
+
+.container{
+    display:block;
+    margin:auto;
+    width:100%;
+    max-width: 800px;
+}
+
+.content_container{
+    display:block;
+    float:left;
+    width:100%;
+    border:1px solid #CCC;
+    padding: 25px;
+}
+
+@media only screen and (max-width: 768px)  {
+    .content_container{
+        border:none;
+        padding: 15px;
+    }    
+}
+
+.content_container .header_img{
+    display: block;
+    float: left;
+    width:100%;
+    background-color: #f6f6f6;
+    text-align: center;
+    margin-bottom:25px;
+}
+
+.content_container .header_img img{
+    max-width: 100%;
+}
+
+
+.content_container .title {
+    display: block;
+    float: left;
+    color: #00a2c9;
+    font-size: 25px;
+    font-weight: bold;
+    text-align: center;
+    width: 100%;
+}
+
+@media only screen and (max-width: 768px)  {
+    .content_container .title{
+    font-size: 20px;
+    }
+}
+
+.content_container .text {
+    display: block;
+    float: left;
+    margin-top: 20px;
+    color: #303030;
+    font-size: 17px;
+    text-align: center;
+    width: 100%;
+}
+
+.button_container{
+    display: block;
+    float: left;
+    width:100%;
+    padding: 20px 220px 50px;
+}
+
+@media only screen and (max-width: 768px)  {
+    .button_container{
+        padding: 20px 10px;
+    }
+}
+
+.button_container a {
+    display: block;
+    float: left;
+    width: 100%;
+    border-radius: 15px;
+    padding: 10px 0px;
+    background-color: #56afbe;
+    color: #fff;
+    font-size: 20px;
+    text-align: center;
+    text-decoration: none;
+
+
+    transition: background-color 150ms;
+}
+.button_container a:hover {
+    background-color: #007684;
+}
+
+@media only screen and (max-width: 768px)  {
+    .button_container a {
+        font-size: 17px;
+    }
+}
