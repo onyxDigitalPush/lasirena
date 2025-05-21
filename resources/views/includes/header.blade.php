@@ -1,4 +1,4 @@
-{{ dd(Auth::user()) }}
+
 <div class="app-header bg-white text-dark header-shadow">
     <div class="app-header__logo">
         <div class="header__pane ml-auto">

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\MainApp;
+use Illuminate\Support\Facades\Auth;
 
 use App\Http\Controllers\Controller;
 
@@ -10,6 +11,7 @@ class ProjectController extends Controller
 {
     public function index()
     {
+        
         $array_project = Project::select('project_id', 'project_name', 'subject', 'document_url', 'created_at', 'reply_to')
             ->with(['opens' => function ($query)
             {
@@ -25,7 +27,13 @@ class ProjectController extends Controller
             }])
             ->orderBy('project_id', 'desc')
             ->get();
-
-        return view('MainApp.project_list', compact('array_project'));
+            if(Auth::user()->type_user == 1)
+            {
+                      return view('MainApp.project_list', compact('array_project'));
+            }
+            else
+            {
+                dd("otro proyecto");
+            }
     }
 }
