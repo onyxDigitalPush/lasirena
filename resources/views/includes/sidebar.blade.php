@@ -50,6 +50,14 @@
                         Crear Proyecto
                     </a>
                 </li>
+                @if (Auth::user()->type_user == '1')
+                    <li class="active">
+                        <a href="{{ route('usuarios.index') }}" title="Control Usuarios" class="active">
+                            <i class="metismenu-icon fa fa-user"></i>
+                        </a>
+                    </li>
+                @endif
+
 
             </ul>
         </div>
