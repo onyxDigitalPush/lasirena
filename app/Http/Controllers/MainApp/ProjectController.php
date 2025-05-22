@@ -27,7 +27,7 @@ class ProjectController extends Controller
             }])
             ->orderBy('project_id', 'desc')
             ->get();
-            if(Auth::user()->type_user == 1)
+            if(Auth::user()->type_user == 1 || Auth::user()->type_user == 3)
             {
                       return view('MainApp.project_list', compact('array_project'));
             }

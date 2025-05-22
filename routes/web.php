@@ -18,8 +18,16 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
   return view('auth.login');
 });
+//Uusarios
 Route::get('/usuarios', 'MainApp\UserController@index')->name('usuarios.index');
-Route::get('/usuario/{id}/edit', 'MainApp\UserController@edit')->name('usuarios.edit'); 
+Route::get('/usuario/{id}/edit', 'MainApp\UserController@edit')->name('usuarios.edit');
+Route::post('/usuarios/update', 'MainApp\UserController@update')->name('usuarios.update');
+Route::post('/usuarios/delete', 'MainApp\UserController@destroy')->name('usuarios.delete');
+Route::post('/usuarios/store', 'MainApp\UserController@store')->name('usuarios.store');
+Route::post('/usuarios/cambiar-contrasena', 'MainApp\UserController@cambiarContrasena')->name('usuarios.cambiar_contrasena');
+
+
+
 Route::group(['namespace' => 'Auth'], function () {
   $array_ips = array(
     'Novaigrup 1' => '188.119.218.21',

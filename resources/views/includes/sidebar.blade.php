@@ -34,14 +34,16 @@
             <ul class="vertical-nav-menu">
 
                 <li class="app-sidebar__heading">Menú</li>
-
-                <li class="active">
+                @if(Auth::user()->type_user == '1' || Auth::user()->type_user == '3')
+                     <li class="active">
                     <a href="{{ route('project.index') }}" title="Ver proyectos" class="active">
                         <i class="metismenu-icon fa fa-home"></i>
                         {{-- <i class="metismenu-icon pe-7s-home"></i> --}}
                         Proyectos
                     </a>
                 </li>
+                @endif
+                @if(Auth::user()->type_user == '1' || Auth::user()->type_user == '3')
                 <li class="active">
                     <a href="{{ route('upload_excel.index') }}" title="Crear Proyecto" class="active">
 
@@ -50,6 +52,7 @@
                         Crear Proyecto
                     </a>
                 </li>
+                @endif
                 @if (Auth::user()->type_user == '1')
                     <li class="active">
                         <a href="{{ route('usuarios.index') }}" title="Control Usuarios" class="active">
