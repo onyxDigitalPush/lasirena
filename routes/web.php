@@ -26,6 +26,12 @@ Route::post('/usuarios/delete', 'MainApp\UserController@destroy')->name('usuario
 Route::post('/usuarios/store', 'MainApp\UserController@store')->name('usuarios.store');
 Route::post('/usuarios/cambiar-contrasena', 'MainApp\UserController@cambiarContrasena')->name('usuarios.cambiar_contrasena');
 
+//Proveedores
+Route::get('/proveedores', 'MainApp\ProveedorController@index')->name('proveedores.index');
+Route::get('/proveedor/{id}/edit', 'MainApp\ProveedorController@edit')->name('proveedores.edit');
+Route::post('/proveedores/update', 'MainApp\ProveedorController@update')->name('proveedores.update');
+Route::post('/proveedores/delete', 'MainApp\ProveedorController@destroy')->name('proveedores.delete');
+Route::post('/proveedores/store', 'MainApp\ProveedorController@store')->name('proveedores.store');
 
 
 Route::group(['namespace' => 'Auth'], function () {
