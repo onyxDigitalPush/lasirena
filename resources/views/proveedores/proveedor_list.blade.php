@@ -12,11 +12,11 @@
     <div class="page-title-wrapper">
         <div class="page-title-heading">
             <div class="page-title-icon">
-                <i class="metismenu-icon fa fa-user icon-gradient bg-secondary"></i>
+                <i class="metismenu-icon fa fa-users icon-gradient bg-secondary"></i>
             </div>
-            <div>Usuarios
+            <div>Proveedores
                 <div class="page-title-subheading">
-                    Lista de Usuarios Plataforma
+                    Lista de Proveedores
                 </div>
             </div>
         </div>
@@ -24,7 +24,7 @@
             <input type="hidden" value="0" name="tab_orders" id="tab_orders">
 
             <a class="m-2 btn btn-primary" href="#" data-toggle="modal" data-target="#createUserModal">
-                <i class="metismenu-icon fa fa-user mr-2"></i></i>Crear Usuario
+                <i class="metismenu-icon fa fa-user mr-2"></i></i>Crear Proveedor
             </a>
         </div>
     </div>
@@ -32,11 +32,9 @@
 @endsection
 
 @if (session('success'))
-    <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
         {{ session('success') }}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
-            <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 @endif
 
@@ -58,34 +56,27 @@
             style="width:100%">
             <thead>
                 <tr>
-                    <th class="text-center">Nombre</th>
-                    <th class="text-center">Email</th>
-                    <th class="text-center">Acceso Usuario</th>
+                    <th class="text-center">Codigo Proveedor</th>
+                    <th class="text-center">Nombre Proveedor</th>
+                    <th class="text-center">Ver Articulos</th>
                     <th class="text-center">Editar</th>
                     <th class="text-center">Eliminar</th>
                 </tr>
-
-
             </thead>
             <tbody>
-                @foreach ($array_users as $user)
+                @foreach ($array_proveedores as $proveedor)
                     <tr>
-                        <td class="text-center">{{ $user->name }}</td>
-                        <td class="text-center">{{ $user->email }}</td>
+                        <td class="text-center">{{ $proveedor->id_proveedor }}</td>
+                        <td class="text-center">{{ $proveedor->nombre_proveedor }}</td>
                         <td class="text-center">
-                            @if ($user->type_user == 1)
-                                Administrador
-                            @elseif ($user->type_user == 2)
-                                Proveedores
-                            @elseif ($user->type_user == 3)
-                                Proyectos
-                            @else
-                                Usuario
-                            @endif
+                            <a href="#" class="btn btn-primary open-modal"
+                                data-url="{{ url('proveedor/' . $proveedor->id_proveedor . '/edit') }}">
+                                <i class="metismenu-icon fa fa-pencil"></i>
+                            </a>
                         </td>
                         <td class="text-center">
                             <a href="#" class="btn btn-primary open-modal"
-                                data-url="{{ url('usuario/' . $user->id . '/edit') }}">
+                                data-url="{{ url('proveedor/' . $proveedor->id_proveedor . '/edit') }}">
                                 <i class="metismenu-icon fa fa-pencil"></i>
                             </a>
                         </td>
@@ -93,7 +84,7 @@
                             <form action="{{ route('usuarios.delete') }}" method="POST" style="display:inline-block;"
                                 onsubmit="return confirm('¿Estás seguro de que deseas eliminar este usuario?');">
                                 @csrf
-                                <input type="hidden" name="id" value="{{ $user->id }}">
+                                {{-- <input type="hidden" name="id" value="{{ $user->id }}"> --}}
                                 <button type="submit" class="btn btn-danger mt-2">
                                     <i class="fa fa-trash"></i>
                                 </button>
@@ -102,45 +93,30 @@
                     </tr>
                 @endforeach
             </tbody>
-
         @endsection
         <!-- Modal Crear Usuario -->
         <div class="modal fade" id="createUserModal" tabindex="-1" role="dialog"
             aria-labelledby="createUserModalLabel">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
-                    <form method="POST" action="{{ route('usuarios.store') }}">
+                    <form method="POST" action="{{ route('proveedores.store') }}">
                         @csrf
                         <div class="modal-header">
-                            <h4 class="modal-title" id="createUserModalLabel">Crear Usuario</h4>
+                            <h4 class="modal-title" id="createUserModalLabel">Crear Proveedor</h4>
                             <button type="button" class="close" data-dismiss="modal">&times;</button>
                         </div>
 
                         <div class="modal-body">
                             <div class="form-group">
-                                <label for="createUserName">Nombre</label>
-                                <input type="text" class="form-control" id="createUserName" name="name" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="createUserEmail">Correo</label>
-                                <input type="email" class="form-control" id="createUserEmail" name="email" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="createUserPassword">Contraseña</label>
-                                <input type="password" class="form-control" id="createUserPassword" name="password"
+                                <label for="codigo_proveedor">Codigo Proveedor</label>
+                                <input type="number" class="form-control" id="id_proveedor" name="id_proveedor"
                                     required>
                             </div>
+
                             <div class="form-group">
-                                <label for="createUserType">Tipo de Usuario</label>
-                                <select class="form-control" id="createUserType" name="type_user" required>
-                                    <option value="">Seleccionar</option>
-                                    <option value="1">Administrador</option>
-                                    <option value="2">Proveedores</option>
-                                    <option value="3">Proyectos</option>
-                                    <option value="4">Usuario</option>
-                                </select>
+                                <label for="nombre_proveedor">Nombre Proveedor</label>
+                                <input type="text" class="form-control" id="nombre_proveedor" name="nombre_proveedor"
+                                    required>
                             </div>
                         </div>
 
@@ -152,40 +128,28 @@
                 </div>
             </div>
         </div>
-
-
-
         <!-- Modal Edicion -->
         <div class="modal fade" id="userModal" tabindex="-1" role="dialog" aria-labelledby="userModalLabel">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title" id="userModalLabel">Editar Usuario</h4>
+                        <h4 class="modal-title" id="userModalLabel">Editar Proveedor</h4>
                         <button type="button" class="close" data-dismiss="modal">&times;</button>
                     </div>
                     <div class="modal-body">
                         <!-- Aquí se cargarán los datos del usuario con AJAX -->
-                        <form id="editUserForm" method="POST" action="{{ route('usuarios.update') }}">
+                        <form id="editUserForm" method="POST" action="{{ route('proveedores.update') }}">
                             @csrf
-                            <input type="hidden" name="id" id="userId">
-
                             <div class="form-group">
-                                <label for="userName">Nombre</label>
-                                <input type="text" class="form-control" id="userName" name="name">
+                                <label for="codigo_proveedor">Codigo Proveedor</label>
+                                <input type="number" class="form-control" id="codigo_proveedor_edit"
+                                    name="id_proveedor">
                             </div>
+                            <input type="hidden" id="codigo_proveedor_old" name="codigo_proveedor_old">
                             <div class="form-group">
-                                <label for="userEmail">Correo</label>
-                                <input type="email" class="form-control" id="userEmail" name="email">
-                            </div>
-                            <div class="form-group">
-                                <label for="userType">Tipo de Usuario</label>
-                                <select class="form-control" id="userType" name="type_user">
-                                    <option value="">Seleccionar</option>
-                                    <option value="1">Administrador</option>
-                                    <option value="2">Ofertas</option>
-                                    <option value="3">Proyectos</option>
-                                    <option value="4">Usuario</option>
-                                </select>
+                                <label for="nombre_proveedor_edit">Nombre Proveedor</label>
+                                <input type="text" class="form-control" id="nombre_proveedor_edit"
+                                    name="nombre_proveedor_edit">
                             </div>
                             <button type="submit" class="btn btn-primary">Guardar
                                 Cambios</button>
@@ -198,5 +162,5 @@
         @section('custom_footer')
 
             <script type="text/javascript"
-                src="{{ URL::asset('' . DIR_JS . '/main_app/user_list.js') }}?v={{ config('app.version') }}"></script>
+                src="{{ URL::asset('' . DIR_JS . '/main_app/proveedor_list.js') }}?v={{ config('app.version') }}"></script>
         @endsection

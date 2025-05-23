@@ -5,38 +5,32 @@ namespace App\Http\Controllers\MainApp;
 use App\Models\MainApp\Proveedor;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\MainApp\Project;
 
 class ProveedorController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+
     public function index()
     {
-        //
+        $array_proveedores = Proveedor::select('id_proveedor', 'nombre_proveedor')
+            ->orderBy('id_proveedor', 'desc')
+            ->get();
+        return view('proveedores.proveedor_list', compact('array_proveedores'));
     }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function create()
     {
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
         //
+        $proveedor = new Proveedor();
+        $proveedor->id_proveedor = $request->id_proveedor;
+        $proveedor->nombre_proveedor = $request->nombre_proveedor;
+        $proveedor->save();
+        return redirect()->back()->with('success', 'Proveedor creado correctamente.');
     }
 
     /**
@@ -50,27 +44,36 @@ class ProveedorController extends Controller
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\MainApp\Proveedor  $proveedor
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Proveedor $proveedor)
+    public function edit($proveedor)
     {
-        //
+        $proveedor = Proveedor::find((int) $proveedor);
+        if (!$proveedor) {
+            // Si es AJAX, devolvemos error en formato JSON
+            if (request()->ajax()) {
+                return response()->json(['error' => 'Proveedor no encontrado.'], 404);
+            }
+            // Si no es AJAX, redirige con mensaje
+            return redirect()->route('proveedores.index')->with('error', 'Proveedor no encontrado.');
+        }
+        // Si es una petición AJAX, devolver JSON
+        if (request()->ajax()) {
+            return response()->json($proveedor);
+        }
+        // Si no es AJAX, devuelve vista normalmente
+        return view('proveedores.proveedor_edit', compact('proveedor'));
     }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\MainApp\Proveedor  $proveedor
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Proveedor $proveedor)
+    public function update(Request $request)
     {
         //
+        $proveedor = Proveedor::find($request->input('codigo_proveedor_old'));
+        if (!$proveedor) {
+            return redirect()->back()->with('error', 'Proveedor no encontrado.');
+        }
+
+        $proveedor->id_proveedor = $request->input('id_proveedor');
+        $proveedor->nombre_proveedor = $request->input('nombre_proveedor_edit');
+        $proveedor->save();
+        return redirect()->back()->with('success', 'Proveedor actualizado correctamente.');
     }
 
     /**

@@ -75,7 +75,7 @@
                                                                 </div>
                                                             @elseif (Auth::user()->type_user == 2)
                                                                 <div class="widget-subheading opacity-8">
-                                                                    Ofertas
+                                                                    Proveedores
                                                                 </div>
                                                             @elseif (Auth::user()->type_user == 3)
                                                                 <div class="widget-subheading opacity-8">
