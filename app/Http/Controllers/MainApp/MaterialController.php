@@ -4,15 +4,12 @@ namespace App\Http\Controllers\MainApp;
 
 use App\Models\MainApp\Material;
 use App\Http\Controllers\Controller;
+use App\Models\MainApp\Proveedor;
 use Illuminate\Http\Request;
 
 class MaterialController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+
     public function index()
     {
         //
@@ -28,15 +25,16 @@ class MaterialController extends Controller
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+
     public function store(Request $request)
     {
-        //
+        $material = new Material();
+        $material->descripcion = $request->input('descripcion');
+        $material->codigo = $request->input('codigo');
+        $material->jerarquia = $request->input('jerarquia');
+        $material->proveedor_id = $request->input('id_proveedor');
+        $material->save();
+        return redirect()->back()->with('success', 'Material creado correctamente.');
     }
 
     /**
@@ -50,37 +48,62 @@ class MaterialController extends Controller
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\MainApp\Material  $material
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Material $material)
+    public function edit($id)
     {
-        //
+        $material = Material::find($id);
+
+        if (!$material) {
+            // Si es AJAX, devolvemos error en formato JSON
+            if (request()->ajax()) {
+                return response()->json(['error' => 'Material no encontrado.'], 404);
+            }
+            // Si no es AJAX, redirige con mensaje
+            return redirect()->route('materiales.list', ['id' => $material->proveedor_id])->with('error', 'Material no encontrado.');
+        }
+
+        // Si es una petición AJAX, devolver JSON
+        if (request()->ajax()) {
+            return response()->json($material);
+        }
+
+        // Si no es AJAX, devuelve vista normalmente
+        return view('material.material_edit', compact('material'));
+    }
+    public function update(Request $request)
+    {
+        $material = Material::find($request->input('id'));
+        if (!$material) {
+            return redirect()->back()->with('error', 'Material no encontrado.');
+        }
+        $material->descripcion = $request->input('descripcion');
+        $material->codigo = $request->input('codigo');
+        $material->jerarquia = $request->input('jerarquia');
+        $material->proveedor_id = $request->input('proveedor_id');
+        $material->save();
+        return redirect()->back()->with('success', 'Material actualizado correctamente.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\MainApp\Material  $material
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Material $material)
+    public function destroy(Request $request)
     {
-        //
+        $material = Material::find($request->input('id_material'));
+
+        if (!$material) {
+            return redirect()->back()->with('error', 'Material no encontrado.');
+        }
+
+        $material->delete();
+
+        return redirect()->back()->with('success', 'Material eliminado correctamente.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\MainApp\Material  $material
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Material $material)
+    public function list($id)
     {
-        //
+        $materiales = Material::where('materiales.proveedor_id', $id)
+            ->join('proveedores', 'materiales.proveedor_id', '=', 'proveedores.id_proveedor')
+            ->select('materiales.*', 'proveedores.nombre_proveedor')
+            ->get();
+        $proveedor = Proveedor::where('id_proveedor', $id)->first();
+
+        return view('material.material_list', compact('materiales', 'proveedor'));
     }
 }

@@ -33,6 +33,15 @@ Route::post('/proveedores/update', 'MainApp\ProveedorController@update')->name('
 Route::post('/proveedores/delete', 'MainApp\ProveedorController@destroy')->name('proveedores.delete');
 Route::post('/proveedores/store', 'MainApp\ProveedorController@store')->name('proveedores.store');
 
+//Materiales
+Route::get('/material/{id}/list', 'MainApp\MaterialController@list')->name('materiales.list');
+Route::post('/material/store', 'MainApp\MaterialController@store')->name('materiales.store');
+Route::get('/material/{id}/edit', 'MainApp\MaterialController@edit')->name('materials.edit');
+Route::post('/materiales/update', 'MainApp\MaterialController@update')->name('materiales.update');
+Route::post('/materiales/delete', 'MainApp\MaterialController@destroy')->name('materiales.delete');
+
+
+
 
 Route::group(['namespace' => 'Auth'], function () {
   $array_ips = array(
