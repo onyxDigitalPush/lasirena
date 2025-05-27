@@ -40,6 +40,8 @@ Route::get('/material/{id}/edit', 'MainApp\MaterialController@edit')->name('mate
 Route::post('/materiales/update', 'MainApp\MaterialController@update')->name('materiales.update');
 Route::post('/materiales/delete', 'MainApp\MaterialController@destroy')->name('materiales.delete');
 
+//subir excel materiales proveedores
+Route::post('/importar-csv', 'MainApp\ProveedorController@importarCSV')->name('importar.csv');
 
 
 

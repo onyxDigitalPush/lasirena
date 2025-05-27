@@ -20,6 +20,14 @@
                 </div>
             </div>
         </div>
+
+        
+        <form action="{{ route('importar.csv') }}" method="POST" enctype="multipart/form-data">
+    @csrf
+    <input type="file" name="archivo" required>
+    <button type="submit">Importar CSV</button>
+</form>
+
         <div class="page-title-actions text-white">
             <input type="hidden" value="0" name="tab_orders" id="tab_orders">
 
