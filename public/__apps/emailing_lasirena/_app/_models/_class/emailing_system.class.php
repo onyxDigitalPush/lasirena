@@ -2,7 +2,7 @@
 
 require_once 'form_validation.class.php';
 require_once 'pbkdf2.class.php';
-require_once MODELS_CLASS_DIR . '/email_links.class.php';
+require_once '../_models/_class/email_links.class.php';
 
 class EmailingSystem
 {

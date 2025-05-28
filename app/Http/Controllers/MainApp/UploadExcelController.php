@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\MainApp\Project;
 use App\Models\MainApp\Email;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 
 
@@ -23,8 +24,6 @@ class UploadExcelController extends Controller
     {
 
         $obj_email = new Email();
-
-
         //Validate the inputs of POST
         $validator = Validator::make($request->all(), [
             'project_name' => 'required',
@@ -32,8 +31,7 @@ class UploadExcelController extends Controller
             'ccs' => 'required',
             'reply_to' => 'required'
         ]);
-        if ($validator->fails())
-        {
+        if ($validator->fails()) {
             return redirect('/proyecto/subir-excel')
                 ->withErrors($validator)
                 ->withInput();
@@ -53,8 +51,7 @@ class UploadExcelController extends Controller
         ]);
 
         //Check if exist request file
-        if ($request->hasFile('excelFile'))
-        {
+        if ($request->hasFile('excelFile')) {
 
             $file = $request->file('excelFile');
             //Saving the file on stroage
@@ -64,20 +61,20 @@ class UploadExcelController extends Controller
         //Save the project
         $project->save();
 
-		
-		
         //Instancia del objeto email para poder hacer las operaciones
         $obj_email = new Email();
-
-        //llamamos al método de store emails para guardar los emails
+        Log::info("Iniciando storeEmails...");
         $obj_email->storeEmails(json_decode($request->str_projects), $project->project_id, 0);
-		
-        //create the email html and store in queue
-        $obj_email->putEmailQueue($project->project_id, 0);
+        Log::info("Finalizado storeEmails.");
 
-        //create the email of css and create html and store in queue
+        Log::info("Iniciando putEmailQueue...");
+        $obj_email->putEmailQueue($project->project_id, 0);
+        Log::info("Finalizado putEmailQueue.");
+
+        Log::info("Iniciando putEmailCcsQueue...");
         $obj_email->putEmailCcsQueue($project->project_id, 0);
-		
+        Log::info("Finalizado putEmailCcsQueue.");
+
         return redirect()->route('project.index');
     }
 }

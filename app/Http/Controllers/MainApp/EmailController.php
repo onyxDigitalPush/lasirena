@@ -34,6 +34,7 @@ class EmailController extends Controller
 
     public function sendRedemptionEmail(Request $request)
     {
+        
         $project_id = $request->project_id;
         $email_id = $request->email_id;
         $array_sales = json_decode($request->str_sales);
@@ -69,7 +70,7 @@ class EmailController extends Controller
 
         //create the email html and store in queue for the css
         $obj_email->putEmailCcsQueue($project_id, 2, $email_redemption->email_id);
-		
+		dd('Email redemption created and queued successfully.');
         return redirect()->route('email.show', $email_id);
     }
 }

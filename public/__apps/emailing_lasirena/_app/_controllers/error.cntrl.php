@@ -119,10 +119,10 @@ if (!function_exists('http_response_code'))
 }
 
 //AntiXss
-require_once MODELS_CLASS_DIR . '/xss_filter.class.php';
+require_once  '../_models/_class/xss_filter.class.php';
 
 /** These scripts are applied to avoid problems arising from server dependencies */
-require_once MODELS_INC_DIR . '/host_normalization.inc.php';
+require_once  '../_models/_includes/host_normalization.inc.php';
 
 
 /** Standard messaje shouldn't contain html tags */

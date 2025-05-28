@@ -74,12 +74,11 @@ $(document).ready(function () {
                         action: function () {
                             e.preventDefault();
                             $("#form_send_redemption_mail").submit();
+                            console.log("se envio el formulario");
                         }
                     }
                 }
             });
         }
-
-
     });
 });
