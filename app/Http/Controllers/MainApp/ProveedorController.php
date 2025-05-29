@@ -178,6 +178,9 @@ class ProveedorController extends Controller
                     // Limpiar valores para evitar caracteres problemáticos
                     $linea = array_map(function ($value) {
                         $value = trim($value);
+                        // Convierte de ISO-8859-1 o Windows-1252 a UTF-8
+                        $value = mb_convert_encoding($value, 'UTF-8', 'ISO-8859-1');
+                        // Elimina caracteres de control
                         $value = preg_replace('/[\x00-\x1F\x7F]/u', '', $value);
                         return $value;
                     }, $linea);
@@ -195,7 +198,7 @@ class ProveedorController extends Controller
             $materialCodigo = $fila['material'] ?? '';
             $jerarquia = $fila['jerarqua_product'] ?? '';
             $descripcionMaterial = $fila['descripcin_de_material'] ?? '';
-            $mes = $fila['mes'] ?? '';
+            $mes = $fila[$cabeceras[11]] ?? '';
             $totalKgRaw = $fila['total_kg'] ?? '';
 
             // Convertir total_kg a float (soportar coma decimal y punto miles)
@@ -223,7 +226,7 @@ class ProveedorController extends Controller
             );
 
             // Insertar o actualizar kilos (descomenta y adapta según tu modelo)
-            /*
+            
         $año = date('Y');
         MaterialKilo::updateOrCreate(
             [
@@ -236,7 +239,7 @@ class ProveedorController extends Controller
                 'total_kg' => $totalKg,
             ]
         );
-        */
+        
         }
 
         return back()->with('success', 'Archivo importado correctamente.');
