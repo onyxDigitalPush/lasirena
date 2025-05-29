@@ -70,7 +70,6 @@ class EmailController extends Controller
 
         //create the email html and store in queue for the css
         $obj_email->putEmailCcsQueue($project_id, 2, $email_redemption->email_id);
-		dd('Email redemption created and queued successfully.');
         return redirect()->route('email.show', $email_id);
     }
 }
