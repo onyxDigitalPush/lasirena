@@ -1,3 +1,22 @@
+//filtros tabla
+$(document).ready(function () {
+  // Inicializa DataTable con Bootstrap 4
+  var table = $("#table_proveedores").DataTable({
+    orderCellsTop: true,
+    fixedHeader: true,
+  });
+
+  // Aplica los filtros por columna (solo para las columnas con input)
+  $("#table_proveedores thead tr:eq(1) th").each(function (i) {
+    $("input", this).on("keyup change", function () {
+      if (table.column(i).search() !== this.value) {
+        table.column(i).search(this.value).draw();
+      }
+    });
+  });
+});
+
+
 $(document).on("click", ".open-modal", function () {
   let url = $(this).data("url");
   console.log(url);

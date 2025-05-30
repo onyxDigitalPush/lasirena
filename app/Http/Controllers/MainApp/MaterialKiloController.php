@@ -5,17 +5,29 @@ namespace App\Http\Controllers\MainApp;
 use App\Models\MainApp\MaterialKilo;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class MaterialKiloController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+
     public function index()
     {
-        //
+    //    Material::where('materiales.proveedor_id', $id)
+    //         ->join('proveedores', 'materiales.proveedor_id', '=', 'proveedores.id_proveedor')
+    //         ->select('materiales.*', 'proveedores.nombre_proveedor')
+    //         ->get();
+    $array_material_kilo =MaterialKilo::join('proveedores', 'material_kilos.proveedor_id', '=', 'proveedores.id_proveedor')
+            ->join('materiales', 'material_kilos.material_id', '=', 'materiales.id')
+            ->select(
+                'material_kilos.id_material_kilo',
+                'material_kilos.total_kg',
+                'proveedores.nombre_proveedor',
+                'materiales.descripcion as nombre_material'
+            )
+            ->orderBy('material_kilos.id_material_kilo', 'desc')
+            ->get();
+
+        return view('MainApp/material_kilo.material_kilo_list', compact('array_material_kilo'));
     }
 
     /**

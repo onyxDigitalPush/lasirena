@@ -1,3 +1,4 @@
+
 @extends('layouts.app')
 
 @section('app_name', config('app.name'))
@@ -12,30 +13,15 @@
     <div class="page-title-wrapper">
         <div class="page-title-heading">
             <div class="page-title-icon">
-                <i class="metismenu-icon fa fa-users icon-gradient bg-secondary"></i>
+                <i class="metismenu-icon fa fa-truck icon-gradient bg-secondary"></i>
             </div>
-            <div>Proveedores
+            <div>Entradas Productos
                 <div class="page-title-subheading">
-                    Lista de Proveedores
+                    Lista de Las entradas de Productos
                 </div>
             </div>
         </div>
 
-
-        <form action="{{ route('importar.csv') }}" method="POST" enctype="multipart/form-data">
-            @csrf
-            <input type="file" name="archivo" required>
-            <button type="submit">Importar CSV</button>
-        </form>
-
-        <div class="page-title-actions text-white">
-            <input type="hidden" value="0" name="tab_orders" id="tab_orders">
-
-            <a class="m-2 btn btn-primary" href="#" data-toggle="modal" data-target="#createUserModal">
-                <i class="metismenu-icon fa fa-user mr-2"></i></i>Crear Proveedor
-            </a>
-        </div>
-    </div>
 
 @endsection
 
@@ -54,7 +40,6 @@
         </button>
     </div>
 @endif
-
 
 @section('main_content')
     <div class="col-12 bg-white">
@@ -81,12 +66,12 @@
 
 
             <tbody>
-                @foreach ($array_proveedores as $proveedor)
+                @foreach ($array_material_kilo as $material_kilo)
                     <tr>
-                        <td class="text-center">{{ $proveedor->id_proveedor }}</td>
-                        <td class="text-center">{{ $proveedor->nombre_proveedor }}</td>
+                        <td class="text-center">{{ $material_kilo->id_proveedor }}</td>
+                        <td class="text-center">{{ $material_kilo->nombre_proveedor }}</td>
                         <td class="text-center">
-                            <a href="{{ url('material/' . (int) $proveedor->id_proveedor . '/list') }}"
+                            <a href="{{ url('material/' . (int) $material_kilo->id_proveedor . '/list') }}"
                                 class="btn btn-primary">
                                 <i class="metismenu-icon fa fa-eye"></i>
                             </a>
@@ -94,7 +79,7 @@
                         </td>
                         <td class="text-center">
                             <a href="#" class="btn btn-primary open-modal"
-                                data-url="{{ url('proveedor/' . $proveedor->id_proveedor . '/edit') }}">
+                                data-url="{{ url('proveedor/' . $material_kilo->id_proveedor . '/edit') }}">
                                 <i class="metismenu-icon fa fa-pencil"></i>
                             </a>
                         </td>
@@ -179,5 +164,8 @@
     @section('custom_footer')
 
         <script type="text/javascript"
-            src="{{ URL::asset('' . DIR_JS . '/main_app/proveedor_list.js') }}?v={{ config('app.version') }}"></script>
+            src="{{ URL::asset('' . DIR_JS . '/main_app/material_kilo_list.js') }}?v={{ config('app.version') }}"></script>
     @endsection
+
+
+

@@ -9,7 +9,7 @@ class MaterialKilo extends Model
 {
     protected $table = 'material_kilos';
 
-    protected $fillable = ['material_id', 'proveedor_id', 'mes', 'año', 'total_kg'];
+    protected $fillable = ['material_id','codigo_material', 'proveedor_id', 'mes', 'año', 'total_kg'];
 
     public function material(): BelongsTo
     {

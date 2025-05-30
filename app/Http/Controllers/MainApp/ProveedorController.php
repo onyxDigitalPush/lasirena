@@ -228,14 +228,12 @@ class ProveedorController extends Controller
             // Insertar o actualizar kilos (descomenta y adapta según tu modelo)
             
         $año = date('Y');
-        MaterialKilo::updateOrCreate(
+        MaterialKilo::Create(
             [
-                'material_id' => $material->id,
+                'material_id' => $material->codigo,
                 'proveedor_id' => $proveedor->id_proveedor,
                 'mes' => $mes,
                 'año' => $año,
-            ],
-            [
                 'total_kg' => $totalKg,
             ]
         );
