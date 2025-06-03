@@ -36,12 +36,7 @@ class ProveedorController extends Controller
         return redirect()->back()->with('success', 'Proveedor creado correctamente.');
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\MainApp\Proveedor  $proveedor
-     * @return \Illuminate\Http\Response
-     */
+
     public function show(Proveedor $proveedor)
     {
         //
@@ -79,15 +74,9 @@ class ProveedorController extends Controller
         return redirect()->back()->with('success', 'Proveedor actualizado correctamente.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\MainApp\Proveedor  $proveedor
-     * @return \Illuminate\Http\Response
-     */
+
     public function destroy(Request $request)
     {
-        dd($request->all());
         //  $user = User::findOrFail($request->input('id'));
         // $user->delete();
         // return redirect()->back()->with('success', 'Usuario eliminado correctamente.');
