@@ -1,3 +1,4 @@
+
 <script type="text/javascript" src="{{ URL::asset('' . DIR_JS . '/main.js') }}?v={{ config('app.version') }}">
 </script>
 <script type="text/javascript" src="{{ URL::asset('' . DIR_JS . '/bfbs.js') }}?v={{ config('app.version') }}">

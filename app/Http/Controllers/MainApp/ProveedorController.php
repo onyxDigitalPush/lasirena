@@ -85,9 +85,13 @@ class ProveedorController extends Controller
      * @param  \App\Models\MainApp\Proveedor  $proveedor
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Proveedor $proveedor)
+    public function destroy(Request $request)
     {
-        //
+        dd($request->all());
+        //  $user = User::findOrFail($request->input('id'));
+        // $user->delete();
+        // return redirect()->back()->with('success', 'Usuario eliminado correctamente.');
+
     }
     public function importarCSV(Request $request)
     {
@@ -200,14 +204,19 @@ class ProveedorController extends Controller
             $descripcionMaterial = $fila['descripcin_de_material'] ?? '';
             $mes = $fila[$cabeceras[11]] ?? '';
             $totalKgRaw = $fila['total_kg'] ?? '';
+            $ctd_emdev = $fila['ctd_emdev'] ?? '';
+            $umb = $fila['umb'] ?? '';
+            $ce = $fila['ce'] ?? '';
+            $valor_emdev = $fila['valor_emdev'] ?? '';
+            $factor_conversin = $fila['factor_conversin'] ?? '';
 
             // Convertir total_kg a float (soportar coma decimal y punto miles)
             $totalKg = floatval(str_replace(',', '.', str_replace('.', '', $totalKgRaw)));
-
             if (empty($proveedorId) || empty($materialCodigo)) {
                 // Saltar filas sin info crítica
                 continue;
             }
+
 
             // Buscar o crear proveedor
             $proveedor = Proveedor::firstOrCreate(
@@ -226,18 +235,46 @@ class ProveedorController extends Controller
             );
 
             // Insertar o actualizar kilos (descomenta y adapta según tu modelo)
-            
-        $año = date('Y');
-        MaterialKilo::Create(
-            [
-                'material_id' => $material->codigo,
-                'proveedor_id' => $proveedor->id_proveedor,
-                'mes' => $mes,
-                'año' => $año,
-                'total_kg' => $totalKg,
-            ]
-        );
-        
+
+            $año = date('Y');
+
+            //limpiar valores decimales
+            $valor_emdev_decimales = str_replace('.', '', $valor_emdev); 
+            //  Reemplazar la coma por punto (separador decimal)
+            $valor_emdev_convertido = str_replace(',', '.', $valor_emdev_decimales); 
+            $valor_emdev_final = (float) $valor_emdev_convertido; 
+
+            $valor_emdev_decimales = str_replace('.', '', $valor_emdev); 
+            //  Reemplazar la coma por punto (separador decimal)
+            $valor_emdev_convertido = str_replace(',', '.', $valor_emdev_decimales); 
+            $valor_emdev_final = (float) $valor_emdev_convertido; 
+
+            //valor de factor conversion
+            $factor_conversin_decimales = str_replace('.', '', $factor_conversin);
+            //  Reemplazar la coma por punto (separador decimal)
+            $factor_conversin_convertido = str_replace(',', '.', $factor_conversin_decimales);
+            $factor_conversin = (float) $factor_conversin_convertido;
+
+            //valor de ctd_emdev
+            $ctd_emdev_decimales = str_replace('.', '', $ctd_emdev);
+            //  Reemplazar la coma por punto (separador decimal)
+            $ctd_emdev_convertido = str_replace(',', '.', $ctd_emdev_decimales);
+            $ctd_emdev = (float) $ctd_emdev_convertido;
+
+            MaterialKilo::Create(
+                [
+                    'codigo_material' => $materialCodigo,
+                    'proveedor_id' => $proveedor->id_proveedor,
+                    'mes' => $mes,
+                    'año' => $año,
+                    'total_kg' => $totalKg,
+                    'ctd_emdev' => $ctd_emdev,
+                    'umb' => $umb,
+                    'ce' => $ce,
+                    'valor_emdev' => $valor_emdev_final,
+                    'factor_conversion' => $factor_conversin,
+                ]
+            );
         }
 
         return back()->with('success', 'Archivo importado correctamente.');

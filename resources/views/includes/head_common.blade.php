@@ -30,15 +30,9 @@
 </script>
 <script type="text/javascript"
     src="{{ URL::asset('' . DIR_JS . '/bootstrap.min.js') }}?v={{ config('app.version') }}"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
 
 
-<!-- Datatables -->
-<link href="{{ URL::asset('' . DIR_CSS . '/dataTables.bootstrap4.min.css') }}?v={{ config('app.version') }}"
-    rel="stylesheet">
-<script type="text/javascript"
-    src="{{ URL::asset('' . DIR_JS . '/jquery.dataTables.min.js') }}?v={{ config('app.version') }}"></script>
-<script type="text/javascript"
-    src="{{ URL::asset('' . DIR_JS . '/dataTables.bootstrap4.min.js') }}?v={{ config('app.version') }}"></script>
 
 
 <!-- DateRangePicker http://www.daterangepicker.com/#examples -->
@@ -69,6 +63,14 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
+<!-- Datatables -->
+<link href="{{ URL::asset('' . DIR_CSS . '/dataTables.bootstrap4.min.css') }}?v={{ config('app.version') }}"
+    rel="stylesheet">
+<script type="text/javascript"
+    src="{{ URL::asset('' . DIR_JS . '/jquery.dataTables.min.js') }}?v={{ config('app.version') }}"></script>
+<script type="text/javascript"
+    src="{{ URL::asset('' . DIR_JS . '/dataTables.bootstrap4.min.js') }}?v={{ config('app.version') }}"></script>
 <script>
     var http_web_root = '{{ URL::asset('') }}';
 </script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">

@@ -42,6 +42,8 @@ Route::post('/materiales/delete', 'MainApp\MaterialController@destroy')->name('m
 
 //Materiales Kilos
 Route::get('/material_kilo/list', 'MainApp\MaterialKiloController@index')->name('material_kilo.index');
+Route::post('/material_kilo/delete', 'MainApp\MaterialKiloController@destroy')->name('material_kilo.delete');
+
 
 //subir excel materiales proveedores
 Route::post('/importar-csv', 'MainApp\ProveedorController@importarCSV')->name('importar.csv');
