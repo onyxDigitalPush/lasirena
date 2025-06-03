@@ -15,11 +15,6 @@ class MaterialController extends Controller
         //
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function create()
     {
         //
@@ -37,12 +32,7 @@ class MaterialController extends Controller
         return redirect()->back()->with('success', 'Material creado correctamente.');
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\MainApp\Material  $material
-     * @return \Illuminate\Http\Response
-     */
+
     public function show(Material $material)
     {
         //
