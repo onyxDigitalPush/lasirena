@@ -182,7 +182,7 @@
                                 <select class="form-control" id="userType" name="type_user">
                                     <option value="">Seleccionar</option>
                                     <option value="1">Administrador</option>
-                                    <option value="2">Ofertas</option>
+                                    <option value="2">Proveedores</option>
                                     <option value="3">Proyectos</option>
                                     <option value="4">Usuario</option>
                                 </select>

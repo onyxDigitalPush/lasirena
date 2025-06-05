@@ -6,16 +6,16 @@
         "framework",
         "laravel"
     ],
-    "license": "MIT",
-    "require": {
-        "php": "^7.4.29",
+    "license": "MIT",    "require": {
+        "php": "^7.3|^8.0",
         "fruitcake/laravel-cors": "^2.0",
         "guzzlehttp/guzzle": "^7.0.1",
         "laravel/framework": "^8.75",
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5",
         "laravel/ui": "^3.4",
-        "laravelcollective/html": "^6.2"
+        "laravelcollective/html": "^6.2",
+        "phpoffice/phpspreadsheet": "1.15.0"
     },
     "require-dev": {
         "facade/ignition": "^2.5",
@@ -56,11 +56,11 @@
         "laravel": {
             "dont-discover": []
         }
-    },
-    "config": {
+    },    "config": {
         "optimize-autoloader": true,
         "preferred-install": "dist",
-        "sort-packages": true
+        "sort-packages": true,
+        "platform-check": false
     },
     "minimum-stability": "dev",
     "prefer-stable": true

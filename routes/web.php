@@ -46,7 +46,19 @@ Route::post('/material_kilo/delete', 'MainApp\MaterialKiloController@destroy')->
 
 
 //subir excel materiales proveedores
-Route::post('/importar-csv', 'MainApp\ProveedorController@importarCSV')->name('importar.csv');
+Route::post('/importar-archivo', 'MainApp\ProveedorController@importarArchivo')->name('importar.archivo');
+
+// Ruta temporal de debug sin autenticación
+Route::get('/debug-importar', function () {
+    return view('debug_importar');
+})->name('debug.importar');
+Route::post('/debug-importar', 'MainApp\ProveedorController@importarArchivo')->name('debug.importar.post');
+
+// Ruta de prueba para debug
+Route::get('/test-upload', function () {
+    return view('test_upload');
+})->name('test.upload');
+Route::post('/test-upload', 'MainApp\ProveedorController@testUpload')->name('test.upload.post');
 
 
 

@@ -18,21 +18,17 @@
                 <div class="page-title-subheading">
                     Lista de Proveedores
                 </div>
-            </div>
-        </div>
-
-
-        <form action="{{ route('importar.csv') }}" method="POST" enctype="multipart/form-data">
-            @csrf
-            <input type="file" name="archivo" required>
-            <button type="submit">Importar CSV</button>
-        </form>
+            </div>        </div>
 
         <div class="page-title-actions text-white">
             <input type="hidden" value="0" name="tab_orders" id="tab_orders">
 
+            <a class="m-2 btn btn-success" href="#" data-toggle="modal" data-target="#importarArchivoModal">
+                <i class="metismenu-icon fa fa-upload mr-2"></i>Importar Archivo
+            </a>
+
             <a class="m-2 btn btn-primary" href="#" data-toggle="modal" data-target="#createUserModal">
-                <i class="metismenu-icon fa fa-user mr-2"></i></i>Crear Proveedor
+                <i class="metismenu-icon fa fa-user mr-2"></i>Crear Proveedor
             </a>
         </div>
     </div>
@@ -111,8 +107,68 @@
                     </tr>
                 @endforeach
             </tbody>
-        </table>
-    @endsection
+        </table>    @endsection    <!-- Modal Importar Archivo -->
+    <div class="modal fade" id="importarArchivoModal" tabindex="-1" role="dialog" aria-labelledby="importarArchivoModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form method="POST" action="{{ route('importar.archivo') }}" enctype="multipart/form-data" id="importForm">
+                    @csrf
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="importarArchivoModalLabel">
+                            <i class="fa fa-upload mr-2"></i>Importar Archivo CSV/XLSX
+                        </h4>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+
+                    <div class="modal-body">
+                        <!-- Contenido normal del formulario -->
+                        <div id="formContent">
+                            <div class="form-group">
+                                <label for="archivo">Seleccionar Archivo</label>
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" id="archivo" name="archivo" 
+                                           accept=".csv,.txt,.xlsx" required>
+                                    <label class="custom-file-label" for="archivo">Elegir archivo...</label>
+                                </div>
+                                <small class="form-text text-muted">
+                                    <i class="fa fa-info-circle"></i> 
+                                    Formatos soportados: CSV, TXT, XLSX
+                                    <br>
+                                    • Para CSV: Las cabeceras deben estar en la fila 4
+                                    <br>
+                                    • Para XLSX: Las cabeceras deben estar en la fila 4
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Loader (oculto por defecto) -->
+                        <div id="loadingContent" style="display: none;">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                                    <span class="sr-only">Cargando...</span>
+                                </div>
+                                <h5 class="mt-3">Procesando archivo...</h5>
+                                <p class="text-muted">Por favor espere, esto puede tomar varios minutos dependiendo del tamaño del archivo.</p>
+                                <div class="progress mt-3">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                         role="progressbar" style="width: 100%">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer" id="modalFooter">
+                        <button type="submit" class="btn btn-success" id="submitBtn">
+                            <i class="fa fa-upload mr-2"></i>Importar Archivo
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cancelBtn">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Crear Usuario -->
     <div class="modal fade" id="createUserModal" tabindex="-1" role="dialog" aria-labelledby="createUserModalLabel">
         <div class="modal-dialog" role="document">
@@ -175,8 +231,57 @@
                 </div>
             </div>
         </div>
-    </div>
-    @section('custom_footer')
+    </div>    @section('custom_footer')        <script>
+            // Script para mostrar el nombre del archivo seleccionado
+            $('.custom-file-input').on('change', function() {
+                var fileName = $(this).val().split('\\').pop();
+                $(this).next('.custom-file-label').html(fileName);
+            });
+
+            // Script para manejar el loader durante la importación
+            $('#importForm').on('submit', function(e) {
+                // Verificar que se haya seleccionado un archivo
+                if (!$('#archivo').val()) {
+                    e.preventDefault();
+                    alert('Por favor selecciona un archivo antes de continuar.');
+                    return false;
+                }
+
+                // Mostrar el loader y ocultar el formulario
+                $('#formContent').hide();
+                $('#loadingContent').show();
+                
+                // Deshabilitar botones y cambiar textos
+                $('#submitBtn').prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-2"></i>Procesando...');
+                $('#cancelBtn').prop('disabled', true).text('Procesando...');
+                
+                // Prevenir que se cierre el modal
+                $('#importarArchivoModal').modal({
+                    backdrop: 'static',
+                    keyboard: false
+                });
+
+                // El formulario se enviará normalmente
+                return true;
+            });
+
+            // Resetear el modal cuando se cierre
+            $('#importarArchivoModal').on('hidden.bs.modal', function () {
+                // Restaurar estado original
+                $('#formContent').show();
+                $('#loadingContent').hide();
+                $('#submitBtn').prop('disabled', false).html('<i class="fa fa-upload mr-2"></i>Importar Archivo');
+                $('#cancelBtn').prop('disabled', false).text('Cancelar');
+                $('#importForm')[0].reset();
+                $('.custom-file-label').html('Elegir archivo...');
+                
+                // Restaurar modal settings
+                $('#importarArchivoModal').modal({
+                    backdrop: true,
+                    keyboard: true
+                });
+            });
+        </script>
 
         <script type="text/javascript"
             src="{{ URL::asset('' . DIR_JS . '/main_app/proveedor_list.js') }}?v={{ config('app.version') }}"></script>

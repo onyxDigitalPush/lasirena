@@ -31,6 +31,14 @@ class ProjectController extends Controller
             {
                       return view('MainApp.project_list', compact('array_project'));
             }
+            elseif(Auth::user()->type_user == 2)
+            {
+                return redirect('/proveedores');                
+            }
+            elseif(Auth::user()->type_user == 4)
+            {
+                return view('MainApp.project_list', compact('array_project'));
+            }
             else
             {
                 dd("otro proyecto");
