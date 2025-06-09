@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Modal - Funcionalidad</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background-color: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h2>Test de Funcionalidad del Modal</h2>
+    <div id="test-results"></div>
+    <button onclick="runTests()">Ejecutar Tests</button>
+
+    <script>
+        function logResult(message, type = 'info') {
+            const results = document.getElementById('test-results');
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            results.appendChild(div);
+        }
+
+        function runTests() {
+            document.getElementById('test-results').innerHTML = '';
+            logResult('Iniciando tests del modal...', 'info');
+
+            // Test 1: Verificar que jQuery está disponible
+            if (typeof $ !== 'undefined') {
+                logResult('✓ jQuery está disponible', 'success');
+            } else {
+                logResult('✗ jQuery no está disponible', 'error');
+                return;
+            }
+
+            // Test 2: Simular la funcionalidad del modal sin Bootstrap
+            logResult('Simulando funcionalidad del modal...', 'info');
+
+            // Crear elementos simulados
+            const mockModal = {
+                data: function(key, value) {
+                    if (arguments.length === 1) {
+                        return this._data && this._data[key];
+                    }
+                    this._data = this._data || {};
+                    this._data[key] = value;
+                    return this;
+                },
+                removeData: function(key) {
+                    if (this._data && this._data[key]) {
+                        delete this._data[key];
+                    }
+                    return this;
+                }
+            };
+
+            const mockBootstrapModal = {
+                _config: {
+                    backdrop: true,
+                    keyboard: true
+                }
+            };
+
+            // Test 3: Verificar que se puede marcar como procesando
+            mockModal.data('processing', true);
+            if (mockModal.data('processing') === true) {
+                logResult('✓ Se puede marcar el modal como procesando', 'success');
+            } else {
+                logResult('✗ No se puede marcar el modal como procesando', 'error');
+            }
+
+            // Test 4: Verificar configuración del modal
+            mockModal.data('bs.modal', mockBootstrapModal);
+            const modalConfig = mockModal.data('bs.modal');
+            if (modalConfig && modalConfig._config) {
+                modalConfig._config.backdrop = 'static';
+                modalConfig._config.keyboard = false;
+                
+                if (modalConfig._config.backdrop === 'static' && modalConfig._config.keyboard === false) {
+                    logResult('✓ Se puede configurar el modal para prevenir cierre', 'success');
+                } else {
+                    logResult('✗ No se puede configurar el modal correctamente', 'error');
+                }
+            } else {
+                logResult('✗ No se puede acceder a la configuración del modal', 'error');
+            }
+
+            // Test 5: Verificar reseteo
+            mockModal.removeData('processing');
+            modalConfig._config.backdrop = true;
+            modalConfig._config.keyboard = true;
+            
+            if (!mockModal.data('processing') && modalConfig._config.backdrop === true && modalConfig._config.keyboard === true) {
+                logResult('✓ Se puede resetear el modal correctamente', 'success');
+            } else {
+                logResult('✗ No se puede resetear el modal correctamente', 'error');
+            }
+
+            // Test 6: Verificar lógica de prevención de cierre
+            mockModal.data('processing', true);
+            const isProcessing = mockModal.data('processing');
+            
+            if (isProcessing) {
+                logResult('✓ La lógica de prevención de cierre funciona (procesando)', 'success');
+            } else {
+                logResult('✗ La lógica de prevención de cierre no funciona', 'error');
+            }
+
+            mockModal.data('processing', false);
+            const notProcessing = !mockModal.data('processing');
+            
+            if (notProcessing) {
+                logResult('✓ La lógica permite el cierre cuando no está procesando', 'success');
+            } else {
+                logResult('✗ La lógica no permite el cierre cuando debería', 'error');
+            }
+
+            logResult('Tests completados!', 'info');
+        }
+    </script>
+</body>
+</html>

@@ -66,11 +66,17 @@
                             <i class="metismenu-icon fa fa-users"></i>
                         </a>
                     </li>
-                @endif
-                @if (Auth::user()->type_user == '1' || Auth::user()->type_user == '2')
+                @endif                @if (Auth::user()->type_user == '1' || Auth::user()->type_user == '2')
                     <li class="active">
                         <a href="{{ route('material_kilo.index') }}" title="Entradas Productos" class="active">
                             <i class="metismenu-icon fa fa-truck"></i>
+                        </a>
+                    </li>
+                @endif
+                @if (Auth::user()->type_user == '1' || Auth::user()->type_user == '2')
+                    <li class="active">
+                        <a href="{{ route('material_kilo.total_kg_proveedor') }}" title="Total KG por Proveedor" class="active">
+                            <i class="metismenu-icon fa fa-bar-chart"></i>
                         </a>
                     </li>
                 @endif

@@ -20,7 +20,12 @@
                 </div>
             </div>
         </div>
-
+        <div class="page-title-actions text-white">
+            <a class="m-2 btn btn-success" href="{{ route('material_kilo.total_kg_proveedor') }}">
+                <i class="fa fa-bar-chart mr-2"></i>Total KG por Proveedor
+            </a>
+        </div>
+    </div>
 
     @endsection
 

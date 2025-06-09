@@ -15,7 +15,7 @@ class Proveedor extends Model
     protected $table = 'proveedores';
     protected $primaryKey = 'id_proveedor';
     public $incrementing = false;   
-    protected $keyType = 'int';         
+    protected $keyType = 'int';
 
     protected $fillable = ['id_proveedor', 'nombre_proveedor'];
 

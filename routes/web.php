@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 /*
   |--------------------------------------------------------------------------
@@ -42,7 +44,9 @@ Route::post('/materiales/delete', 'MainApp\MaterialController@destroy')->name('m
 
 //Materiales Kilos
 Route::get('/material_kilo/list', 'MainApp\MaterialKiloController@index')->name('material_kilo.index');
+Route::get('/material_kilo/total-kg-proveedor', 'MainApp\MaterialKiloController@totalKgPorProveedor')->name('material_kilo.total_kg_proveedor');
 Route::post('/material_kilo/delete', 'MainApp\MaterialKiloController@destroy')->name('material_kilo.delete');
+Route::post('/material_kilo/guardar-metricas', 'MainApp\MaterialKiloController@guardarMetricas')->name('material_kilo.guardar_metricas');
 
 
 //subir excel materiales proveedores
@@ -52,7 +56,96 @@ Route::post('/importar-archivo', 'MainApp\ProveedorController@importarArchivo')-
 Route::get('/debug-importar', function () {
     return view('debug_importar');
 })->name('debug.importar');
-Route::post('/debug-importar', 'MainApp\ProveedorController@importarArchivo')->name('debug.importar.post');
+
+// Ruta temporal para crear usuario de prueba
+Route::get('/crear-usuario-prueba', function () {
+    try {
+        $user = \App\Models\User::firstOrCreate(
+            ['email' => 'test@test.com'],
+            [
+                'name' => 'Usuario Prueba',
+                'password' => Hash::make('123456'),
+                'email_verified_at' => now()
+            ]
+        );
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Usuario creado/encontrado exitosamente',
+            'user' => $user,
+            'login_info' => [
+                'email' => 'test@test.com',
+                'password' => '123456'
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error: ' . $e->getMessage()
+        ]);
+    }
+})->name('crear.usuario.prueba');
+
+// Ruta temporal para crear datos de prueba
+Route::get('/crear-datos-prueba', function () {
+    try {
+        // Crear proveedores de prueba
+        $proveedores = [
+            ['id' => 1, 'nombre_proveedor' => 'Proveedor A'],
+            ['id' => 2, 'nombre_proveedor' => 'Proveedor B'],
+            ['id' => 3, 'nombre_proveedor' => 'Proveedor C'],
+        ];
+          foreach ($proveedores as $prov) {
+            DB::table('proveedores')->updateOrInsert(
+                ['id' => $prov['id']], 
+                $prov
+            );
+        }
+        
+        // Crear materiales de prueba
+        $materiales = [
+            ['id' => 1, 'proveedor_id' => 1, 'codigo' => 'MAT001', 'descripcion' => 'Material A', 'jerarquia' => 'A1'],
+            ['id' => 2, 'proveedor_id' => 2, 'codigo' => 'MAT002', 'descripcion' => 'Material B', 'jerarquia' => 'B1'],
+            ['id' => 3, 'proveedor_id' => 3, 'codigo' => 'MAT003', 'descripcion' => 'Material C', 'jerarquia' => 'C1'],
+        ];
+        
+        foreach ($materiales as $mat) {
+            DB::table('materiales')->updateOrInsert(
+                ['id' => $mat['id']], 
+                $mat
+            );
+        }
+        
+        // Crear registros de material_kilos de prueba
+        $material_kilos = [
+            ['material_id' => 1, 'kg' => 100.50, 'fecha' => '2025-06-01'],
+            ['material_id' => 1, 'kg' => 200.75, 'fecha' => '2025-06-02'],
+            ['material_id' => 2, 'kg' => 150.25, 'fecha' => '2025-06-01'],
+            ['material_id' => 2, 'kg' => 300.00, 'fecha' => '2025-05-15'],
+            ['material_id' => 3, 'kg' => 75.80, 'fecha' => '2025-06-03'],
+        ];
+        
+        foreach ($material_kilos as $mk) {
+            DB::table('material_kilos')->insert(array_merge($mk, [
+                'created_at' => now(),
+                'updated_at' => now()
+            ]));
+        }
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Datos de prueba creados exitosamente',
+            'proveedores' => count($proveedores),
+            'materiales' => count($materiales),
+            'material_kilos' => count($material_kilos)
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error: ' . $e->getMessage()
+        ]);
+    }
+})->name('crear.datos.prueba');
 
 // Ruta de prueba para debug
 Route::get('/test-upload', function () {

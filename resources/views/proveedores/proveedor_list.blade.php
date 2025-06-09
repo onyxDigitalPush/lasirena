@@ -238,7 +238,28 @@
                 $(this).next('.custom-file-label').html(fileName);
             });
 
-            // Script para manejar el loader durante la importación
+            // Función para resetear completamente el modal
+            function resetModal() {
+                $('#formContent').show();
+                $('#loadingContent').hide();
+                $('#submitBtn').prop('disabled', false).html('<i class="fa fa-upload mr-2"></i>Importar Archivo');
+                $('#cancelBtn').prop('disabled', false).text('Cancelar');
+                $('#importForm')[0].reset();
+                $('.custom-file-label').html('Elegir archivo...');
+                $('#importarArchivoModal').removeData('processing');
+                
+                // Restaurar configuración del modal
+                var modalConfig = $('#importarArchivoModal').data('bs.modal');
+                if (modalConfig && modalConfig._config) {
+                    modalConfig._config.backdrop = true;
+                    modalConfig._config.keyboard = true;
+                }
+            }
+
+            // Resetear modal al abrirlo (para casos donde pueda quedar en estado inconsistente)
+            $('#importarArchivoModal').on('show.bs.modal', function () {
+                resetModal();
+            });// Script para manejar el loader durante la importación
             $('#importForm').on('submit', function(e) {
                 // Verificar que se haya seleccionado un archivo
                 if (!$('#archivo').val()) {
@@ -255,31 +276,43 @@
                 $('#submitBtn').prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-2"></i>Procesando...');
                 $('#cancelBtn').prop('disabled', true).text('Procesando...');
                 
-                // Prevenir que se cierre el modal
-                $('#importarArchivoModal').modal({
-                    backdrop: 'static',
-                    keyboard: false
-                });
+                // Marcar que está procesando para prevenir cierre del modal
+                $('#importarArchivoModal').data('processing', true);
+                
+                // Prevenir que se cierre el modal durante el procesamiento
+                var modalConfig = $('#importarArchivoModal').data('bs.modal');
+                if (modalConfig) {
+                    modalConfig._config.backdrop = 'static';
+                    modalConfig._config.keyboard = false;
+                }
 
                 // El formulario se enviará normalmente
                 return true;
+            });            // Resetear el modal cuando se cierre
+            $('#importarArchivoModal').on('hidden.bs.modal', function () {
+                resetModal();
+            });// Manejar clic en el botón cancelar
+            $('#cancelBtn').on('click', function() {
+                var isProcessing = $('#importarArchivoModal').data('processing');
+                if (isProcessing) {
+                    // Si está procesando, no hacer nada (el botón ya está deshabilitado)
+                    return false;
+                }
+                // Si no está procesando, cerrar modal normalmente
+                $('#importarArchivoModal').modal('hide');
             });
 
-            // Resetear el modal cuando se cierre
-            $('#importarArchivoModal').on('hidden.bs.modal', function () {
-                // Restaurar estado original
-                $('#formContent').show();
-                $('#loadingContent').hide();
-                $('#submitBtn').prop('disabled', false).html('<i class="fa fa-upload mr-2"></i>Importar Archivo');
-                $('#cancelBtn').prop('disabled', false).text('Cancelar');
-                $('#importForm')[0].reset();
-                $('.custom-file-label').html('Elegir archivo...');
-                
-                // Restaurar modal settings
-                $('#importarArchivoModal').modal({
-                    backdrop: true,
-                    keyboard: true
-                });
+            // Prevenir el cierre del modal durante el procesamiento
+            $('#importarArchivoModal').on('hide.bs.modal', function(e) {
+                var isProcessing = $('#importarArchivoModal').data('processing');
+                if (isProcessing) {
+                    // Si está procesando, prevenir el cierre
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                // Si no está procesando, permitir el cierre
+                return true;
             });
         </script>
 
