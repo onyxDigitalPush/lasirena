@@ -68,11 +68,11 @@ class MaterialKiloController extends Controller
         $materialKilo->delete();
         return redirect()->route('material_kilo.index')->with('success', 'Material Kilo eliminado correctamente.');
 
-    }     public function totalKgPorProveedor(Request $request)
+    }    public function totalKgPorProveedor(Request $request)
     {
-        // Obtener filtros
-        $mes = $request->get('mes');
-        $año = $request->get('año', date('Y'));
+        // Obtener filtros - si no se especifican, usar mes y año actuales
+        $mes = $request->get('mes', \Carbon\Carbon::now()->month);
+        $año = $request->get('año', \Carbon\Carbon::now()->year);
         
         // Query base para totales por proveedor
         $query = MaterialKilo::join('proveedores', 'material_kilos.proveedor_id', '=', 'proveedores.id_proveedor')
@@ -83,38 +83,25 @@ class MaterialKiloController extends Controller
                 DB::raw('COUNT(gp_ls_material_kilos.id) as cantidad_registros')
             );
         
-        // Aplicar filtros si están presentes
-        if ($año) {
-            $query->where('material_kilos.año', $año);
-        }
-        
-        if ($mes) {
-            $query->where('material_kilos.mes', $mes);
-        }
+        // Aplicar filtros (ahora siempre están presentes)
+        $query->where('material_kilos.año', $año);
+        $query->where('material_kilos.mes', $mes);
         
         $totales_por_proveedor = $query->groupBy('proveedores.id_proveedor', 'proveedores.nombre_proveedor')
             ->orderByDesc('total_kg_proveedor')
             ->get();
         
         // Obtener métricas existentes para el período filtrado
-        $metricas_query = ProveedorMetric::query();
-        
-        if ($año) {
-            $metricas_query->where('año', $año);
-        }
-        
-        if ($mes) {
-            $metricas_query->where('mes', $mes);
-        }
-          $metricas_por_proveedor = $metricas_query->get()->keyBy('proveedor_id');
+        $metricas_por_proveedor = ProveedorMetric::where('año', $año)
+            ->where('mes', $mes)
+            ->get()
+            ->keyBy('proveedor_id');
         
         return view('MainApp/material_kilo.total_kg_por_proveedor', compact(
             'totales_por_proveedor', 
             'metricas_por_proveedor'
         ));
-    }
-
-    public function guardarMetricas(Request $request)
+    }public function guardarMetricas(Request $request)
     {
         try {
             $request->validate([

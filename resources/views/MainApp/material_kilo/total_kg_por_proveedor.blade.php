@@ -4,6 +4,12 @@
 
 @section('custom_head')
 <meta name="csrf-token" content="{{ csrf_token() }}">
+<script>
+    window.appBaseUrl = '{{ url("/") }}';
+    // Debug temporal
+    console.log('Carbon month:', {{ \Carbon\Carbon::now()->month }});
+    console.log('Carbon year:', {{ \Carbon\Carbon::now()->year }});
+</script>
 @endsection
 
 @section('title_content')
@@ -58,31 +64,27 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <form id="filtrosForm" class="row">
-                            <div class="col-md-3">
+                        <form id="filtrosForm" class="row">                            <div class="col-md-3">
                                 <label for="filtro_mes">Mes:</label>
-                                <select id="filtro_mes" name="mes" class="form-control">
-                                    <option value="">Todos los meses</option>
-                                    <option value="1">Enero</option>
-                                    <option value="2">Febrero</option>
-                                    <option value="3">Marzo</option>
-                                    <option value="4">Abril</option>
-                                    <option value="5">Mayo</option>
-                                    <option value="6">Junio</option>
-                                    <option value="7">Julio</option>
-                                    <option value="8">Agosto</option>
-                                    <option value="9">Septiembre</option>
-                                    <option value="10">Octubre</option>
-                                    <option value="11">Noviembre</option>
-                                    <option value="12">Diciembre</option>
+                                <select id="filtro_mes" name="mes" class="form-control" required>
+                                    <option value="1" {{ \Carbon\Carbon::now()->month == 1 ? 'selected' : '' }}>Enero</option>
+                                    <option value="2" {{ \Carbon\Carbon::now()->month == 2 ? 'selected' : '' }}>Febrero</option>
+                                    <option value="3" {{ \Carbon\Carbon::now()->month == 3 ? 'selected' : '' }}>Marzo</option>
+                                    <option value="4" {{ \Carbon\Carbon::now()->month == 4 ? 'selected' : '' }}>Abril</option>
+                                    <option value="5" {{ \Carbon\Carbon::now()->month == 5 ? 'selected' : '' }}>Mayo</option>
+                                    <option value="6" {{ \Carbon\Carbon::now()->month == 6 ? 'selected' : '' }}>Junio</option>
+                                    <option value="7" {{ \Carbon\Carbon::now()->month == 7 ? 'selected' : '' }}>Julio</option>
+                                    <option value="8" {{ \Carbon\Carbon::now()->month == 8 ? 'selected' : '' }}>Agosto</option>
+                                    <option value="9" {{ \Carbon\Carbon::now()->month == 9 ? 'selected' : '' }}>Septiembre</option>
+                                    <option value="10" {{ \Carbon\Carbon::now()->month == 10 ? 'selected' : '' }}>Octubre</option>
+                                    <option value="11" {{ \Carbon\Carbon::now()->month == 11 ? 'selected' : '' }}>Noviembre</option>
+                                    <option value="12" {{ \Carbon\Carbon::now()->month == 12 ? 'selected' : '' }}>Diciembre</option>
                                 </select>
-                            </div>
-                            <div class="col-md-3">
+                            </div>                            <div class="col-md-3">
                                 <label for="filtro_año">Año:</label>
-                                <select id="filtro_año" name="año" class="form-control">
-                                    <option value="">Todos los años</option>
-                                    @for($year = date('Y'); $year >= 2020; $year--)
-                                        <option value="{{ $year }}" {{ $year == date('Y') ? 'selected' : '' }}>{{ $year }}</option>
+                                <select id="filtro_año" name="año" class="form-control" required>
+                                    @for($year = \Carbon\Carbon::now()->year; $year >= 2020; $year--)
+                                        <option value="{{ $year }}" {{ $year == \Carbon\Carbon::now()->year ? 'selected' : '' }}>{{ $year }}</option>
                                     @endfor
                                 </select>
                             </div>

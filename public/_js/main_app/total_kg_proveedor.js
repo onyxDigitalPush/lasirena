@@ -93,25 +93,15 @@ $(document).ready(function () {
         url.searchParams.delete('año');
         window.location.href = url.toString();
     });
-    
-    // Funcionalidad para guardar métricas
+      // Funcionalidad para guardar métricas
     $('#guardarMetricas').on('click', function() {
         var mes = $('#filtro_mes').val();
         var año = $('#filtro_año').val();
         
-        if (!mes || !año) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Filtros requeridos',
-                text: 'Debe seleccionar mes y año antes de guardar las métricas.',
-                confirmButtonText: 'Entendido'
-            });
-            return;
-        }
-        
-        // Recopilar datos de métricas
+        // Ya no necesitamos validar si mes y año están vacíos porque siempre estarán seleccionados        // Recopilar datos de métricas (incluyendo campos vacíos para borrar)
         var metricas = {};
         var hasData = false;
+        var hasChanges = false; // Para detectar si hay algún input (vacío o con valor)
         
         $('.metrica-input').each(function() {
             var $input = $(this);
@@ -123,17 +113,22 @@ $(document).ready(function () {
                 metricas[proveedorId] = {};
             }
             
+            hasChanges = true; // Hay al menos un input disponible para modificar
+            
+            // Siempre incluir el campo, incluso si está vacío (para poder borrarlo en BD)
             if (valor && valor.trim() !== '') {
                 metricas[proveedorId][metrica] = parseFloat(valor);
                 hasData = true;
             } else {
-                metricas[proveedorId][metrica] = null;
-            }        });
+                metricas[proveedorId][metrica] = null; // Explícitamente null para borrar
+            }
+        });
         
-        if (!hasData) {
+        // Validar que al menos haya inputs disponibles
+        if (!hasChanges) {
             $.confirm({
                 title: 'Sin datos',
-                content: 'No hay métricas para guardar.',
+                content: 'No hay métricas disponibles para modificar.',
                 type: 'blue',
                 buttons: {
                     entendido: {
@@ -152,11 +147,9 @@ $(document).ready(function () {
             type: 'blue',
             buttons: false,
             closeIcon: false
-        });
-        
-        // Enviar datos al servidor
+        });        // Enviar datos al servidor
         $.ajax({
-            url: '/material_kilo/guardar-metricas',
+            url: (window.appBaseUrl || window.location.origin) + '/material_kilo/guardar-metricas',
             method: 'POST',
             data: {
                 _token: $('meta[name="csrf-token"]').attr('content'),
@@ -198,9 +191,7 @@ $(document).ready(function () {
                 });
             }
         });
-    });
-    
-    // Inicializar filtros desde URL
+    });    // Inicializar filtros desde URL
     var urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('mes')) {
         $('#filtro_mes').val(urlParams.get('mes'));

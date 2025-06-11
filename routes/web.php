@@ -20,37 +20,6 @@ use Illuminate\Support\Facades\Hash;
 Route::get('/', function () {
   return view('auth.login');
 });
-//Uusarios
-Route::get('/usuarios', 'MainApp\UserController@index')->name('usuarios.index');
-Route::get('/usuario/{id}/edit', 'MainApp\UserController@edit')->name('usuarios.edit');
-Route::post('/usuarios/update', 'MainApp\UserController@update')->name('usuarios.update');
-Route::post('/usuarios/delete', 'MainApp\UserController@destroy')->name('usuarios.delete');
-Route::post('/usuarios/store', 'MainApp\UserController@store')->name('usuarios.store');
-Route::post('/usuarios/cambiar-contrasena', 'MainApp\UserController@cambiarContrasena')->name('usuarios.cambiar_contrasena');
-
-//Proveedores
-Route::get('/proveedores', 'MainApp\ProveedorController@index')->name('proveedores.index');
-Route::get('/proveedor/{id}/edit', 'MainApp\ProveedorController@edit')->name('proveedores.edit');
-Route::post('/proveedores/update', 'MainApp\ProveedorController@update')->name('proveedores.update');
-Route::post('/proveedores/delete', 'MainApp\ProveedorController@destroy')->name('proveedores.delete');
-Route::post('/proveedores/store', 'MainApp\ProveedorController@store')->name('proveedores.store');
-
-//Materiales
-Route::get('/material/{id}/list', 'MainApp\MaterialController@list')->name('materiales.list');
-Route::post('/material/store', 'MainApp\MaterialController@store')->name('materiales.store');
-Route::get('/material/{id}/edit', 'MainApp\MaterialController@edit')->name('materials.edit');
-Route::post('/materiales/update', 'MainApp\MaterialController@update')->name('materiales.update');
-Route::post('/materiales/delete', 'MainApp\MaterialController@destroy')->name('materiales.delete');
-
-//Materiales Kilos
-Route::get('/material_kilo/list', 'MainApp\MaterialKiloController@index')->name('material_kilo.index');
-Route::get('/material_kilo/total-kg-proveedor', 'MainApp\MaterialKiloController@totalKgPorProveedor')->name('material_kilo.total_kg_proveedor');
-Route::post('/material_kilo/delete', 'MainApp\MaterialKiloController@destroy')->name('material_kilo.delete');
-Route::post('/material_kilo/guardar-metricas', 'MainApp\MaterialKiloController@guardarMetricas')->name('material_kilo.guardar_metricas');
-
-
-//subir excel materiales proveedores
-Route::post('/importar-archivo', 'MainApp\ProveedorController@importarArchivo')->name('importar.archivo');
 
 // Ruta temporal de debug sin autenticación
 Route::get('/debug-importar', function () {
@@ -185,6 +154,30 @@ Route::group(['namespace' => 'Auth'], function () {
 Route::group(['middleware' => ['auth']], function () {
   Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
+  //Usuarios
+  Route::get('/usuarios', 'MainApp\UserController@index')->name('usuarios.index');
+  Route::get('/usuario/{id}/edit', 'MainApp\UserController@edit')->name('usuarios.edit');
+  Route::post('/usuarios/update', 'MainApp\UserController@update')->name('usuarios.update');
+  Route::post('/usuarios/delete', 'MainApp\UserController@destroy')->name('usuarios.delete');
+  Route::post('/usuarios/store', 'MainApp\UserController@store')->name('usuarios.store');
+  Route::post('/usuarios/cambiar-contrasena', 'MainApp\UserController@cambiarContrasena')->name('usuarios.cambiar_contrasena');
+
+  //Proveedores
+  Route::get('/proveedores', 'MainApp\ProveedorController@index')->name('proveedores.index');
+  Route::get('/proveedor/{id}/edit', 'MainApp\ProveedorController@edit')->name('proveedores.edit');
+  Route::post('/proveedores/update', 'MainApp\ProveedorController@update')->name('proveedores.update');
+  Route::post('/proveedores/delete', 'MainApp\ProveedorController@destroy')->name('proveedores.delete');
+  Route::post('/proveedores/store', 'MainApp\ProveedorController@store')->name('proveedores.store');
+
+  //Materiales
+  Route::get('/material/{id}/list', 'MainApp\MaterialController@list')->name('materiales.list');
+  Route::post('/material/store', 'MainApp\MaterialController@store')->name('materiales.store');
+  Route::get('/material/{id}/edit', 'MainApp\MaterialController@edit')->name('materials.edit');
+  Route::post('/materiales/update', 'MainApp\MaterialController@update')->name('materiales.update');
+  Route::post('/materiales/delete', 'MainApp\MaterialController@destroy')->name('materiales.delete');
+
+  //subir excel materiales proveedores
+  Route::post('/importar-archivo', 'MainApp\ProveedorController@importarArchivo')->name('importar.archivo');
 
   Route::group(['namespace' => 'MainApp'], function () {
     Route::get('/proyectos', 'ProjectController@index')->name('project.index');
@@ -196,5 +189,11 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::get('/emails/{email_id}', 'EmailController@show')->name('email.show');
     Route::post('/emails/enviar-mails-redencion', 'EmailController@sendRedemptionEmail')->name('email.send_redemption_mail');
+
+    // Materiales Kilos
+    Route::get('/material_kilo/list', 'MaterialKiloController@index')->name('material_kilo.index');
+    Route::get('/material_kilo/total-kg-proveedor', 'MaterialKiloController@totalKgPorProveedor')->name('material_kilo.total_kg_proveedor');    Route::post('/material_kilo/delete', 'MaterialKiloController@destroy')->name('material_kilo.delete');
+    Route::post('/material_kilo/guardar-metricas', 'MaterialKiloController@guardarMetricas')->name('material_kilo.guardar_metricas');
+
   });
 });
