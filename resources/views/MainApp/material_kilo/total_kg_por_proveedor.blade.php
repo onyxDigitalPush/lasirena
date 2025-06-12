@@ -106,8 +106,7 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Resumen total -->
+          <!-- Resumen total -->
         <div class="row mb-4">
             <div class="col-md-6">
                 <div class="card bg-primary text-white">
@@ -115,7 +114,7 @@
                         <h5 class="card-title">
                             <i class="fa fa-users mr-2"></i>Total Proveedores
                         </h5>
-                        <h3 class="card-text">{{ $totales_por_proveedor->count() }}</h3>
+                        <h3 class="card-text" id="total-proveedores">{{ $totales_por_proveedor->count() }}</h3>
                     </div>
                 </div>
             </div>
@@ -125,11 +124,11 @@
                         <h5 class="card-title">
                             <i class="fa fa-weight mr-2"></i>Total KG General
                         </h5>
-                        <h3 class="card-text">{{ number_format($totales_por_proveedor->sum('total_kg_proveedor'), 2) }} kg</h3>
+                        <h3 class="card-text" id="total-kg-general">{{ number_format($totales_por_proveedor->sum('total_kg_proveedor'), 2) }} kg</h3>
                     </div>
                 </div>
             </div>
-        </div>        <table id="table_total_kg_proveedor"
+        </div><table id="table_total_kg_proveedor"
             class="mt-4 table table-hover table-striped table-bordered dataTable dtr-inline border-secondary"
             style="width:100%">
             <thead>

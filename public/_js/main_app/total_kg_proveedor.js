@@ -42,7 +42,27 @@ $(document).ready(function () {
                 "sortDescending": ": activar para ordenar la columna descendente"
             }
         }
-    });
+    });    // Función para actualizar totales basado en filas filtradas
+    function actualizarTotales() {
+        var filasVisibles = table.rows({ filter: 'applied' }).data();
+        var totalProveedores = filasVisibles.length;
+        var totalKg = 0;
+        
+        // Calcular suma de KG de las filas visibles
+        filasVisibles.each(function(data, index) {
+            // La columna 2 contiene el total KG (necesitamos extraer el número del badge)
+            var kgText = $(data[2]).text() || data[2];
+            var kgValue = parseFloat(kgText.replace(/[^\d.-]/g, '')) || 0;
+            totalKg += kgValue;
+        });
+        
+        // Actualizar los elementos en la interfaz usando los IDs específicos
+        $('#total-proveedores').text(totalProveedores);
+        $('#total-kg-general').text(new Intl.NumberFormat('es-ES', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(totalKg) + ' kg');
+    }
 
     // Aplica los filtros de las celdas del segundo thead (por columna)
     $('#table_total_kg_proveedor thead tr:eq(1) th').each(function (i) {
@@ -54,10 +74,25 @@ $(document).ready(function () {
                         .column(i)
                         .search(this.value)
                         .draw();
+                    
+                    // Actualizar totales después de filtrar
+                    actualizarTotales();
                 }
             });
         }
     });
+      // También actualizar totales cuando se use el buscador general
+    table.on('search.dt', function() {
+        actualizarTotales();
+    });
+    
+    // Actualizar totales cuando se redibuje la tabla
+    table.on('draw.dt', function() {
+        actualizarTotales();
+    });
+    
+    // Actualizar totales al cargar la página inicialmente
+    actualizarTotales();
     
     // Funcionalidad para filtros
     $('#aplicarFiltros').on('click', function() {
@@ -93,15 +128,25 @@ $(document).ready(function () {
         url.searchParams.delete('año');
         window.location.href = url.toString();
     });
-      // Funcionalidad para guardar métricas
+    
+    // Funcionalidad para guardar métricas
     $('#guardarMetricas').on('click', function() {
         var mes = $('#filtro_mes').val();
         var año = $('#filtro_año').val();
         
-        // Ya no necesitamos validar si mes y año están vacíos porque siempre estarán seleccionados        // Recopilar datos de métricas (incluyendo campos vacíos para borrar)
+        if (!mes || !año) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Filtros requeridos',
+                text: 'Debe seleccionar mes y año antes de guardar las métricas.',
+                confirmButtonText: 'Entendido'
+            });
+            return;
+        }
+        
+        // Recopilar datos de métricas
         var metricas = {};
         var hasData = false;
-        var hasChanges = false; // Para detectar si hay algún input (vacío o con valor)
         
         $('.metrica-input').each(function() {
             var $input = $(this);
@@ -113,22 +158,17 @@ $(document).ready(function () {
                 metricas[proveedorId] = {};
             }
             
-            hasChanges = true; // Hay al menos un input disponible para modificar
-            
-            // Siempre incluir el campo, incluso si está vacío (para poder borrarlo en BD)
             if (valor && valor.trim() !== '') {
                 metricas[proveedorId][metrica] = parseFloat(valor);
                 hasData = true;
             } else {
-                metricas[proveedorId][metrica] = null; // Explícitamente null para borrar
-            }
-        });
+                metricas[proveedorId][metrica] = null;
+            }        });
         
-        // Validar que al menos haya inputs disponibles
-        if (!hasChanges) {
+        if (!hasData) {
             $.confirm({
                 title: 'Sin datos',
-                content: 'No hay métricas disponibles para modificar.',
+                content: 'No hay métricas para guardar.',
                 type: 'blue',
                 buttons: {
                     entendido: {
@@ -147,9 +187,11 @@ $(document).ready(function () {
             type: 'blue',
             buttons: false,
             closeIcon: false
-        });        // Enviar datos al servidor
+        });
+        
+        // Enviar datos al servidor
         $.ajax({
-            url: (window.appBaseUrl || window.location.origin) + '/material_kilo/guardar-metricas',
+            url: '/material_kilo/guardar-metricas',
             method: 'POST',
             data: {
                 _token: $('meta[name="csrf-token"]').attr('content'),
@@ -191,7 +233,9 @@ $(document).ready(function () {
                 });
             }
         });
-    });    // Inicializar filtros desde URL
+    });
+    
+    // Inicializar filtros desde URL
     var urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('mes')) {
         $('#filtro_mes').val(urlParams.get('mes'));
