@@ -178,19 +178,21 @@
                             <span class="badge badge-info">
                                 {{ number_format($total->cantidad_registros) }} registros
                             </span>
-                        </td>
-                        <td class="text-center">
-                            <div class="progress" style="height: 20px;">
+                        </td>                        <td class="text-center">
+                            <div class="progress position-relative" style="height: 25px;">
                                 <div class="progress-bar 
                                     @if($porcentaje >= 50) bg-success
                                     @elseif($porcentaje >= 25) bg-warning
                                     @else bg-info
                                     @endif" 
                                     role="progressbar" 
-                                    style="width: {{ $porcentaje }}%;" 
+                                    style="width: {{ max($porcentaje, 1) }}%;" 
                                     aria-valuenow="{{ $porcentaje }}" 
                                     aria-valuemin="0" 
                                     aria-valuemax="100">
+                                </div>
+                                <div class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center" 
+                                     style="color: {{ $porcentaje >= 50 ? 'white' : '#333' }}; font-weight: bold; font-size: 12px;">
                                     {{ number_format($porcentaje, 1) }}%
                                 </div>
                             </div>

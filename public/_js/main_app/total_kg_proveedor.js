@@ -62,6 +62,52 @@ $(document).ready(function () {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         }).format(totalKg) + ' kg');
+        
+        // Actualizar porcentajes de las filas visibles
+        actualizarPorcentajes(totalKg);
+    }
+    
+    // Función para actualizar porcentajes basado en el nuevo total
+    function actualizarPorcentajes(totalKgFiltrado) {
+        if (totalKgFiltrado <= 0) return;
+        
+        table.rows({ filter: 'applied' }).every(function() {
+            var data = this.data();
+            var node = this.node();
+            
+            // Extraer el valor de KG de la fila
+            var kgText = $(data[2]).text() || data[2];
+            var kgValue = parseFloat(kgText.replace(/[^\d.-]/g, '')) || 0;
+            
+            // Calcular nuevo porcentaje
+            var nuevoPorcentaje = (kgValue / totalKgFiltrado) * 100;
+            
+            // Actualizar la celda de porcentaje (columna 4)
+            var $progressContainer = $(node).find('td:eq(4) .progress');
+            var $progressBar = $progressContainer.find('.progress-bar');
+            var $progressText = $progressContainer.find('.position-absolute');
+            
+            // Actualizar la barra de progreso
+            var anchoMinimo = Math.max(nuevoPorcentaje, 1);
+            $progressBar.css('width', anchoMinimo + '%');
+            $progressBar.attr('aria-valuenow', nuevoPorcentaje);
+            
+            // Actualizar el color de la barra según el porcentaje
+            $progressBar.removeClass('bg-success bg-warning bg-info');
+            if (nuevoPorcentaje >= 50) {
+                $progressBar.addClass('bg-success');
+                $progressText.css('color', 'white');
+            } else if (nuevoPorcentaje >= 25) {
+                $progressBar.addClass('bg-warning');
+                $progressText.css('color', '#333');
+            } else {
+                $progressBar.addClass('bg-info');
+                $progressText.css('color', '#333');
+            }
+            
+            // Actualizar el texto del porcentaje
+            $progressText.text(nuevoPorcentaje.toFixed(1) + '%');
+        });
     }
 
     // Aplica los filtros de las celdas del segundo thead (por columna)
