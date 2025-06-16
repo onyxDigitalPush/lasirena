@@ -68,8 +68,9 @@
                     </li>
                 @endif                @if (Auth::user()->type_user == '1' || Auth::user()->type_user == '2')
                     <li class="active">
-                        <a href="{{ route('material_kilo.index') }}" title="Entradas Productos" class="active">
+                        <a href="{{ route('material_kilo.index') }}" title="Lista Material Kilos" class="active">
                             <i class="metismenu-icon fa fa-truck"></i>
+                            Material Kilos
                         </a>
                     </li>
                 @endif
@@ -77,6 +78,15 @@
                     <li class="active">
                         <a href="{{ route('material_kilo.total_kg_proveedor') }}" title="Total KG por Proveedor" class="active">
                             <i class="metismenu-icon fa fa-bar-chart"></i>
+                            Total KG por Proveedor
+                        </a>
+                    </li>
+                @endif
+                @if (Auth::user()->type_user == '1' || Auth::user()->type_user == '2')
+                    <li class="active">
+                        <a href="{{ route('material_kilo.evaluacion_continua_proveedores') }}" title="Evaluación Continua Proveedores" class="active">
+                            <i class="metismenu-icon fa fa-line-chart"></i>
+                            Evaluación Continua
                         </a>
                     </li>
                 @endif

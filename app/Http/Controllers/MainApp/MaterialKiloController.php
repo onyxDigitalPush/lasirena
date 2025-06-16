@@ -68,11 +68,11 @@ class MaterialKiloController extends Controller
         $materialKilo->delete();
         return redirect()->route('material_kilo.index')->with('success', 'Material Kilo eliminado correctamente.');
 
-    }     public function totalKgPorProveedor(Request $request)
+    }    public function totalKgPorProveedor(Request $request)
     {
-        // Obtener filtros
-        $mes = $request->get('mes');
-        $año = $request->get('año', date('Y'));
+        // Obtener filtros con valores por defecto (Enero del año actual)
+        $mes = $request->get('mes', 1); // Por defecto enero (mes 1)
+        $año = $request->get('año', date('Y')); // Por defecto año actual
         
         // Query base para totales por proveedor
         $query = MaterialKilo::join('proveedores', 'material_kilos.proveedor_id', '=', 'proveedores.id_proveedor')
@@ -83,11 +83,10 @@ class MaterialKiloController extends Controller
                 DB::raw('COUNT(gp_ls_material_kilos.id) as cantidad_registros')
             );
         
-        // Aplicar filtros si están presentes
-        if ($año) {
-            $query->where('material_kilos.año', $año);
-        }
+        // Aplicar filtros
+        $query->where('material_kilos.año', $año);
         
+        // Si mes está seleccionado, filtrar por mes específico
         if ($mes) {
             $query->where('material_kilos.mes', $mes);
         }
@@ -97,20 +96,20 @@ class MaterialKiloController extends Controller
             ->get();
         
         // Obtener métricas existentes para el período filtrado
-        $metricas_query = ProveedorMetric::query();
+        $metricas_query = ProveedorMetric::where('año', $año);
         
-        if ($año) {
-            $metricas_query->where('año', $año);
-        }
-        
+        // Si mes está seleccionado, filtrar métricas por mes específico
         if ($mes) {
             $metricas_query->where('mes', $mes);
         }
-          $metricas_por_proveedor = $metricas_query->get()->keyBy('proveedor_id');
+        
+        $metricas_por_proveedor = $metricas_query->get()->keyBy('proveedor_id');
         
         return view('MainApp/material_kilo.total_kg_por_proveedor', compact(
             'totales_por_proveedor', 
-            'metricas_por_proveedor'
+            'metricas_por_proveedor',
+            'mes',
+            'año'
         ));
     }
 
@@ -155,5 +154,106 @@ class MaterialKiloController extends Controller
                 'message' => 'Error al guardar las métricas: ' . $e->getMessage()
             ], 500);
         }
+    }    public function evaluacionContinuaProveedores(Request $request)
+    {
+        $mes = $request->get('mes', 1); // Por defecto enero (mes 1)
+        $año = $request->get('año', \Carbon\Carbon::now()->year);        // Obtener totales por proveedor para el mes y año específicos
+        $query = DB::table('material_kilos')
+            ->join('proveedores', 'material_kilos.proveedor_id', '=', 'proveedores.id_proveedor')
+            ->select(
+                'proveedores.id_proveedor',
+                'proveedores.nombre_proveedor',
+                DB::raw('SUM(gp_ls_material_kilos.total_kg) as total_kg_proveedor'),
+                DB::raw('COUNT(gp_ls_material_kilos.id) as cantidad_registros')
+            )
+            ->where('material_kilos.año', $año);
+
+        // Si mes está seleccionado, filtrar por mes específico
+        if ($mes) {
+            $query->where('material_kilos.mes', $mes);
+        }
+
+        $totales_por_proveedor = $query->groupBy('proveedores.id_proveedor', 'proveedores.nombre_proveedor')
+            ->having('total_kg_proveedor', '>', 0)
+            ->orderBy('total_kg_proveedor', 'desc')
+            ->get();
+
+        // Obtener métricas existentes para los proveedores
+        $metricas_por_proveedor = [];
+        if ($totales_por_proveedor->isNotEmpty()) {
+            $proveedores_ids = $totales_por_proveedor->pluck('id_proveedor')->toArray();
+            $metricas_query = ProveedorMetric::whereIn('proveedor_id', $proveedores_ids)
+                ->where('año', $año);
+
+            // Si mes está seleccionado, filtrar por mes específico
+            if ($mes) {
+                $metricas_query->where('mes', $mes);
+                $metricas = $metricas_query->get();
+                
+                foreach ($metricas as $metrica) {
+                    $metricas_por_proveedor[$metrica->proveedor_id] = $metrica;
+                }
+            } else {
+                // Si no hay mes específico, calcular promedio de todas las métricas del año
+                $metricas = $metricas_query->get();
+                $metricas_agrupadas = $metricas->groupBy('proveedor_id');
+                
+                foreach ($metricas_agrupadas as $proveedor_id => $metricas_proveedor) {
+                    $promedio = new \stdClass();
+                    $promedio->proveedor_id = $proveedor_id;
+                    $promedio->rg1 = $metricas_proveedor->avg('rg1');
+                    $promedio->rl1 = $metricas_proveedor->avg('rl1');
+                    $promedio->dev1 = $metricas_proveedor->avg('dev1');
+                    $promedio->rok1 = $metricas_proveedor->avg('rok1');
+                    $promedio->ret1 = $metricas_proveedor->avg('ret1');
+                    
+                    $metricas_por_proveedor[$proveedor_id] = $promedio;
+                }
+            }
+        }
+
+        // Calcular indicadores y ponderados para cada proveedor
+        foreach ($totales_por_proveedor as $proveedor) {
+            $metricas = isset($metricas_por_proveedor[$proveedor->id_proveedor]) 
+                ? $metricas_por_proveedor[$proveedor->id_proveedor] 
+                : null;            if ($metricas && $proveedor->total_kg_proveedor > 0) {
+                // Cálculos de indicadores (valores * 1000000 / total_kg)
+                $proveedor->rg_ind1 = ($metricas->rg1 ?? 0) * 1000000 / $proveedor->total_kg_proveedor;
+                $proveedor->rl_ind1 = ($metricas->rl1 ?? 0) * 1000000 / $proveedor->total_kg_proveedor;
+                $proveedor->dev_ind1 = ($metricas->dev1 ?? 0) * 1000000 / $proveedor->total_kg_proveedor;
+                $proveedor->rok_ind1 = ($metricas->rok1 ?? 0) * 1000000 / $proveedor->total_kg_proveedor;
+                $proveedor->ret_ind1 = ($metricas->ret1 ?? 0) * 1000000 / $proveedor->total_kg_proveedor;
+                $proveedor->total_ind1 = $proveedor->rg_ind1 + $proveedor->rl_ind1 + $proveedor->dev_ind1 + $proveedor->rok_ind1 + $proveedor->ret_ind1;
+
+                // Cálculos de ponderados (usando los valores por millón * porcentajes)
+                $proveedor->rg_pond1 = $proveedor->rg_ind1 * 0.30; // RGind1 * 30%
+                $proveedor->rl_pond1 = $proveedor->rl_ind1 * 0.05; // RLind1 * 5%
+                $proveedor->dev_pond1 = $proveedor->dev_ind1 * 0.20; // DEVind1 * 20%
+                $proveedor->rok_pond1 = $proveedor->rok_ind1 * 0.10; // ROKind1 * 10%
+                $proveedor->ret_pond1 = $proveedor->ret_ind1 * 0.35; // RETind1 * 35%
+                $proveedor->total_pond1 = $proveedor->rg_pond1 + $proveedor->rl_pond1 + $proveedor->dev_pond1 + $proveedor->rok_pond1 + $proveedor->ret_pond1;
+            } else {
+                // Si no hay métricas o total_kg es 0, inicializar en 0
+                $proveedor->rg_ind1 = 0;
+                $proveedor->rl_ind1 = 0;
+                $proveedor->dev_ind1 = 0;
+                $proveedor->rok_ind1 = 0;
+                $proveedor->ret_ind1 = 0;
+                $proveedor->total_ind1 = 0;
+                $proveedor->rg_pond1 = 0;
+                $proveedor->rl_pond1 = 0;
+                $proveedor->dev_pond1 = 0;
+                $proveedor->rok_pond1 = 0;
+                $proveedor->ret_pond1 = 0;
+                $proveedor->total_pond1 = 0;
+            }
+        }
+
+        return view('MainApp/material_kilo.evaluacion_continua_proveedores', compact(
+            'totales_por_proveedor', 
+            'metricas_por_proveedor',
+            'mes',
+            'año'
+        ));
     }
 }

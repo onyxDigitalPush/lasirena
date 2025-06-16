@@ -139,8 +139,7 @@ $(document).ready(function () {
     
     // Actualizar totales al cargar la página inicialmente
     actualizarTotales();
-    
-    // Funcionalidad para filtros
+      // Funcionalidad para filtros
     $('#aplicarFiltros').on('click', function() {
         var mes = $('#filtro_mes').val();
         var año = $('#filtro_año').val();
@@ -164,6 +163,28 @@ $(document).ready(function () {
         window.location.href = url.toString();
     });
     
+    // Función para controlar la visibilidad del botón Guardar Métricas
+    function controlarBotonGuardarMetricas() {
+        var mes = $('#filtro_mes').val();
+        var $botonGuardar = $('#guardarMetricas');
+        
+        if (!mes) {
+            $botonGuardar.prop('disabled', true);
+            $botonGuardar.attr('title', 'Debe seleccionar un mes específico para guardar métricas');
+            $botonGuardar.removeClass('btn-success').addClass('btn-secondary');
+        } else {
+            $botonGuardar.prop('disabled', false);
+            $botonGuardar.attr('title', 'Guardar Métricas');
+            $botonGuardar.removeClass('btn-secondary').addClass('btn-success');
+        }
+    }
+    
+    // Controlar el botón al cambiar el mes
+    $('#filtro_mes').on('change', controlarBotonGuardarMetricas);
+    
+    // Controlar el botón al cargar la página
+    controlarBotonGuardarMetricas();
+    
     $('#limpiarFiltros').on('click', function() {
         $('#filtro_mes').val('');
         $('#filtro_año').val('');
@@ -174,17 +195,26 @@ $(document).ready(function () {
         url.searchParams.delete('año');
         window.location.href = url.toString();
     });
-    
-    // Funcionalidad para guardar métricas
+      // Funcionalidad para guardar métricas
     $('#guardarMetricas').on('click', function() {
         var mes = $('#filtro_mes').val();
         var año = $('#filtro_año').val();
         
-        if (!mes || !año) {
+        if (!año) {
             Swal.fire({
                 icon: 'warning',
-                title: 'Filtros requeridos',
-                text: 'Debe seleccionar mes y año antes de guardar las métricas.',
+                title: 'Año requerido',
+                text: 'Debe seleccionar el año.',
+                confirmButtonText: 'Entendido'
+            });
+            return;
+        }
+        
+        if (!mes) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Mes requerido para guardar métricas',
+                text: 'Debe seleccionar un mes específico para guardar las métricas. No es posible guardar métricas para "Todos los meses".',
                 confirmButtonText: 'Entendido'
             });
             return;
@@ -233,11 +263,9 @@ $(document).ready(function () {
             type: 'blue',
             buttons: false,
             closeIcon: false
-        });
-        
-        // Enviar datos al servidor
+        });        // Enviar datos al servidor
         $.ajax({
-            url: '/material_kilo/guardar-metricas',
+            url: window.guardarMetricasUrl,
             method: 'POST',
             data: {
                 _token: $('meta[name="csrf-token"]').attr('content'),
