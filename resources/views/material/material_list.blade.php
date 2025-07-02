@@ -22,6 +22,26 @@
         <div class="page-title-actions text-white">
             <input type="hidden" value="0" name="tab_orders" id="tab_orders">
 
+            <!-- Filtros -->
+            <div class="btn-group mr-2" role="group">
+                <a href="{{ route('materiales.list', ['id' => $proveedor->id_proveedor]) }}" 
+                   class="btn btn-secondary {{ !request('filtro') ? 'active' : '' }}">
+                    Todos
+                </a>
+                <a href="{{ route('materiales.list', ['id' => $proveedor->id_proveedor, 'filtro' => 'con_factor']) }}" 
+                   class="btn btn-info {{ request('filtro') == 'con_factor' ? 'active' : '' }}">
+                    Con Factor
+                </a>
+                <a href="{{ route('materiales.list', ['id' => $proveedor->id_proveedor, 'filtro' => 'sin_factor']) }}" 
+                   class="btn btn-warning {{ request('filtro') == 'sin_factor' ? 'active' : '' }}">
+                    Sin Factor
+                </a>
+                <a href="{{ route('materiales.list', ['id' => $proveedor->id_proveedor, 'filtro' => 'factor_cero']) }}" 
+                   class="btn btn-danger {{ request('filtro') == 'factor_cero' ? 'active' : '' }}">
+                    Factor en 0
+                </a>
+            </div>
+
             <a class="m-2 btn btn-primary" href="#" data-toggle="modal" data-target="#createMaterial">
                 <i class="metismenu-icon fa fa-user mr-2"></i></i>Crear Material
             </a>
@@ -61,6 +81,7 @@
                     <th class="text-center">Codigo Material</th>
                     <th class="text-center">Jerarquia</th>
                     <th class="text-center">Descripcion Material</th>
+                    <th class="text-center">Factor Conversion</th>
                     <th class="text-center">Editar</th>
                     <th class="text-center">Eliminar</th>
                 </tr>
@@ -73,6 +94,15 @@
                         <td class="text-center">{{ $material->codigo }}</td>
                         <td class="text-center">{{ $material->jerarquia }}</td>
                         <td class="text-center">{{ $material->descripcion }} </td>
+                        <td class="text-center">
+                            @if($material->factor_conversion !== null && $material->factor_conversion > 0)
+                                <span class="badge badge-success">{{ number_format($material->factor_conversion, 2) }}</span>
+                            @elseif($material->factor_conversion == 0)
+                                <span class="badge badge-danger">{{ number_format($material->factor_conversion, 2) }}</span>
+                            @else
+                                <span class="badge badge-warning">Sin Factor</span>
+                            @endif
+                        </td>
                         <td class="text-center">
                             <a href="#" class="btn btn-primary open-modal"
                                 data-url="{{ url('material/' . $material->id . '/edit') }}">

@@ -65,7 +65,6 @@ class MaterialController extends Controller
 
         // Si es una petición AJAX, devolver JSON
         if (request()->ajax()) {
-            Log::info('Material data being returned: ' . json_encode($material->toArray()));
             return response()->json($material);
         }
 
@@ -84,10 +83,7 @@ class MaterialController extends Controller
         $material->jerarquia = $request->input('jerarquia');
         $material->proveedor_id = $request->input('proveedor_id');
         $material->factor_conversion = $request->input('factor_conversion');
-        
-        Log::info('Saving material with factor_conversion: ' . $request->input('factor_conversion'));
         $material->save();
-        Log::info('Material saved with factor_conversion: ' . $material->factor_conversion);
         
         // Si se proporcionó un factor de conversión, actualizar material_kilos
         if ($request->input('factor_conversion')) {
@@ -115,10 +111,22 @@ class MaterialController extends Controller
 
     public function list($id)
     {
-        $materiales = Material::where('materiales.proveedor_id', $id)
+        $query = Material::where('materiales.proveedor_id', $id)
             ->join('proveedores', 'materiales.proveedor_id', '=', 'proveedores.id_proveedor')
-            ->select('materiales.*', 'proveedores.nombre_proveedor')
-            ->get();
+            ->select('materiales.*', 'proveedores.nombre_proveedor');
+
+        // Aplicar filtros
+        $filtro = request('filtro');
+        if ($filtro == 'con_factor') {
+            $query->whereNotNull('materiales.factor_conversion')
+                  ->where('materiales.factor_conversion', '>', 0);
+        } elseif ($filtro == 'sin_factor') {
+            $query->whereNull('materiales.factor_conversion');
+        } elseif ($filtro == 'factor_cero') {
+            $query->where('materiales.factor_conversion', '=', 0);
+        }
+
+        $materiales = $query->get();
         $proveedor = Proveedor::where('id_proveedor', $id)->first();
 
         return view('material.material_list', compact('materiales', 'proveedor'));

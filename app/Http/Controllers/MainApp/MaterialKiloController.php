@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 class MaterialKiloController extends Controller   
 {    public function index()
 {
-    $array_material_kilo = MaterialKilo::join('proveedores', 'material_kilos.proveedor_id', '=', 'proveedores.id_proveedor')
+    $query = MaterialKilo::join('proveedores', 'material_kilos.proveedor_id', '=', 'proveedores.id_proveedor')
         ->join('materiales', 'material_kilos.codigo_material', '=', 'materiales.codigo')
         ->select(
             'material_kilos.id',
@@ -26,9 +26,19 @@ class MaterialKiloController extends Controller
             'material_kilos.factor_conversion',
             'material_kilos.codigo_material',
             'material_kilos.mes',
-        )
-        ->orderBy('material_kilos.id', 'asc')
-        ->paginate(25); // solo 50 por página
+        );
+
+    // Aplicar ordenamiento según el filtro
+    $orden = request('orden');
+    if ($orden == 'total_kg_desc') {
+        $query->orderBy('material_kilos.total_kg', 'desc');
+    } elseif ($orden == 'total_kg_asc') {
+        $query->orderBy('material_kilos.total_kg', 'asc');
+    } else {
+        $query->orderBy('material_kilos.id', 'asc');
+    }
+
+    $array_material_kilo = $query->paginate(25);
 
     return view('MainApp/material_kilo.material_kilo_list', compact('array_material_kilo'));
 }

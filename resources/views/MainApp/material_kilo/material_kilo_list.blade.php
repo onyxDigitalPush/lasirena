@@ -21,6 +21,22 @@
             </div>
         </div>
         <div class="page-title-actions text-white">
+            <!-- Filtros de ordenamiento -->
+            <div class="btn-group mr-2" role="group">
+                <a href="{{ route('material_kilo.index') }}" 
+                   class="btn btn-secondary {{ !request('orden') ? 'active' : '' }}">
+                    <i class="fa fa-list mr-1"></i>Por Defecto
+                </a>
+                <a href="{{ route('material_kilo.index', ['orden' => 'total_kg_desc']) }}" 
+                   class="btn btn-info {{ request('orden') == 'total_kg_desc' ? 'active' : '' }}">
+                    <i class="fa fa-sort-amount-desc mr-1"></i>Total KG Mayor
+                </a>
+                <a href="{{ route('material_kilo.index', ['orden' => 'total_kg_asc']) }}" 
+                   class="btn btn-warning {{ request('orden') == 'total_kg_asc' ? 'active' : '' }}">
+                    <i class="fa fa-sort-amount-asc mr-1"></i>Total KG Menor
+                </a>
+            </div>
+            
             <a class="m-2 btn btn-success" href="{{ route('material_kilo.total_kg_proveedor') }}">
                 <i class="fa fa-bar-chart mr-2"></i>Total KG por Proveedor
             </a>
@@ -90,7 +106,9 @@
                             <td class="text-center">{{ $material_kilo->umb }}</td>
                             <td class="text-center">{{ $material_kilo->mes }}</td>
                             <td class="text-center">{{ $material_kilo->factor_conversion }}</td>
-                            <td class="text-center">{{ $material_kilo->total_kg }}</td>
+                            <td class="text-center">
+                                <strong class="text-primary">{{ number_format($material_kilo->total_kg, 2) }} KG</strong>
+                            </td>
                             <td class="text-center d-flex justify-content-center">
                                 <form action="{{ route('material_kilo.delete') }}" method="POST"
                                     style="display:inline-block;"
