@@ -12,7 +12,7 @@ class Material extends Model
 {
     protected $table = 'materiales';
 
-    protected $fillable = ['jerarquia', 'codigo', 'descripcion', 'proveedor_id'];
+    protected $fillable = ['jerarquia', 'codigo', 'descripcion', 'proveedor_id', 'factor_conversion'];
 
     public function proveedor(): BelongsTo
     {

@@ -7,6 +7,7 @@ use App\Models\MainApp\ProveedorMetric;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class MaterialKiloController extends Controller   
 {    public function index()
@@ -157,7 +158,9 @@ class MaterialKiloController extends Controller
     }    public function evaluacionContinuaProveedores(Request $request)
     {
         $mes = $request->get('mes', 1); // Por defecto enero (mes 1)
-        $año = $request->get('año', \Carbon\Carbon::now()->year);        // Obtener totales por proveedor para el mes y año específicos
+        $año = $request->get('año', \Carbon\Carbon::now()->year);
+
+        // Obtener totales por proveedor para el mes y año específicos
         $query = DB::table('material_kilos')
             ->join('proveedores', 'material_kilos.proveedor_id', '=', 'proveedores.id_proveedor')
             ->select(
@@ -174,7 +177,6 @@ class MaterialKiloController extends Controller
         }
 
         $totales_por_proveedor = $query->groupBy('proveedores.id_proveedor', 'proveedores.nombre_proveedor')
-            ->having('total_kg_proveedor', '>', 0)
             ->orderBy('total_kg_proveedor', 'desc')
             ->get();
 

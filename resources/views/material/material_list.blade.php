@@ -123,6 +123,11 @@
                                 <input type="text" class="form-control" id="create_jerarquia" name="jerarquia"
                                     required>
                             </div>
+
+                            <div class="form-group">
+                                <label for="create_factor_conversion">Factor Conversion</label>
+                                <input type="number" step="0.00001" class="form-control" id="create_factor_conversion" name="factor_conversion" placeholder="Ingrese el factor de conversión">
+                            </div>
                         </div>
 
                         <div class="modal-footer">
@@ -139,7 +144,7 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title" id="userModalLabel">Editar Usuario</h4>
+                        <h4 class="modal-title" id="userModalLabel">Editar Producto</h4>
                         <button type="button" class="close" data-dismiss="modal">&times;</button>
                     </div>
                     <div class="modal-body">
@@ -158,6 +163,10 @@
                             <div class="form-group">
                                 <label for="descripcion">Descripcion</label>
                                 <input type="text" class="form-control" id="descripcion" name="descripcion">
+                            </div>
+                            <div class="form-group">
+                                <label for="factor_conversion">Factor Conversion</label>
+                                <input type="number" step="0.00001" class="form-control" id="factor_conversion" name="factor_conversion" placeholder="Ingrese el factor de conversión">
                             </div>
                             <input type="hidden" name="proveedor_id" id="proveedor_id" >
                             <input type="hidden" id="id" name="id">

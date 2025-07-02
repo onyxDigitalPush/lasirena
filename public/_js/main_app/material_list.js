@@ -11,6 +11,7 @@ $(document).on("click", ".open-modal", function () {
       $("#codigo").val(material.codigo);
       $("#descripcion").val(material.descripcion);
       $("#jerarquia").val(material.jerarquia);
+      $("#factor_conversion").val(material.factor_conversion);
       $("#userModal").modal("show");
     },
   });
