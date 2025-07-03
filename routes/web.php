@@ -194,6 +194,10 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/material_kilo/evaluacion-continua-proveedores', 'MaterialKiloController@evaluacionContinuaProveedores')->name('material_kilo.evaluacion_continua_proveedores');
     Route::post('/material_kilo/delete', 'MaterialKiloController@destroy')->name('material_kilo.delete');
     Route::post('/material_kilo/guardar-metricas', 'MaterialKiloController@guardarMetricas')->name('material_kilo.guardar_metricas');
+    
+    // Rutas para incidencias de proveedores
+    Route::post('/material_kilo/guardar-incidencia', 'MaterialKiloController@guardarIncidencia')->name('material_kilo.guardar_incidencia');
+    Route::get('/material_kilo/obtener-incidencias', 'MaterialKiloController@obtenerIncidencias')->name('material_kilo.obtener_incidencias');
 
   });
 });

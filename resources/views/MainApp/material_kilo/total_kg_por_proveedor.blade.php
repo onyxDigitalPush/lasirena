@@ -4,9 +4,58 @@
 
 @section('custom_head')
 <meta name="csrf-token" content="{{ csrf_token() }}">
+<style>
+    .btn-group .btn {
+        margin-left: 5px;
+    }
+    .btn-group .btn:first-child {
+        margin-left: 0;
+    }
+    .card-header .btn-group .btn {
+        border: 1px solid rgba(255,255,255,0.3);
+    }
+    .card-header .btn-group .btn:hover {
+        background-color: rgba(255,255,255,0.1);
+    }
+    
+    /* Asegurar que el modal funcione correctamente */
+    .modal-backdrop {
+        z-index: 1040 !important;
+        background-color: rgba(0,0,0,0.5) !important;
+    }
+    .modal {
+        z-index: 1050 !important;
+    }
+    .modal.fade.show {
+        display: block !important;
+    }
+    .modal-dialog {
+        margin: 30px auto !important;
+    }
+    .modal-content {
+        background-color: #fff !important;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    /* Forzar visibilidad del modal */
+    #modalIncidencias.show {
+        display: block !important;
+        opacity: 1 !important;
+    }
+    
+    /* Botón de cerrar */
+    .modal-header .close {
+        color: #000 !important;
+        opacity: 0.8 !important;
+    }
+    .modal-header .close:hover {
+        opacity: 1 !important;
+    }
+</style>
 <script>
     window.appBaseUrl = '{{ url("/") }}';
     window.guardarMetricasUrl = '{{ route("material_kilo.guardar_metricas") }}';
+    window.guardarIncidenciaUrl = '{{ route("material_kilo.guardar_incidencia") }}';
     // Debug temporal
     console.log('Mes filtrado:', {{ $mes }});
     console.log('Año filtrado:', {{ $año }});
@@ -100,7 +149,7 @@
                                     <i class="fa fa-times mr-1"></i>Limpiar
                                 </button>
                             </div>
-                            <div class="col-md-3 d-flex align-items-end">
+                            <div class="col-md-3 d-flex align-items-end justify-content-end">
                                 <button type="button" id="guardarMetricas" class="btn btn-success">
                                     <i class="fa fa-save mr-1"></i>Guardar Métricas
                                 </button>
@@ -124,10 +173,20 @@
             </div>
             <div class="col-md-6">
                 <div class="card bg-success text-white">
-                    <div class="card-body">
-                        <h5 class="card-title">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
                             <i class="fa fa-weight mr-2"></i>Total KG General
                         </h5>
+                        <div class="btn-group" role="group">
+                            <button type="button" id="gestionarIncidencias" class="btn btn-warning btn-sm">
+                                <i class="fa fa-exclamation-triangle mr-1"></i>Incidencias
+                            </button>
+                            <button type="button" id="gestionarDevoluciones" class="btn btn-info btn-sm">
+                                <i class="fa fa-undo mr-1"></i>Devoluciones
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
                         <h3 class="card-text" id="total-kg-general">{{ number_format($totales_por_proveedor->sum('total_kg_proveedor'), 2) }} kg</h3>
                     </div>
                 </div>
@@ -209,7 +268,8 @@
                                    placeholder="0.00"
                                    value="{{ $metricas ? $metricas->rg1 : '' }}"
                                    data-proveedor="{{ $total->id_proveedor }}"
-                                   data-metrica="rg1">
+                                   data-metrica="rg1"
+                                   readonly>
                         </td>
                         <td class="text-center">
                             <input type="number" 
@@ -219,7 +279,8 @@
                                    placeholder="0.00"
                                    value="{{ $metricas ? $metricas->rl1 : '' }}"
                                    data-proveedor="{{ $total->id_proveedor }}"
-                                   data-metrica="rl1">
+                                   data-metrica="rl1"
+                                   readonly>
                         </td>
                         <td class="text-center">
                             <input type="number" 
@@ -229,7 +290,8 @@
                                    placeholder="0.00"
                                    value="{{ $metricas ? $metricas->dev1 : '' }}"
                                    data-proveedor="{{ $total->id_proveedor }}"
-                                   data-metrica="dev1">
+                                   data-metrica="dev1"
+                                   readonly>
                         </td>
                         <td class="text-center">
                             <input type="number" 
@@ -239,7 +301,8 @@
                                    placeholder="0.00"
                                    value="{{ $metricas ? $metricas->rok1 : '' }}"
                                    data-proveedor="{{ $total->id_proveedor }}"
-                                   data-metrica="rok1">
+                                   data-metrica="rok1"
+                                   readonly>
                         </td>
                         <td class="text-center">
                             <input type="number" 
@@ -249,7 +312,8 @@
                                    placeholder="0.00"
                                    value="{{ $metricas ? $metricas->ret1 : '' }}"
                                    data-proveedor="{{ $total->id_proveedor }}"
-                                   data-metrica="ret1">
+                                   data-metrica="ret1"
+                                   readonly>
                         </td>
                     </tr>
                 @endforeach
@@ -257,6 +321,283 @@
         </table>
     </div>
 @endsection
+
+<!-- Modal de Incidencias - Movido fuera del contenedor principal -->
+<div class="modal fade" id="modalIncidencias" tabindex="-1" role="dialog" aria-labelledby="modalIncidenciasLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="modalIncidenciasLabel">
+                    <i class="fa fa-exclamation-triangle mr-2"></i>Gestión de Incidencias de Proveedores
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+                <div class="modal-body">
+                    <form id="formIncidencia">
+                        @csrf
+                        <div class="row">
+                            <!-- Datos básicos -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="proveedor_incidencia">Proveedor:</label>
+                                    <select id="proveedor_incidencia" name="id_proveedor" class="form-control" required>
+                                        <option value="">Seleccione un proveedor</option>
+                                        @foreach ($totales_por_proveedor as $proveedor)
+                                            <option value="{{ $proveedor->id_proveedor }}">{{ $proveedor->nombre_proveedor }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="año_incidencia">Año:</label>
+                                    <select id="año_incidencia" name="año" class="form-control" required>
+                                        @for($year = \Carbon\Carbon::now()->year; $year >= 2020; $year--)
+                                            <option value="{{ $year }}" {{ $year == $año ? 'selected' : '' }}>{{ $year }}</option>
+                                        @endfor
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="mes_incidencia">Mes:</label>
+                                    <select id="mes_incidencia" name="mes" class="form-control" required>
+                                        <option value="1" {{ $mes == 1 ? 'selected' : '' }}>Enero</option>
+                                        <option value="2" {{ $mes == 2 ? 'selected' : '' }}>Febrero</option>
+                                        <option value="3" {{ $mes == 3 ? 'selected' : '' }}>Marzo</option>
+                                        <option value="4" {{ $mes == 4 ? 'selected' : '' }}>Abril</option>
+                                        <option value="5" {{ $mes == 5 ? 'selected' : '' }}>Mayo</option>
+                                        <option value="6" {{ $mes == 6 ? 'selected' : '' }}>Junio</option>
+                                        <option value="7" {{ $mes == 7 ? 'selected' : '' }}>Julio</option>
+                                        <option value="8" {{ $mes == 8 ? 'selected' : '' }}>Agosto</option>
+                                        <option value="9" {{ $mes == 9 ? 'selected' : '' }}>Septiembre</option>
+                                        <option value="10" {{ $mes == 10 ? 'selected' : '' }}>Octubre</option>
+                                        <option value="11" {{ $mes == 11 ? 'selected' : '' }}>Noviembre</option>
+                                        <option value="12" {{ $mes == 12 ? 'selected' : '' }}>Diciembre</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="clasificacion_incidencia">Clasificación de Incidencia:</label>
+                                    <select id="clasificacion_incidencia" name="clasificacion_incidencia" class="form-control">
+                                        <option value="">Seleccione una clasificación</option>
+                                        <option value="RG1">RG1 - Reclamación General</option>
+                                        <option value="RL1">RL1 - Reclamación Legal</option>
+                                        <option value="DEV1">DEV1 - Devolución</option>
+                                        <option value="ROK1">ROK1 - Revisión OK</option>
+                                        <option value="RET1">RET1 - Retención</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="origen">Origen:</label>
+                                    <input type="text" id="origen" name="origen" class="form-control" placeholder="Origen de la incidencia">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="fecha_incidencia">Fecha Incidencia:</label>
+                                    <input type="date" id="fecha_incidencia" name="fecha_incidencia" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="numero_inspeccion_sap">Nº Inspección SAP:</label>
+                                    <input type="text" id="numero_inspeccion_sap" name="numero_inspeccion_sap" class="form-control" placeholder="Número de inspección">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="resolucion_almacen">Resolución Almacén:</label>
+                                    <input type="text" id="resolucion_almacen" name="resolucion_almacen" class="form-control" placeholder="Resolución del almacén">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="cantidad_devuelta">Cantidad Devuelta:</label>
+                                    <input type="number" id="cantidad_devuelta" name="cantidad_devuelta" class="form-control" step="0.01" placeholder="0.00">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="kg_un">Kg/un:</label>
+                                    <input type="number" id="kg_un" name="kg_un" class="form-control" step="0.0001" placeholder="0.0000">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="pedido_sap_devolucion">Pedido SAP Devolución:</label>
+                                    <input type="text" id="pedido_sap_devolucion" name="pedido_sap_devolucion" class="form-control" placeholder="Número de pedido">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="resolucion_tienda">Resolución Tienda:</label>
+                                    <input type="text" id="resolucion_tienda" name="resolucion_tienda" class="form-control" placeholder="Resolución de la tienda">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="retirada_tiendas">¿Retirada Tiendas?:</label>
+                                    <select id="retirada_tiendas" name="retirada_tiendas" class="form-control">
+                                        <option value="">Seleccione</option>
+                                        <option value="Si">Sí</option>
+                                        <option value="No">No</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="cantidad_afectada">Cantidad Afectada:</label>
+                                    <input type="number" id="cantidad_afectada" name="cantidad_afectada" class="form-control" step="0.01" placeholder="0.00">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="descripcion_incidencia">Descripción Incidencia:</label>
+                                    <textarea id="descripcion_incidencia" name="descripcion_incidencia" class="form-control" rows="3" placeholder="Descripción detallada de la incidencia"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="codigo">Código:</label>
+                                    <input type="text" id="codigo" name="codigo" class="form-control" placeholder="Código del producto">
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <label for="producto">Producto:</label>
+                                    <input type="text" id="producto" name="producto" class="form-control" placeholder="Nombre del producto">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="lote_sirena">Lote Sirena:</label>
+                                    <input type="text" id="lote_sirena" name="lote_sirena" class="form-control" placeholder="Lote Sirena">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="lote_proveedor">Lote Proveedor:</label>
+                                    <input type="text" id="lote_proveedor" name="lote_proveedor" class="form-control" placeholder="Lote Proveedor">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="fcp">FCP:</label>
+                                    <input type="date" id="fcp" name="fcp" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="informe_a_proveedor">¿Informe a Proveedor?:</label>
+                                    <select id="informe_a_proveedor" name="informe_a_proveedor" class="form-control">
+                                        <option value="">Seleccione</option>
+                                        <option value="Si">Sí</option>
+                                        <option value="No">No</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="numero_informe">Nº de Informe:</label>
+                                    <input type="text" id="numero_informe" name="numero_informe" class="form-control" placeholder="Número de informe">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="fecha_envio_proveedor">Fecha Envío a Proveedor:</label>
+                                    <input type="date" id="fecha_envio_proveedor" name="fecha_envio_proveedor" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="fecha_respuesta_proveedor">Fecha Respuesta Proveedor:</label>
+                                    <input type="date" id="fecha_respuesta_proveedor" name="fecha_respuesta_proveedor" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="informe_respuesta">Informe Respuesta:</label>
+                                    <textarea id="informe_respuesta" name="informe_respuesta" class="form-control" rows="3" placeholder="Informe de respuesta del proveedor"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="comentarios">Comentarios:</label>
+                                    <textarea id="comentarios" name="comentarios" class="form-control" rows="3" placeholder="Comentarios adicionales"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="fecha_reclamacion_respuesta1">Fecha Reclamación Respuesta 1:</label>
+                                    <input type="date" id="fecha_reclamacion_respuesta1" name="fecha_reclamacion_respuesta1" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="fecha_reclamacion_respuesta2">Fecha Reclamación Respuesta 2:</label>
+                                    <input type="date" id="fecha_reclamacion_respuesta2" name="fecha_reclamacion_respuesta2" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="fecha_decision_destino_producto">Fecha Decisión Destino Producto:</label>
+                                    <input type="date" id="fecha_decision_destino_producto" name="fecha_decision_destino_producto" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fa fa-times mr-1"></i>Cancelar
+                    </button>
+                    <button type="button" id="guardarIncidencia" class="btn btn-warning">
+                        <i class="fa fa-save mr-1"></i>Guardar Incidencia
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 @section('custom_footer')
     <script type="text/javascript"

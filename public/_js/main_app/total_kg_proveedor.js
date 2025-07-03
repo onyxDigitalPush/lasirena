@@ -1,4 +1,13 @@
 $(document).ready(function () {
+    console.log('jQuery y DataTables cargados correctamente');
+    
+    // Verificar que Bootstrap esté cargado
+    if (typeof $.fn.modal === 'undefined') {
+        console.error('Bootstrap modal no está cargado');
+    } else {
+        console.log('Bootstrap modal disponible');
+    }
+    
     var table = $('#table_total_kg_proveedor').DataTable({
         paging: true,
         pageLength: 25,
@@ -333,5 +342,214 @@ $(document).ready(function () {
         if (value && !/^\d*\.?\d*$/.test(value)) {
             $(this).val(value.slice(0, -1));
         }
+    });
+    
+    // Manejar apertura del modal de incidencias
+    $('#gestionarIncidencias').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('Click en botón incidencias detectado');
+        
+        // Limpiar cualquier modal backdrop existente
+        $('.modal-backdrop').remove();
+        $('body').removeClass('modal-open');
+        
+        try {
+            // Intentar usar Bootstrap modal
+            $('#modalIncidencias').modal({
+                backdrop: true,
+                keyboard: true,
+                focus: true,
+                show: true
+            });
+            console.log('Modal Bootstrap ejecutado');
+        } catch (error) {
+            console.error('Error con Bootstrap modal, usando fallback:', error);
+            
+            // Fallback manual
+            $('#modalIncidencias').show().addClass('show').css({
+                'display': 'block',
+                'padding-right': '15px'
+            });
+            
+            $('body').addClass('modal-open').css('padding-right', '15px');
+            
+            // Crear backdrop manualmente
+            if ($('.modal-backdrop').length === 0) {
+                $('<div class="modal-backdrop fade show"></div>').appendTo('body');
+            }
+            
+            console.log('Fallback manual ejecutado');
+        }
+    });
+    
+    // Función para cerrar modal manualmente
+    function cerrarModal() {
+        $('#modalIncidencias').hide().removeClass('show').css({
+            'display': 'none',
+            'padding-right': ''
+        });
+        $('.modal-backdrop').remove();
+        $('body').removeClass('modal-open').css('padding-right', '');
+    }
+    
+    // Event listeners para cerrar el modal
+    $(document).on('click', '#modalIncidencias .close, #modalIncidencias [data-dismiss="modal"]', function() {
+        console.log('Cerrando modal...');
+        try {
+            $('#modalIncidencias').modal('hide');
+        } catch (error) {
+            cerrarModal();
+        }
+    });
+    
+    // Cerrar con Escape
+    $(document).on('keyup', function(e) {
+        if (e.key === 'Escape' && $('#modalIncidencias').is(':visible')) {
+            try {
+                $('#modalIncidencias').modal('hide');
+            } catch (error) {
+                cerrarModal();
+            }
+        }
+    });
+    
+    // Cerrar haciendo clic en el backdrop
+    $(document).on('click', '.modal-backdrop, #modalIncidencias', function(e) {
+        if (e.target === this) {
+            try {
+                $('#modalIncidencias').modal('hide');
+            } catch (error) {
+                cerrarModal();
+            }
+        }
+    });
+    
+    // Asegurar que el modal se puede cerrar
+    $('#modalIncidencias').on('shown.bs.modal', function() {
+        console.log('Modal mostrado correctamente');
+    });
+    
+    $('#modalIncidencias').on('hidden.bs.modal', function() {
+        console.log('Modal cerrado correctamente');
+        $('.modal-backdrop').remove();
+        $('body').removeClass('modal-open').css('padding-right', '');
+    });
+    
+    // Verificar que el modal existe
+    if ($('#modalIncidencias').length) {
+        console.log('Modal de incidencias encontrado en el DOM');
+    } else {
+        console.error('Modal de incidencias NO encontrado en el DOM');
+    }
+    
+    // Manejar envío del formulario de incidencias
+    $('#guardarIncidencia').on('click', function() {
+        var formData = new FormData(document.getElementById('formIncidencia'));
+        
+        $.ajax({
+            url: window.appBaseUrl + '/material_kilo/guardar-incidencia',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            beforeSend: function() {
+                $('#guardarIncidencia').prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-1"></i>Guardando...');
+            },
+            success: function(response) {
+                if (response.success) {
+                    $.confirm({
+                        title: 'Éxito',
+                        content: 'Incidencia guardada correctamente. Las métricas se han actualizado automáticamente.',
+                        type: 'green',
+                        buttons: {
+                            aceptar: {
+                                text: 'Aceptar',
+                                btnClass: 'btn-green',
+                                action: function() {
+                                    // Cerrar modal y recargar página para actualizar métricas
+                                    $('#modalIncidencias').modal('hide');
+                                    location.reload();
+                                }
+                            }
+                        }
+                    });
+                    
+                    // Limpiar formulario
+                    document.getElementById('formIncidencia').reset();
+                }
+            },
+            error: function(xhr) {
+                var errorMessage = 'Error al guardar la incidencia';
+                
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMessage = xhr.responseJSON.error;
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                
+                $.confirm({
+                    title: 'Error',
+                    content: errorMessage,
+                    type: 'red',
+                    buttons: {
+                        entendido: {
+                            text: 'Entendido',
+                            btnClass: 'btn-red'
+                        }
+                    }
+                });
+            },
+            complete: function() {
+                $('#guardarIncidencia').prop('disabled', false).html('<i class="fa fa-save mr-1"></i>Guardar Incidencia');
+            }
+        });
+    });
+    
+    // Auto-calcular días de respuesta cuando se cambian las fechas
+    $('#fecha_envio_proveedor, #fecha_respuesta_proveedor').on('change', function() {
+        var fechaEnvio = $('#fecha_envio_proveedor').val();
+        var fechaRespuesta = $('#fecha_respuesta_proveedor').val();
+        
+        if (fechaEnvio && fechaRespuesta) {
+            var envio = new Date(fechaEnvio);
+            var respuesta = new Date(fechaRespuesta);
+            var diferencia = Math.ceil((respuesta - envio) / (1000 * 60 * 60 * 24));
+            
+            // Mostrar información calculada (opcional)
+            console.log('Días de respuesta calculados:', diferencia);
+        }
+    });
+    
+    // Auto-llenar proveedor cuando se abre el modal desde una fila específica
+    $(document).on('click', '[data-target="#modalIncidencias"]', function() {
+        var proveedorId = $(this).closest('tr').data('proveedor-id');
+        if (proveedorId) {
+            $('#proveedor_incidencia').val(proveedorId);
+        }
+    });
+    
+    // Limpiar formulario cuando se cierra el modal
+    $('#modalIncidencias').on('hidden.bs.modal', function() {
+        document.getElementById('formIncidencia').reset();
+    });
+    
+    // Gestión de devoluciones (placeholder para funcionalidad futura)
+    $('#gestionarDevoluciones').on('click', function() {
+        $.confirm({
+            title: 'Funcionalidad en desarrollo',
+            content: 'La gestión de devoluciones estará disponible próximamente.',
+            type: 'orange',
+            buttons: {
+                entendido: {
+                    text: 'Entendido',
+                    btnClass: 'btn-orange'
+                }
+            }
+        });
     });
 });

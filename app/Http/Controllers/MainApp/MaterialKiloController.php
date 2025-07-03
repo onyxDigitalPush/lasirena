@@ -4,6 +4,7 @@ namespace App\Http\Controllers\MainApp;
 
 use App\Models\MainApp\MaterialKilo;
 use App\Models\MainApp\ProveedorMetric;
+use App\Models\MainApp\IncidenciaProveedor;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -267,5 +268,254 @@ class MaterialKiloController extends Controller
             'mes',
             'año'
         ));
+    }
+
+    public function incidenciasProveedores(Request $request)
+    {
+        $mes = $request->get('mes', 1); // Por defecto enero (mes 1)
+        $año = $request->get('año', \Carbon\Carbon::now()->year);
+
+        // Obtener incidencias de proveedores para el mes y año específicos
+        $query = DB::table('incidencias_proveedores')
+            ->join('proveedores', 'incidencias_proveedores.proveedor_id', '=', 'proveedores.id_proveedor')
+            ->select(
+                'proveedores.id_proveedor',
+                'proveedores.nombre_proveedor',
+                DB::raw('COUNT(incidencias_proveedores.id) as cantidad_incidencias')
+            )
+            ->whereYear('incidencias_proveedores.fecha_incidencia', $año)
+            ->whereMonth('incidencias_proveedores.fecha_incidencia', $mes)
+            ->groupBy('proveedores.id_proveedor', 'proveedores.nombre_proveedor')
+            ->orderBy('cantidad_incidencias', 'desc');
+
+        $incidencias_por_proveedor = $query->get();
+
+        return view('MainApp/material_kilo.incidencias_proveedores', compact(
+            'incidencias_por_proveedor',
+            'mes',
+            'año'
+        ));
+    }
+
+    public function crearIncidencia(Request $request)
+    {
+        try {
+            $request->validate([
+                'proveedor_id' => 'required|exists:proveedores,id_proveedor',
+                'descripcion' => 'required|string|max:255',
+                'fecha_incidencia' => 'required|date',
+            ]);
+
+            IncidenciaProveedor::create([
+                'proveedor_id' => $request->input('proveedor_id'),
+                'descripcion' => $request->input('descripcion'),
+                'fecha_incidencia' => $request->input('fecha_incidencia'),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Incidencia creada correctamente'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al crear la incidencia: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function eliminarIncidencia(Request $request)
+    {
+        try {
+            $request->validate([
+                'id_incidencia' => 'required|exists:incidencias_proveedores,id'
+            ]);
+
+            $incidencia = IncidenciaProveedor::findOrFail($request->input('id_incidencia'));
+            $incidencia->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Incidencia eliminada correctamente'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al eliminar la incidencia: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Guardar una nueva incidencia de proveedor
+     */
+    public function guardarIncidencia(Request $request)
+    {
+        try {
+            $request->validate([
+                'id_proveedor' => 'required|integer',
+                'año' => 'required|integer',
+                'mes' => 'required|integer|between:1,12',
+                'clasificacion_incidencia' => 'nullable|string|max:255',
+                'origen' => 'nullable|string|max:255',
+                'fecha_incidencia' => 'nullable|date',
+                'numero_inspeccion_sap' => 'nullable|string|max:255',
+                'resolucion_almacen' => 'nullable|string|max:255',
+                'cantidad_devuelta' => 'nullable|numeric',
+                'kg_un' => 'nullable|numeric',
+                'pedido_sap_devolucion' => 'nullable|string|max:255',
+                'resolucion_tienda' => 'nullable|string|max:255',
+                'retirada_tiendas' => 'nullable|in:Si,No',
+                'cantidad_afectada' => 'nullable|numeric',
+                'descripcion_incidencia' => 'nullable|string',
+                'codigo' => 'nullable|string|max:255',
+                'producto' => 'nullable|string|max:255',
+                'lote_sirena' => 'nullable|string|max:255',
+                'lote_proveedor' => 'nullable|string|max:255',
+                'fcp' => 'nullable|date',
+                'informe_a_proveedor' => 'nullable|in:Si,No',
+                'numero_informe' => 'nullable|string|max:255',
+                'fecha_envio_proveedor' => 'nullable|date',
+                'fecha_respuesta_proveedor' => 'nullable|date',
+                'informe_respuesta' => 'nullable|string',
+                'comentarios' => 'nullable|string',
+                'fecha_reclamacion_respuesta1' => 'nullable|date',
+                'fecha_reclamacion_respuesta2' => 'nullable|date',
+                'fecha_decision_destino_producto' => 'nullable|date'
+            ]);
+
+            // Obtener el nombre del proveedor
+            $proveedor = DB::table('material_kilos')
+                ->join('proveedores', 'material_kilos.proveedor_id', '=', 'proveedores.id_proveedor')
+                ->where('proveedores.id_proveedor', $request->id_proveedor)
+                ->select('proveedores.nombre_proveedor')
+                ->first();
+
+            if (!$proveedor) {
+                return response()->json(['error' => 'Proveedor no encontrado'], 404);
+            }
+
+            // Calcular días de respuesta si hay fechas
+            $dias_respuesta_proveedor = null;
+            $dias_sin_respuesta_informe = null;
+            $tiempo_respuesta = null;
+
+            if ($request->fecha_envio_proveedor && $request->fecha_respuesta_proveedor) {
+                $fecha_envio = \Carbon\Carbon::parse($request->fecha_envio_proveedor);
+                $fecha_respuesta = \Carbon\Carbon::parse($request->fecha_respuesta_proveedor);
+                $dias_respuesta_proveedor = $fecha_envio->diffInDays($fecha_respuesta);
+            }
+
+            if ($request->fecha_envio_proveedor && !$request->fecha_respuesta_proveedor) {
+                $fecha_envio = \Carbon\Carbon::parse($request->fecha_envio_proveedor);
+                $dias_sin_respuesta_informe = $fecha_envio->diffInDays(\Carbon\Carbon::now());
+            }
+
+            // Crear la incidencia
+            $incidencia = IncidenciaProveedor::create([
+                'id_proveedor' => $request->id_proveedor,
+                'nombre_proveedor' => $proveedor->nombre_proveedor,
+                'año' => $request->año,
+                'mes' => $request->mes,
+                'clasificacion_incidencia' => $request->clasificacion_incidencia,
+                'origen' => $request->origen,
+                'fecha_incidencia' => $request->fecha_incidencia,
+                'numero_inspeccion_sap' => $request->numero_inspeccion_sap,
+                'resolucion_almacen' => $request->resolucion_almacen,
+                'cantidad_devuelta' => $request->cantidad_devuelta,
+                'kg_un' => $request->kg_un,
+                'pedido_sap_devolucion' => $request->pedido_sap_devolucion,
+                'resolucion_tienda' => $request->resolucion_tienda,
+                'retirada_tiendas' => $request->retirada_tiendas,
+                'cantidad_afectada' => $request->cantidad_afectada,
+                'descripcion_incidencia' => $request->descripcion_incidencia,
+                'codigo' => $request->codigo,
+                'producto' => $request->producto,
+                'lote_sirena' => $request->lote_sirena,
+                'lote_proveedor' => $request->lote_proveedor,
+                'fcp' => $request->fcp,
+                'informe_a_proveedor' => $request->informe_a_proveedor,
+                'numero_informe' => $request->numero_informe,
+                'fecha_envio_proveedor' => $request->fecha_envio_proveedor,
+                'fecha_respuesta_proveedor' => $request->fecha_respuesta_proveedor,
+                'informe_respuesta' => $request->informe_respuesta,
+                'comentarios' => $request->comentarios,
+                'dias_respuesta_proveedor' => $dias_respuesta_proveedor,
+                'dias_sin_respuesta_informe' => $dias_sin_respuesta_informe,
+                'tiempo_respuesta' => $tiempo_respuesta,
+                'fecha_reclamacion_respuesta1' => $request->fecha_reclamacion_respuesta1,
+                'fecha_reclamacion_respuesta2' => $request->fecha_reclamacion_respuesta2,
+                'fecha_decision_destino_producto' => $request->fecha_decision_destino_producto
+            ]);
+
+            // Actualizar las métricas automáticamente
+            $this->actualizarMetricasIncidencias($request->id_proveedor, $request->año, $request->mes);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Incidencia guardada correctamente',
+                'incidencia' => $incidencia
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error al guardar incidencia: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al guardar la incidencia'], 500);
+        }
+    }
+
+    /**
+     * Actualizar métricas basadas en incidencias
+     */
+    private function actualizarMetricasIncidencias($id_proveedor, $año, $mes)
+    {
+        // Contar incidencias por tipo para el proveedor, año y mes específicos
+        $metricas = DB::table('incidencias_proveedores')
+            ->where('id_proveedor', $id_proveedor)
+            ->where('año', $año)
+            ->where('mes', $mes)
+            ->select([
+                DB::raw('SUM(CASE WHEN clasificacion_incidencia = "RG1" THEN 1 ELSE 0 END) as rg1'),
+                DB::raw('SUM(CASE WHEN clasificacion_incidencia = "RL1" THEN 1 ELSE 0 END) as rl1'),
+                DB::raw('SUM(CASE WHEN clasificacion_incidencia = "DEV1" THEN 1 ELSE 0 END) as dev1'),
+                DB::raw('SUM(CASE WHEN clasificacion_incidencia = "ROK1" THEN 1 ELSE 0 END) as rok1'),
+                DB::raw('SUM(CASE WHEN clasificacion_incidencia = "RET1" THEN 1 ELSE 0 END) as ret1'),
+            ])
+            ->first();
+
+        // Actualizar o crear las métricas del proveedor
+        ProveedorMetric::updateOrCreate(
+            [
+                'id_proveedor' => $id_proveedor,
+                'año' => $año,
+                'mes' => $mes
+            ],
+            [
+                'rg1' => $metricas->rg1 ?? 0,
+                'rl1' => $metricas->rl1 ?? 0,
+                'dev1' => $metricas->dev1 ?? 0,
+                'rok1' => $metricas->rok1 ?? 0,
+                'ret1' => $metricas->ret1 ?? 0,
+            ]
+        );
+    }
+
+    /**
+     * Obtener incidencias de un proveedor
+     */
+    public function obtenerIncidencias(Request $request)
+    {
+        $id_proveedor = $request->get('id_proveedor');
+        $año = $request->get('año');
+        $mes = $request->get('mes');
+
+        $incidencias = IncidenciaProveedor::where('id_proveedor', $id_proveedor)
+            ->where('año', $año)
+            ->where('mes', $mes)
+            ->orderBy('fecha_incidencia', 'desc')
+            ->get();
+
+        return response()->json($incidencias);
     }
 }
