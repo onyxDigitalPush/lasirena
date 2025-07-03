@@ -198,6 +198,12 @@ Route::group(['middleware' => ['auth']], function () {
     // Rutas para incidencias de proveedores
     Route::post('/material_kilo/guardar-incidencia', 'MaterialKiloController@guardarIncidencia')->name('material_kilo.guardar_incidencia');
     Route::get('/material_kilo/obtener-incidencias', 'MaterialKiloController@obtenerIncidencias')->name('material_kilo.obtener_incidencias');
+    
+    // Rutas para devoluciones de proveedores
+    Route::post('/material_kilo/guardar-devolucion', 'MaterialKiloController@guardarDevolucion')->name('material_kilo.guardar_devolucion');
+    Route::get('/material_kilo/obtener-devoluciones', 'MaterialKiloController@obtenerDevoluciones')->name('material_kilo.obtener_devoluciones');
+    Route::get('/material_kilo/buscar-proveedores', 'MaterialKiloController@buscarProveedores')->name('material_kilo.buscar_proveedores');
+    Route::get('/material_kilo/buscar-productos-proveedor', 'MaterialKiloController@buscarProductosProveedor')->name('material_kilo.buscar_productos_proveedor');
 
   });
 });

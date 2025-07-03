@@ -15,6 +15,8 @@ $(document).ready(function () {
         ordering: true,
         searching: true,
         orderCellsTop: false, // Cambiado para headers complejos
+    
+    // ...existing code...ra headers complejos
         fixedHeader: false, // Deshabilitado temporalmente
         order: [[2, 'desc']], // Ordenar por Total KG descendente por defecto
         columnDefs: [
@@ -525,6 +527,21 @@ $(document).ready(function () {
         }
     });
     
+    // Auto-calcular días de respuesta cuando se cambian las fechas en devoluciones
+    $('#fecha_envio_proveedor_dev, #fecha_respuesta_proveedor_dev').on('change', function() {
+        var fechaEnvio = $('#fecha_envio_proveedor_dev').val();
+        var fechaRespuesta = $('#fecha_respuesta_proveedor_dev').val();
+        
+        if (fechaEnvio && fechaRespuesta) {
+            var envio = new Date(fechaEnvio);
+            var respuesta = new Date(fechaRespuesta);
+            var diferencia = Math.ceil((respuesta - envio) / (1000 * 60 * 60 * 24));
+            
+            // Mostrar información calculada (opcional)
+            console.log('Días de respuesta calculados para devolución:', diferencia);
+        }
+    });
+    
     // Auto-llenar proveedor cuando se abre el modal desde una fila específica
     $(document).on('click', '[data-target="#modalIncidencias"]', function() {
         var proveedorId = $(this).closest('tr').data('proveedor-id');
@@ -538,18 +555,244 @@ $(document).ready(function () {
         document.getElementById('formIncidencia').reset();
     });
     
-    // Gestión de devoluciones (placeholder para funcionalidad futura)
-    $('#gestionarDevoluciones').on('click', function() {
-        $.confirm({
-            title: 'Funcionalidad en desarrollo',
-            content: 'La gestión de devoluciones estará disponible próximamente.',
-            type: 'orange',
-            buttons: {
-                entendido: {
-                    text: 'Entendido',
-                    btnClass: 'btn-orange'
+    // Gestión de devoluciones
+    $('#gestionarDevoluciones').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('Abriendo modal de devoluciones...');
+        
+        // Limpiar cualquier modal backdrop existente
+        $('.modal-backdrop').remove();
+        $('body').removeClass('modal-open');
+        
+        try {
+            $('#modalDevoluciones').modal({
+                backdrop: true,
+                keyboard: true,
+                focus: true,
+                show: true
+            });
+            console.log('Modal devoluciones ejecutado');
+        } catch (error) {
+            console.error('Error con Bootstrap modal, usando fallback:', error);
+            
+            // Fallback manual
+            $('#modalDevoluciones').show().addClass('show').css({
+                'display': 'block',
+                'padding-right': '15px'
+            });
+            
+            $('body').addClass('modal-open').css('padding-right', '15px');
+            
+            if ($('.modal-backdrop').length === 0) {
+                $('<div class="modal-backdrop fade show"></div>').appendTo('body');
+            }
+        }
+    });
+    
+    // Autocompletado para nombre de proveedor
+    $('#nombre_proveedor_dev').on('input', function() {
+        var term = $(this).val();
+        if (term.length >= 2) {
+            $.ajax({
+                url: window.buscarProveedoresUrl,
+                data: { term: term },
+                success: function(data) {
+                    var suggestions = '';
+                    data.forEach(function(proveedor) {
+                        suggestions += '<option value="' + proveedor.nombre + '" data-codigo="' + proveedor.codigo + '">';
+                    });
+                    
+                    if ($('#proveedores-datalist').length === 0) {
+                        $('<datalist id="proveedores-datalist"></datalist>').appendTo('body');
+                    }
+                    $('#proveedores-datalist').html(suggestions);
+                    $('#nombre_proveedor_dev').attr('list', 'proveedores-datalist');
                 }
+            });
+        }
+    });
+    
+    // Cuando se selecciona un proveedor, obtener su código
+    $('#nombre_proveedor_dev').on('change', function() {
+        var selectedName = $(this).val();
+        $('#proveedores-datalist option').each(function() {
+            if ($(this).val() === selectedName) {
+                $('#codigo_proveedor').val($(this).data('codigo'));
+                return false;
             }
         });
     });
+    
+    // Autocompletado para productos cuando se selecciona un proveedor
+    $('#descripcion_producto').on('input', function() {
+        var term = $(this).val();
+        var codigo_proveedor = $('#codigo_proveedor').val();
+        
+        if (term.length >= 2 && codigo_proveedor) {
+            $.ajax({
+                url: window.buscarProductosProveedorUrl,
+                data: { 
+                    term: term,
+                    codigo_proveedor: codigo_proveedor
+                },
+                success: function(data) {
+                    var suggestions = '';
+                    data.forEach(function(producto) {
+                        suggestions += '<option value="' + producto.descripcion + '" data-codigo="' + producto.codigo + '">';
+                    });
+                    
+                    if ($('#productos-datalist').length === 0) {
+                        $('<datalist id="productos-datalist"></datalist>').appendTo('body');
+                    }
+                    $('#productos-datalist').html(suggestions);
+                    $('#descripcion_producto').attr('list', 'productos-datalist');
+                }
+            });
+        }
+    });
+    
+    // Cuando se selecciona un producto, obtener su código
+    $('#descripcion_producto').on('change', function() {
+        var selectedDesc = $(this).val();
+        $('#productos-datalist option').each(function() {
+            if ($(this).val() === selectedDesc) {
+                $('#codigo_producto').val($(this).data('codigo'));
+                return false;
+            }
+        });
+    });
+    
+    // Manejar envío del formulario de devoluciones
+    $('#guardarDevolucion').on('click', function() {
+        var formData = new FormData(document.getElementById('formDevolucion'));
+        
+        $.ajax({
+            url: window.guardarDevolucionUrl,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            beforeSend: function() {
+                $('#guardarDevolucion').prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-1"></i>Guardando...');
+            },
+            success: function(response) {
+                if (response.success) {
+                    $.confirm({
+                        title: 'Éxito',
+                        content: 'Devolución guardada correctamente.',
+                        type: 'green',
+                        buttons: {
+                            aceptar: {
+                                text: 'Aceptar',
+                                btnClass: 'btn-green',
+                                action: function() {
+                                    $('#modalDevoluciones').modal('hide');
+                                    document.getElementById('formDevolucion').reset();
+                                }
+                            }
+                        }
+                    });
+                }
+            },
+            error: function(xhr) {
+                var errorMessage = 'Error al guardar la devolución';
+                
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMessage = xhr.responseJSON.error;
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                
+                $.confirm({
+                    title: 'Error',
+                    content: errorMessage,
+                    type: 'red',
+                    buttons: {
+                        entendido: {
+                            text: 'Entendido',
+                            btnClass: 'btn-red'
+                        }
+                    }
+                });
+            },
+            complete: function() {
+                $('#guardarDevolucion').prop('disabled', false).html('<i class="fa fa-save mr-1"></i>Guardar Devolución');
+            }
+        });
+    });
+    
+    // Limpiar formulario cuando se cierra el modal de devoluciones
+    $('#modalDevoluciones').on('hidden.bs.modal', function() {
+        document.getElementById('formDevolucion').reset();
+    });
+    
+    // Event listeners para cerrar el modal de devoluciones
+    $(document).on('click', '#modalDevoluciones .close, #modalDevoluciones [data-dismiss="modal"]', function() {
+        console.log('Cerrando modal devoluciones...');
+        try {
+            $('#modalDevoluciones').modal('hide');
+        } catch (error) {
+            $('#modalDevoluciones').hide().removeClass('show').css({
+                'display': 'none',
+                'padding-right': ''
+            });
+            $('.modal-backdrop').remove();
+            $('body').removeClass('modal-open').css('padding-right', '');
+        }
+    });
+    
+    // Cerrar con Escape
+    $(document).on('keyup', function(e) {
+        if (e.key === 'Escape' && $('#modalDevoluciones').is(':visible')) {
+            try {
+                $('#modalDevoluciones').modal('hide');
+            } catch (error) {
+                $('#modalDevoluciones').hide().removeClass('show').css({
+                    'display': 'none',
+                    'padding-right': ''
+                });
+                $('.modal-backdrop').remove();
+                $('body').removeClass('modal-open').css('padding-right', '');
+            }
+        }
+    });
+    
+    // Cerrar haciendo clic en el backdrop
+    $(document).on('click', '.modal-backdrop, #modalDevoluciones', function(e) {
+        if (e.target === this) {
+            try {
+                $('#modalDevoluciones').modal('hide');
+            } catch (error) {
+                $('#modalDevoluciones').hide().removeClass('show').css({
+                    'display': 'none',
+                    'padding-right': ''
+                });
+                $('.modal-backdrop').remove();
+                $('body').removeClass('modal-open').css('padding-right', '');
+            }
+        }
+    });
+    
+    // Asegurar que el modal se puede cerrar
+    $('#modalDevoluciones').on('shown.bs.modal', function() {
+        console.log('Modal de devoluciones mostrado correctamente');
+    });
+    
+    $('#modalDevoluciones').on('hidden.bs.modal', function() {
+        console.log('Modal de devoluciones cerrado correctamente');
+        $('.modal-backdrop').remove();
+        $('body').removeClass('modal-open').css('padding-right', '');
+    });
+    
+    // Verificar que el modal existe
+    if ($('#modalDevoluciones').length) {
+        console.log('Modal de devoluciones encontrado en el DOM');
+    } else {
+        console.error('Modal de devoluciones NO encontrado en el DOM');
+    }
 });

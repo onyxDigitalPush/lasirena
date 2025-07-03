@@ -5,6 +5,7 @@ namespace App\Http\Controllers\MainApp;
 use App\Models\MainApp\MaterialKilo;
 use App\Models\MainApp\ProveedorMetric;
 use App\Models\MainApp\IncidenciaProveedor;
+use App\Models\MainApp\DevolucionProveedor;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -198,7 +199,7 @@ class MaterialKiloController extends Controller
             $metricas_query = ProveedorMetric::whereIn('proveedor_id', $proveedores_ids)
                 ->where('año', $año);
 
-            // Si mes está seleccionado, filtrar por mes específico
+            // Si mes está seleccionado, filtrar métricas por mes específico
             if ($mes) {
                 $metricas_query->where('mes', $mes);
                 $metricas = $metricas_query->get();
@@ -517,5 +518,171 @@ class MaterialKiloController extends Controller
             ->get();
 
         return response()->json($incidencias);
+    }
+    
+    /**
+     * Guardar una nueva devolución de proveedor
+     */
+    public function guardarDevolucion(Request $request)
+    {
+        try {
+            $request->validate([
+                'codigo_producto' => 'required|string|max:255',
+                'nombre_proveedor' => 'required|string|max:255',
+                'codigo_proveedor' => 'nullable|string|max:255',
+                'descripcion_producto' => 'nullable|string',
+                'fecha_inicio' => 'nullable|date',
+                'fecha_fin' => 'nullable|date',
+                'np' => 'nullable|string|max:255',
+                'año' => 'required|integer',
+                'mes' => 'required|integer|between:1,12',
+                'fecha_reclamacion' => 'nullable|date',
+                'top100fy2' => 'nullable|string|max:255',
+                'descripcion_motivo' => 'nullable|string',
+                'especificacion_motivo_reclamacion_leve' => 'nullable|string',
+                'especificacion_motivo_reclamacion_grave' => 'nullable|string',
+                'recuperamos_objeto_extraño' => 'nullable|in:Si,No',
+                'descripcion_queja' => 'nullable|string',
+                'nombre_tienda' => 'nullable|string|max:255',
+                'no_queja' => 'nullable|string|max:255',
+                'origen' => 'nullable|string|max:255',
+                'lote_sirena' => 'nullable|string|max:255',
+                'lote_proveedor' => 'nullable|string|max:255',
+                'informe_a_proveedor' => 'nullable|in:Si,No',
+                'informe' => 'nullable|string',
+                'fecha_envio_proveedor' => 'nullable|date',
+                'fecha_respuesta_proveedor' => 'nullable|date',
+                'informe_respuesta' => 'nullable|string',
+                'tipo_reclamacion' => 'nullable|string|max:255',
+                'comentarios' => 'nullable|string',
+                'fecha_reclamacion_respuesta' => 'nullable|date',
+                'abierto' => 'nullable|in:Si,No'
+            ]);
+
+            // Calcular tiempo de respuesta si hay fechas
+            $tiempo_respuesta = null;
+            if ($request->fecha_envio_proveedor && $request->fecha_respuesta_proveedor) {
+                $fecha_envio = \Carbon\Carbon::parse($request->fecha_envio_proveedor);
+                $fecha_respuesta = \Carbon\Carbon::parse($request->fecha_respuesta_proveedor);
+                $dias = $fecha_envio->diffInDays($fecha_respuesta);
+                $tiempo_respuesta = $dias . ' días';
+            }
+
+            // Crear la devolución
+            $devolucion = DevolucionProveedor::create([
+                'codigo_producto' => $request->codigo_producto,
+                'nombre_proveedor' => $request->nombre_proveedor,
+                'codigo_proveedor' => $request->codigo_proveedor,
+                'descripcion_producto' => $request->descripcion_producto,
+                'fecha_inicio' => $request->fecha_inicio,
+                'fecha_fin' => $request->fecha_fin,
+                'np' => $request->np,
+                'año' => $request->año,
+                'mes' => $request->mes,
+                'fecha_reclamacion' => $request->fecha_reclamacion,
+                'top100fy2' => $request->top100fy2,
+                'descripcion_motivo' => $request->descripcion_motivo,
+                'especificacion_motivo_reclamacion_leve' => $request->especificacion_motivo_reclamacion_leve,
+                'especificacion_motivo_reclamacion_grave' => $request->especificacion_motivo_reclamacion_grave,
+                'recuperamos_objeto_extraño' => $request->recuperamos_objeto_extraño,
+                'descripcion_queja' => $request->descripcion_queja,
+                'nombre_tienda' => $request->nombre_tienda,
+                'no_queja' => $request->no_queja,
+                'origen' => $request->origen,
+                'lote_sirena' => $request->lote_sirena,
+                'lote_proveedor' => $request->lote_proveedor,
+                'informe_a_proveedor' => $request->informe_a_proveedor,
+                'informe' => $request->informe,
+                'fecha_envio_proveedor' => $request->fecha_envio_proveedor,
+                'fecha_respuesta_proveedor' => $request->fecha_respuesta_proveedor,
+                'tiempo_respuesta' => $tiempo_respuesta,
+                'informe_respuesta' => $request->informe_respuesta,
+                'tipo_reclamacion' => $request->tipo_reclamacion,
+                'comentarios' => $request->comentarios,
+                'fecha_reclamacion_respuesta' => $request->fecha_reclamacion_respuesta,
+                'abierto' => $request->abierto ?? 'Si'
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Devolución guardada correctamente',
+                'devolucion' => $devolucion
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error al guardar devolución: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al guardar la devolución'], 500);
+        }
+    }
+
+    /**
+     * Obtener devoluciones de un proveedor
+     */
+    public function obtenerDevoluciones(Request $request)
+    {
+        $codigo_proveedor = $request->get('codigo_proveedor');
+        $año = $request->get('año');
+        $mes = $request->get('mes');
+
+        $query = DevolucionProveedor::query();
+
+        if ($codigo_proveedor) {
+            $query->where('codigo_proveedor', $codigo_proveedor);
+        }
+        if ($año) {
+            $query->where('año', $año);
+        }
+        if ($mes) {
+            $query->where('mes', $mes);
+        }
+
+        $devoluciones = $query->orderBy('fecha_reclamacion', 'desc')->get();
+
+        return response()->json($devoluciones);
+    }
+
+    /**
+     * Buscar proveedores para autocompletado
+     */
+    public function buscarProveedores(Request $request)
+    {
+        $term = $request->get('term');
+        
+        $proveedores = DB::table('material_kilos')
+            ->join('proveedores', 'material_kilos.proveedor_id', '=', 'proveedores.id_proveedor')
+            ->where('proveedores.nombre_proveedor', 'LIKE', '%' . $term . '%')
+            ->select('proveedores.id_proveedor as codigo', 'proveedores.nombre_proveedor as nombre')
+            ->distinct()
+            ->limit(10)
+            ->get();
+
+        return response()->json($proveedores);
+    }
+
+    /**
+     * Buscar productos de un proveedor
+     */
+    public function buscarProductosProveedor(Request $request)
+    {
+        $codigo_proveedor = $request->get('codigo_proveedor');
+        $term = $request->get('term');
+        
+        $query = DB::table('material_kilos')
+            ->join('materiales', 'material_kilos.codigo_material', '=', 'materiales.codigo')
+            ->where('material_kilos.proveedor_id', $codigo_proveedor);
+            
+        if ($term) {
+            $query->where(function($q) use ($term) {
+                $q->where('materiales.codigo', 'LIKE', '%' . $term . '%')
+                  ->orWhere('materiales.descripcion', 'LIKE', '%' . $term . '%');
+            });
+        }
+        
+        $productos = $query->select('materiales.codigo', 'materiales.descripcion')
+            ->distinct()
+            ->limit(10)
+            ->get();
+
+        return response()->json($productos);
     }
 }
