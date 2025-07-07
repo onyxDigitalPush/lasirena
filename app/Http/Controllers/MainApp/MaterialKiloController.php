@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class MaterialKiloController extends Controller   
 {    public function index()
@@ -108,6 +109,14 @@ class MaterialKiloController extends Controller
             ->orderByDesc('total_kg_proveedor')
             ->get();
         
+        // Obtener proveedores ordenados alfabéticamente para el modal
+        $proveedores_alfabetico = MaterialKilo::join('proveedores', 'material_kilos.proveedor_id', '=', 'proveedores.id_proveedor')
+            ->select('proveedores.id_proveedor', 'proveedores.nombre_proveedor')
+            ->where('material_kilos.año', $año)
+            ->groupBy('proveedores.id_proveedor', 'proveedores.nombre_proveedor')
+            ->orderBy('proveedores.nombre_proveedor', 'asc')
+            ->get();
+        
         // Obtener métricas existentes para el período filtrado
         $metricas_query = ProveedorMetric::where('año', $año);
         
@@ -122,7 +131,8 @@ class MaterialKiloController extends Controller
             'totales_por_proveedor', 
             'metricas_por_proveedor',
             'mes',
-            'año'
+            'año',
+            'proveedores_alfabetico'
         ));
     }
 
@@ -462,7 +472,11 @@ class MaterialKiloController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Error al guardar incidencia: ' . $e->getMessage());
-            return response()->json(['error' => 'Error al guardar la incidencia'], 500);
+            Log::error('Trace: ' . $e->getTraceAsString());
+            return response()->json([
+                'error' => 'Error al guardar la incidencia: ' . $e->getMessage(),
+                'debug' => $e->getTraceAsString()
+            ], 500);
         }
     }
 
@@ -488,7 +502,7 @@ class MaterialKiloController extends Controller
         // Actualizar o crear las métricas del proveedor
         ProveedorMetric::updateOrCreate(
             [
-                'id_proveedor' => $id_proveedor,
+                'proveedor_id' => $id_proveedor,
                 'año' => $año,
                 'mes' => $mes
             ],
@@ -653,6 +667,7 @@ class MaterialKiloController extends Controller
             ->where('proveedores.nombre_proveedor', 'LIKE', '%' . $term . '%')
             ->select('proveedores.id_proveedor as codigo', 'proveedores.nombre_proveedor as nombre')
             ->distinct()
+            ->orderBy('proveedores.nombre_proveedor', 'asc')
             ->limit(10)
             ->get();
 
@@ -684,5 +699,97 @@ class MaterialKiloController extends Controller
             ->get();
 
         return response()->json($productos);
+    }
+
+    /**
+     * Buscar códigos de productos para autocompletar
+     */
+    public function buscarCodigosProductos(Request $request)
+    {
+        $term = $request->get('term');
+        
+        if (!$term) {
+            return response()->json([]);
+        }
+        
+        $productos = DB::table('material_kilos')
+            ->join('materiales', 'material_kilos.codigo_material', '=', 'materiales.codigo')
+            ->where('materiales.codigo', 'LIKE', '%' . $term . '%')
+            ->select('materiales.codigo', 'materiales.descripcion')
+            ->distinct()
+            ->limit(10)
+            ->get();
+        
+        return response()->json($productos);
+    }
+    
+    /**
+     * Buscar producto por código para obtener su nombre
+     */
+    public function buscarProductoPorCodigo(Request $request)
+    {
+        $codigo = $request->get('codigo');
+        
+        if (!$codigo) {
+            return response()->json(['error' => 'Código de producto requerido'], 400);
+        }
+        
+        $producto = DB::table('material_kilos')
+            ->join('materiales', 'material_kilos.codigo_material', '=', 'materiales.codigo')
+            ->where('materiales.codigo', $codigo)
+            ->select('materiales.codigo', 'materiales.descripcion')
+            ->distinct()
+            ->first();
+        
+        if ($producto) {
+            return response()->json([
+                'success' => true,
+                'codigo' => $producto->codigo,
+                'descripcion' => $producto->descripcion
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Producto no encontrado'
+            ], 404);
+        }
+    }
+
+    /**
+     * Método de prueba para diagnosticar problemas de incidencias
+     */
+    public function testIncidencia(Request $request)
+    {
+        try {
+            // Verificar si la tabla existe
+            $tableExists = Schema::hasTable('incidencias_proveedores');
+            
+            // Verificar campos de la tabla
+            $columns = [];
+            if ($tableExists) {
+                $columns = Schema::getColumnListing('incidencias_proveedores');
+            }
+            
+            // Probar crear una incidencia simple
+            $testData = [
+                'id_proveedor' => 1,
+                'nombre_proveedor' => 'Test Proveedor',
+                'año' => 2025,
+                'mes' => 1,
+                'clasificacion_incidencia' => 'RG1'
+            ];
+            
+            return response()->json([
+                'table_exists' => $tableExists,
+                'columns' => $columns,
+                'test_data' => $testData
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
     }
 }

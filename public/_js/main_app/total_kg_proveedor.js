@@ -795,4 +795,72 @@ $(document).ready(function () {
     } else {
         console.error('Modal de devoluciones NO encontrado en el DOM');
     }
+    
+    // Autocompletado y auto-llenado para código de producto en incidencias
+    $('#codigo').on('input', function() {
+        var term = $(this).val();
+        
+        // Autocompletar códigos después de 2 caracteres
+        if (term.length >= 2) {
+            $.ajax({
+                url: window.buscarCodigosProductosUrl,
+                data: { term: term },
+                success: function(data) {
+                    var suggestions = '';
+                    data.forEach(function(producto) {
+                        suggestions += '<option value="' + producto.codigo + '" data-descripcion="' + producto.descripcion + '">';
+                    });
+                    
+                    if ($('#codigos-productos-datalist').length === 0) {
+                        $('<datalist id="codigos-productos-datalist"></datalist>').appendTo('body');
+                    }
+                    $('#codigos-productos-datalist').html(suggestions);
+                    $('#codigo').attr('list', 'codigos-productos-datalist');
+                }
+            });
+        }
+        
+        // Buscar producto exacto después de 3 caracteres
+        if (term.length >= 3) {
+            $.ajax({
+                url: window.buscarProductoPorCodigoUrl,
+                data: { codigo: term },
+                success: function(response) {
+                    if (response.success) {
+                        $('#producto').val(response.descripcion);
+                        console.log('Producto encontrado:', response.descripcion);
+                    } else {
+                        // Limpiar el campo si no se encuentra el producto
+                        $('#producto').val('');
+                        console.log('Producto no encontrado para código:', term);
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Error al buscar producto:', xhr.responseText);
+                    $('#producto').val('');
+                }
+            });
+        } else {
+            // Si el código es muy corto, limpiar el campo producto
+            $('#producto').val('');
+        }
+    });
+    
+    // Cuando se selecciona un código del autocompletado, llenar el producto
+    $('#codigo').on('change', function() {
+        var selectedCode = $(this).val();
+        $('#codigos-productos-datalist option').each(function() {
+            if ($(this).val() === selectedCode) {
+                $('#producto').val($(this).data('descripcion'));
+                return false;
+            }
+        });
+    });
+    
+    // Limpiar producto cuando se borra el código
+    $('#codigo').on('keyup', function() {
+        if ($(this).val().length === 0) {
+            $('#producto').val('');
+        }
+    });
 });

@@ -59,6 +59,8 @@
     window.guardarDevolucionUrl = '{{ route("material_kilo.guardar_devolucion") }}';
     window.buscarProveedoresUrl = '{{ route("material_kilo.buscar_proveedores") }}';
     window.buscarProductosProveedorUrl = '{{ route("material_kilo.buscar_productos_proveedor") }}';
+    window.buscarProductoPorCodigoUrl = '{{ route("material_kilo.buscar_producto_por_codigo") }}';
+    window.buscarCodigosProductosUrl = '{{ route("material_kilo.buscar_codigos_productos") }}';
     // Debug temporal
     console.log('Mes filtrado:', {{ $mes }});
     console.log('Año filtrado:', {{ $año }});
@@ -204,11 +206,11 @@
                     <th class="text-center">Total KG</th>
                     <th class="text-center">Cantidad de Registros</th>
                     <th class="text-center">Porcentaje del Total</th>
-                    <th class="text-center bg-warning">RG1</th>
-                    <th class="text-center bg-warning">RL1</th>
-                    <th class="text-center bg-warning">DEV1</th>
-                    <th class="text-center bg-warning">ROK1</th>
-                    <th class="text-center bg-warning">RET1</th>
+                    <th class="text-center bg-warning">RG</th>
+                    <th class="text-center bg-warning">RL</th>
+                    <th class="text-center bg-warning">DEV</th>
+                    <th class="text-center bg-warning">ROK</th>
+                    <th class="text-center bg-warning">RET</th>
                 </tr>
                 <tr>
                     <th><input type="text" class="form-control form-control-sm" placeholder="Buscar ID" /></th>
@@ -347,7 +349,7 @@
                                     <label for="proveedor_incidencia">Proveedor:</label>
                                     <select id="proveedor_incidencia" name="id_proveedor" class="form-control" required>
                                         <option value="">Seleccione un proveedor</option>
-                                        @foreach ($totales_por_proveedor as $proveedor)
+                                        @foreach ($proveedores_alfabetico as $proveedor)
                                             <option value="{{ $proveedor->id_proveedor }}">{{ $proveedor->nombre_proveedor }}</option>
                                         @endforeach
                                     </select>
@@ -390,11 +392,11 @@
                                     <label for="clasificacion_incidencia">Clasificación de Incidencia:</label>
                                     <select id="clasificacion_incidencia" name="clasificacion_incidencia" class="form-control">
                                         <option value="">Seleccione una clasificación</option>
-                                        <option value="RG1">RG1 - Reclamación General</option>
-                                        <option value="RL1">RL1 - Reclamación Legal</option>
-                                        <option value="DEV1">DEV1 - Devolución</option>
-                                        <option value="ROK1">ROK1 - Revisión OK</option>
-                                        <option value="RET1">RET1 - Retención</option>
+                                        <option value="RG1">RG - Reclamación General</option>
+                                        <option value="RL1">RL - Reclamación Legal</option>
+                                        <option value="DEV1">DEV - Devolución</option>
+                                        <option value="ROK1">ROK - Revisión OK</option>
+                                        <option value="RET1">RET - Retención</option>
                                     </select>
                                 </div>
                             </div>

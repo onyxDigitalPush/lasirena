@@ -204,6 +204,9 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/material_kilo/obtener-devoluciones', 'MaterialKiloController@obtenerDevoluciones')->name('material_kilo.obtener_devoluciones');
     Route::get('/material_kilo/buscar-proveedores', 'MaterialKiloController@buscarProveedores')->name('material_kilo.buscar_proveedores');
     Route::get('/material_kilo/buscar-productos-proveedor', 'MaterialKiloController@buscarProductosProveedor')->name('material_kilo.buscar_productos_proveedor');
+    Route::get('/material_kilo/buscar-producto-por-codigo', 'MaterialKiloController@buscarProductoPorCodigo')->name('material_kilo.buscar_producto_por_codigo');
+    Route::get('/material_kilo/buscar-codigos-productos', 'MaterialKiloController@buscarCodigosProductos')->name('material_kilo.buscar_codigos_productos');
+    Route::get('/material_kilo/test-incidencia', 'MaterialKiloController@testIncidencia')->name('material_kilo.test_incidencia');
 
   });
 });
