@@ -172,18 +172,18 @@
                     </th>
                 </tr>
                 <tr>
-                    <th class="text-center bg-info text-white">RGind1</th>
-                    <th class="text-center bg-info text-white">RLind1</th>
-                    <th class="text-center bg-info text-white">DEVind1</th>
-                    <th class="text-center bg-info text-white">ROKind1</th>
-                    <th class="text-center bg-info text-white">RETind1</th>
-                    <th class="text-center bg-info text-white">TOTALind1</th>
-                    <th class="text-center bg-warning">RGpond1</th>
-                    <th class="text-center bg-warning">RLpond1</th>
-                    <th class="text-center bg-warning">DEVpond1</th>
-                    <th class="text-center bg-warning">ROKpond1</th>
-                    <th class="text-center bg-warning">RETpond1</th>
-                    <th class="text-center bg-warning">TOTALpond1</th>
+                    <th class="text-center bg-info text-white">RGind</th>
+                    <th class="text-center bg-info text-white">RLind</th>
+                    <th class="text-center bg-info text-white">DEVind</th>
+                    <th class="text-center bg-info text-white">ROKind</th>
+                    <th class="text-center bg-info text-white">RETind</th>
+                    <th class="text-center bg-info text-white">TOTALind</th>
+                    <th class="text-center bg-warning">RGpond</th>
+                    <th class="text-center bg-warning">RLpond</th>
+                    <th class="text-center bg-warning">DEVpond</th>
+                    <th class="text-center bg-warning">ROKpond</th>
+                    <th class="text-center bg-warning">RETpond</th>
+                    <th class="text-center bg-warning">TOTALpond</th>
                 </tr>
                 <tr>
                     <th><input type="text" class="form-control form-control-sm" placeholder="Buscar ID" /></th>

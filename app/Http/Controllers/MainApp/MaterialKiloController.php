@@ -15,6 +15,11 @@ use Illuminate\Support\Facades\Schema;
 class MaterialKiloController extends Controller   
 {    public function index()
 {
+    // Debug temporal - remover después
+    $orden = request('orden');
+    $filtro = request('filtro');
+    Log::info('Parámetros recibidos:', ['orden' => $orden, 'filtro' => $filtro]);
+    
     $query = MaterialKilo::join('proveedores', 'material_kilos.proveedor_id', '=', 'proveedores.id_proveedor')
         ->join('materiales', 'material_kilos.codigo_material', '=', 'materiales.codigo')
         ->select(
@@ -31,17 +36,39 @@ class MaterialKiloController extends Controller
             'material_kilos.mes',
         );
 
+    // Aplicar filtros de factor de conversión
+    $filtro = request('filtro');
+    if ($filtro == 'con_factor') {
+        $query->whereNotNull('material_kilos.factor_conversion')
+              ->where('material_kilos.factor_conversion', '>', 0);
+    } elseif ($filtro == 'sin_factor') {
+        $query->whereNull('material_kilos.factor_conversion');
+    } elseif ($filtro == 'factor_cero') {
+        $query->where('material_kilos.factor_conversion', '=', 0);
+    }
+
     // Aplicar ordenamiento según el filtro
     $orden = request('orden');
+    Log::info('Aplicando ordenamiento:', ['orden' => $orden]);
+    
     if ($orden == 'total_kg_desc') {
         $query->orderBy('material_kilos.total_kg', 'desc');
     } elseif ($orden == 'total_kg_asc') {
         $query->orderBy('material_kilos.total_kg', 'asc');
+    } elseif ($orden == 'factor_desc') {
+        // Ordenar por factor de conversión de mayor a menor
+        $query->orderBy('material_kilos.factor_conversion', 'desc');
+    } elseif ($orden == 'factor_asc') {
+        // Ordenar por factor de conversión de menor a mayor
+        $query->orderBy('material_kilos.factor_conversion', 'asc');
     } else {
         $query->orderBy('material_kilos.id', 'asc');
     }
 
     $array_material_kilo = $query->paginate(25);
+    
+    // Mantener los parámetros de query en la paginación
+    $array_material_kilo->appends(request()->query());
 
     return view('MainApp/material_kilo.material_kilo_list', compact('array_material_kilo'));
 }
@@ -64,9 +91,81 @@ class MaterialKiloController extends Controller
     }
 
   
-    public function edit(MaterialKilo $materialKilo)
+    public function edit($id)
     {
-        //
+        try {
+            $material_kilo = MaterialKilo::join('proveedores', 'material_kilos.proveedor_id', '=', 'proveedores.id_proveedor')
+                ->join('materiales', 'material_kilos.codigo_material', '=', 'materiales.codigo')
+                ->select(
+                    'material_kilos.id',
+                    'material_kilos.total_kg',
+                    'proveedores.nombre_proveedor',
+                    'materiales.descripcion as nombre_material',
+                    'material_kilos.ctd_emdev',
+                    'material_kilos.umb',
+                    'material_kilos.ce',
+                    'material_kilos.valor_emdev',
+                    'material_kilos.factor_conversion',
+                    'material_kilos.codigo_material',
+                    'material_kilos.mes',
+                    'material_kilos.proveedor_id'
+                )
+                ->where('material_kilos.id', $id)
+                ->first();
+
+            if (!$material_kilo) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Material no encontrado'
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'material' => $material_kilo
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al cargar el material: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updateMaterial(Request $request)
+    {
+        try {
+            $request->validate([
+                'material_kilo_id' => 'required|exists:material_kilos,id',
+                'factor_conversion' => 'nullable|numeric|min:0'
+            ]);
+
+            $material_kilo = MaterialKilo::findOrFail($request->material_kilo_id);
+            
+            // Actualizar solo el factor de conversión
+            $material_kilo->factor_conversion = $request->factor_conversion;
+            
+            // Recalcular el total_kg si hay factor de conversión
+            if ($request->factor_conversion && $request->factor_conversion > 0) {
+                $material_kilo->total_kg = $material_kilo->ctd_emdev * $request->factor_conversion;
+            } else {
+                $material_kilo->total_kg = 0;
+            }
+            
+            $material_kilo->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Material actualizado correctamente'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar el material: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
 
@@ -542,8 +641,7 @@ class MaterialKiloController extends Controller
         try {
             $request->validate([
                 'codigo_producto' => 'required|string|max:255',
-                'nombre_proveedor' => 'required|string|max:255',
-                'codigo_proveedor' => 'nullable|string|max:255',
+                'id_proveedor' => 'required|integer',
                 'descripcion_producto' => 'nullable|string',
                 'fecha_inicio' => 'nullable|date',
                 'fecha_fin' => 'nullable|date',
@@ -551,6 +649,7 @@ class MaterialKiloController extends Controller
                 'año' => 'required|integer',
                 'mes' => 'required|integer|between:1,12',
                 'fecha_reclamacion' => 'nullable|date',
+                'clasificacion_incidencia' => 'nullable|in:RG1,RL1',
                 'top100fy2' => 'nullable|string|max:255',
                 'descripcion_motivo' => 'nullable|string',
                 'especificacion_motivo_reclamacion_leve' => 'nullable|string',
@@ -573,6 +672,17 @@ class MaterialKiloController extends Controller
                 'abierto' => 'nullable|in:Si,No'
             ]);
 
+            // Obtener el nombre del proveedor
+            $proveedor = DB::table('material_kilos')
+                ->join('proveedores', 'material_kilos.proveedor_id', '=', 'proveedores.id_proveedor')
+                ->where('proveedores.id_proveedor', $request->id_proveedor)
+                ->select('proveedores.nombre_proveedor', 'proveedores.id_proveedor')
+                ->first();
+
+            if (!$proveedor) {
+                return response()->json(['error' => 'Proveedor no encontrado'], 404);
+            }
+
             // Calcular tiempo de respuesta si hay fechas
             $tiempo_respuesta = null;
             if ($request->fecha_envio_proveedor && $request->fecha_respuesta_proveedor) {
@@ -585,8 +695,8 @@ class MaterialKiloController extends Controller
             // Crear la devolución
             $devolucion = DevolucionProveedor::create([
                 'codigo_producto' => $request->codigo_producto,
-                'nombre_proveedor' => $request->nombre_proveedor,
-                'codigo_proveedor' => $request->codigo_proveedor,
+                'nombre_proveedor' => $proveedor->nombre_proveedor,
+                'codigo_proveedor' => $proveedor->id_proveedor, // Usamos el ID ya que no existe codigo_proveedor
                 'descripcion_producto' => $request->descripcion_producto,
                 'fecha_inicio' => $request->fecha_inicio,
                 'fecha_fin' => $request->fecha_fin,
@@ -594,6 +704,7 @@ class MaterialKiloController extends Controller
                 'año' => $request->año,
                 'mes' => $request->mes,
                 'fecha_reclamacion' => $request->fecha_reclamacion,
+                'clasificacion_incidencia' => $request->clasificacion_incidencia,
                 'top100fy2' => $request->top100fy2,
                 'descripcion_motivo' => $request->descripcion_motivo,
                 'especificacion_motivo_reclamacion_leve' => $request->especificacion_motivo_reclamacion_leve,
@@ -616,6 +727,11 @@ class MaterialKiloController extends Controller
                 'fecha_reclamacion_respuesta' => $request->fecha_reclamacion_respuesta,
                 'abierto' => $request->abierto ?? 'Si'
             ]);
+
+            // Si hay clasificación de incidencia, actualizar métricas
+            if ($request->clasificacion_incidencia) {
+                $this->actualizarMetricasDevolucion($request->id_proveedor, $request->año, $request->mes, $request->clasificacion_incidencia);
+            }
 
             return response()->json([
                 'success' => true,
@@ -790,6 +906,44 @@ class MaterialKiloController extends Controller
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
+        }
+    }
+
+    /**
+     * Actualizar métricas cuando se guarda una devolución con clasificación
+     */
+    private function actualizarMetricasDevolucion($id_proveedor, $año, $mes, $clasificacion_incidencia)
+    {
+        try {
+            // Buscar o crear la métrica para el proveedor, año y mes
+            $metrica = ProveedorMetric::firstOrCreate([
+                'proveedor_id' => $id_proveedor,
+                'año' => $año,
+                'mes' => $mes
+            ], [
+                'rg1' => 0,
+                'rl1' => 0,
+                'dev1' => 0,
+                'rok1' => 0,
+                'ret1' => 0
+            ]);
+
+            // Incrementar la métrica correspondiente según la clasificación
+            switch ($clasificacion_incidencia) {
+                case 'RG1':
+                    $metrica->rg1 += 1;
+                    break;
+                case 'RL1':
+                    $metrica->rl1 += 1;
+                    break;
+            }
+
+            $metrica->save();
+
+            Log::info("Métrica actualizada por devolución: Proveedor {$id_proveedor}, {$clasificacion_incidencia} +1");
+
+        } catch (\Exception $e) {
+            Log::error("Error al actualizar métricas por devolución: " . $e->getMessage());
         }
     }
 }

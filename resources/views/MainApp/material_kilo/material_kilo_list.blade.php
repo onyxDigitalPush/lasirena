@@ -4,7 +4,15 @@
 
 
 @section('custom_head')
-
+<style>
+    .material-row:hover {
+        background-color: #f8f9fa !important;
+        cursor: pointer;
+    }
+    .material-row:hover td {
+        background-color: #f8f9fa !important;
+    }
+</style>
 @endsection
 
 @section('title_content')
@@ -36,6 +44,26 @@
                     <i class="fa fa-sort-amount-asc mr-1"></i>Total KG Menor
                 </a>
             </div>
+
+            <!-- Filtros de Factor de Conversión por Orden -->
+            <div class="btn-group mr-2" role="group">
+                <a href="{{ route('material_kilo.index', array_merge(request()->except('filtro'), ['orden' => 'factor_desc'])) }}" 
+                   class="btn btn-success {{ request('orden') == 'factor_desc' ? 'active' : '' }}">
+                    <i class="fa fa-sort-numeric-desc mr-1"></i>Factor Mayor
+                </a>
+                <a href="{{ route('material_kilo.index', array_merge(request()->except('filtro'), ['orden' => 'factor_asc'])) }}" 
+                   class="btn btn-primary {{ request('orden') == 'factor_asc' ? 'active' : '' }}">
+                    <i class="fa fa-sort-numeric-asc mr-1"></i>Factor Menor
+                </a>
+            </div>
+
+            <!-- Filtros de Factor de Conversión -->
+            <div class="btn-group mr-2" role="group">
+                <a href="{{ route('material_kilo.index', array_merge(request()->except('orden'), ['filtro' => 'factor_cero'])) }}" 
+                   class="btn btn-danger {{ request('filtro') == 'factor_cero' ? 'active' : '' }}">
+                    Factor en 0
+                </a>
+            </div>
             
             <a class="m-2 btn btn-success" href="{{ route('material_kilo.total_kg_proveedor') }}">
                 <i class="fa fa-bar-chart mr-2"></i>Total KG por Proveedor
@@ -45,20 +73,32 @@
 
     @endsection
 
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
 
+    @if (session('error'))
+        <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+            {{ session('error') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
 
     @section('main_content')
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ session('success') }}
-            </div>
-        @endif
-
-        @if (session('error'))
-            <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
-                {{ session('error') }}
-            </div>
-        @endif
+        <!-- Debug temporal - remover después -->
+        <div class="alert alert-info">
+            <strong>Debug:</strong> 
+            Orden actual: {{ request('orden') ?? 'ninguno' }} | 
+            Filtro actual: {{ request('filtro') ?? 'ninguno' }}
+        </div>
+        
         <div class="col-12 bg-white">
             <div class='mt-4 mb-4'></div>
             <table id="table_material_kilo"
@@ -96,7 +136,7 @@
                 </thead>
                 <tbody>
                     @foreach ($array_material_kilo as $material_kilo)
-                        <tr>
+                        <tr class="material-row" data-id="{{ $material_kilo->id }}" style="cursor: pointer;">
                             <td class="text-center">{{ $material_kilo->codigo_material }}</td>
                             <td class="text-center">{{ $material_kilo->nombre_proveedor }}</td>
                             <td class="text-center">{{ $material_kilo->nombre_material }}</td>
@@ -105,7 +145,15 @@
                             <td class="text-center">{{ $material_kilo->valor_emdev }}</td>
                             <td class="text-center">{{ $material_kilo->umb }}</td>
                             <td class="text-center">{{ $material_kilo->mes }}</td>
-                            <td class="text-center">{{ $material_kilo->factor_conversion }}</td>
+                            <td class="text-center">
+                                @if($material_kilo->factor_conversion !== null && $material_kilo->factor_conversion > 0)
+                                    <span class="badge badge-success">{{ number_format($material_kilo->factor_conversion, 2) }}</span>
+                                @elseif($material_kilo->factor_conversion == 0)
+                                    <span class="badge badge-danger">{{ number_format($material_kilo->factor_conversion, 2) }}</span>
+                                @else
+                                    <span class="badge badge-warning">Sin Factor</span>
+                                @endif
+                            </td>
                             <td class="text-center">
                                 <strong class="text-primary">{{ number_format($material_kilo->total_kg, 2) }} KG</strong>
                             </td>
@@ -129,42 +177,82 @@
             </div>
 
         @endsection
-        <!-- Modal Crear Usuario -->
-        <div class="modal fade" id="createUserModal" tabindex="-1" role="dialog"
-            aria-labelledby="createUserModalLabel">
+        <!-- Modal Edicion de Material -->
+        <div class="modal fade" id="editMaterialModal" tabindex="-1" role="dialog" aria-labelledby="editMaterialModalLabel">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
-                    <form method="POST" action="{{ route('proveedores.store') }}">
-                        @csrf
-                        <div class="modal-header">
-                            <h4 class="modal-title" id="createUserModalLabel">Crear Proveedor</h4>
-                            <button type="button" class="close" data-dismiss="modal">&times;</button>
-                        </div>
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="editMaterialModalLabel">Editar Material</h4>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editMaterialForm" method="POST" action="{{ route('material_kilo.update_material') }}">
+                            @csrf
+                            @method('PUT')
 
-                        <div class="modal-body">
                             <div class="form-group">
-                                <label for="codigo_proveedor">Codigo Proveedor</label>
-                                <input type="number" class="form-control" id="id_proveedor" name="id_proveedor"
-                                    required>
+                                <label for="codigo_material">Código Material</label>
+                                <input type="text" class="form-control" id="codigo_material" name="codigo_material" readonly>
                             </div>
 
                             <div class="form-group">
-                                <label for="nombre_proveedor">Nombre Proveedor</label>
-                                <input type="text" class="form-control" id="nombre_proveedor" name="nombre_proveedor"
-                                    required>
+                                <label for="nombre_material">Descripción</label>
+                                <input type="text" class="form-control" id="nombre_material" name="nombre_material" readonly>
                             </div>
-                        </div>
 
-                        <div class="modal-footer">
-                            <button type="submit" class="btn btn-primary">Crear</button>
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                        </div>
-                    </form>
+                            <div class="form-group">
+                                <label for="nombre_proveedor">Proveedor</label>
+                                <input type="text" class="form-control" id="nombre_proveedor" name="nombre_proveedor" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="factor_conversion">Factor Conversión</label>
+                                <input type="number" step="0.00001" class="form-control" id="factor_conversion" name="factor_conversion" placeholder="Ingrese el factor de conversión">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="ctd_emdev">Cantidad EM-DEV</label>
+                                <input type="number" step="0.01" class="form-control" id="ctd_emdev" name="ctd_emdev" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="valor_emdev">Valor EM-DEV</label>
+                                <input type="number" step="0.01" class="form-control" id="valor_emdev" name="valor_emdev" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="mes">Mes</label>
+                                <input type="text" class="form-control" id="mes" name="mes" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="total_kg">Total KG</label>
+                                <input type="text" class="form-control" id="total_kg" name="total_kg" readonly>
+                            </div>
+
+                            <input type="hidden" id="material_kilo_id" name="material_kilo_id">
+                            
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
         @section('custom_footer')
-
+            <script>
+                // URLs para AJAX generadas por Laravel
+                window.materialKiloEditUrl = "{{ url('/material_kilo') }}" + "/:id/edit";
+                window.materialKiloUpdateUrl = "{{ url('/material_kilo/update-material') }}";
+                window.baseUrl = "{{ url('/') }}";
+                
+                // Debug - mostrar URLs generadas
+                console.log('Edit URL template:', window.materialKiloEditUrl);
+                console.log('Update URL:', window.materialKiloUpdateUrl);
+                console.log('Base URL:', window.baseUrl);
+            </script>
             <script type="text/javascript"
                 src="{{ URL::asset('' . DIR_JS . '/main_app/material_kilo_list.js') }}?v={{ config('app.version') }}"></script>
         @endsection

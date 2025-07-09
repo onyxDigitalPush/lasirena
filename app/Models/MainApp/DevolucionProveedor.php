@@ -22,6 +22,7 @@ class DevolucionProveedor extends Model
         'año',
         'mes',
         'fecha_reclamacion',
+        'clasificacion_incidencia',
         'top100fy2',
         'descripcion_motivo',
         'especificacion_motivo_reclamacion_leve',

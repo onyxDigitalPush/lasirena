@@ -190,6 +190,8 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/emails/{email_id}', 'EmailController@show')->name('email.show');
     Route::post('/emails/enviar-mails-redencion', 'EmailController@sendRedemptionEmail')->name('email.send_redemption_mail');    // Materiales Kilos
     Route::get('/material_kilo/list', 'MaterialKiloController@index')->name('material_kilo.index');
+    Route::get('/material_kilo/{id}/edit', 'MaterialKiloController@edit')->name('material_kilo.edit');
+    Route::put('/material_kilo/update-material', 'MaterialKiloController@updateMaterial')->name('material_kilo.update_material');
     Route::get('/material_kilo/total-kg-proveedor', 'MaterialKiloController@totalKgPorProveedor')->name('material_kilo.total_kg_proveedor');
     Route::get('/material_kilo/evaluacion-continua-proveedores', 'MaterialKiloController@evaluacionContinuaProveedores')->name('material_kilo.evaluacion_continua_proveedores');
     Route::post('/material_kilo/delete', 'MaterialKiloController@destroy')->name('material_kilo.delete');

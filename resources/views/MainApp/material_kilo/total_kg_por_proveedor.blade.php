@@ -155,9 +155,14 @@
                                 </button>
                             </div>
                             <div class="col-md-3 d-flex align-items-end justify-content-end">
-                                <button type="button" id="guardarMetricas" class="btn btn-success">
-                                    <i class="fa fa-save mr-1"></i>Guardar Métricas
-                                </button>
+                                <div class="btn-group" role="group">
+                                    <button type="button" id="gestionarIncidencias" class="btn btn-warning">
+                                        <i class="fa fa-exclamation-triangle mr-1"></i>Incidencias
+                                    </button>
+                                    <button type="button" id="gestionarDevoluciones" class="btn btn-info">
+                                        <i class="fa fa-undo mr-1"></i>Devoluciones
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -178,20 +183,10 @@
             </div>
             <div class="col-md-6">
                 <div class="card bg-success text-white">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">
+                    <div class="card-body">
+                        <h5 class="card-title">
                             <i class="fa fa-weight mr-2"></i>Total KG General
                         </h5>
-                        <div class="btn-group" role="group">
-                            <button type="button" id="gestionarIncidencias" class="btn btn-warning btn-sm">
-                                <i class="fa fa-exclamation-triangle mr-1"></i>Incidencias
-                            </button>
-                            <button type="button" id="gestionarDevoluciones" class="btn btn-info btn-sm">
-                                <i class="fa fa-undo mr-1"></i>Devoluciones
-                            </button>
-                        </div>
-                    </div>
-                    <div class="card-body">
                         <h3 class="card-text" id="total-kg-general">{{ number_format($totales_por_proveedor->sum('total_kg_proveedor'), 2) }} kg</h3>
                     </div>
                 </div>
@@ -392,11 +387,9 @@
                                     <label for="clasificacion_incidencia">Clasificación de Incidencia:</label>
                                     <select id="clasificacion_incidencia" name="clasificacion_incidencia" class="form-control">
                                         <option value="">Seleccione una clasificación</option>
-                                        <option value="RG1">RG - Reclamación General</option>
-                                        <option value="RL1">RL - Reclamación Legal</option>
-                                        <option value="DEV1">DEV - Devolución</option>
-                                        <option value="ROK1">ROK - Revisión OK</option>
-                                        <option value="RET1">RET - Retención</option>
+                                        <option value="DEV1">DEV - Rechazos en almacen</option>
+                                        <option value="ROK1">ROK - Aceptaciones Condicionales en almacen</option>
+                                        <option value="RET1">RET - Retiradas generales de tiendas</option>
                                     </select>
                                 </div>
                             </div>
@@ -627,12 +620,16 @@
                                 <input type="text" id="codigo_producto" name="codigo_producto" class="form-control" placeholder="Código del producto" required>
                             </div>
                         </div>
-                        <!-- Nombre proveedor con autocompletado -->
+                        <!-- Nombre proveedor con select -->
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="nombre_proveedor_dev">Nombre Proveedor:</label>
-                                <input type="text" id="nombre_proveedor_dev" name="nombre_proveedor" class="form-control" placeholder="Nombre del proveedor" required>
-                                <input type="hidden" id="codigo_proveedor" name="codigo_proveedor">
+                                <label for="proveedor_devolucion">Proveedor:</label>
+                                <select id="proveedor_devolucion" name="id_proveedor" class="form-control" required>
+                                    <option value="">Seleccione un proveedor</option>
+                                    @foreach ($proveedores_alfabetico as $proveedor)
+                                        <option value="{{ $proveedor->id_proveedor }}">{{ $proveedor->nombre_proveedor }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
                         <!-- Descripción del producto -->
@@ -703,8 +700,12 @@
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="top100fy2">Top100FY2:</label>
-                                <input type="text" id="top100fy2" name="top100fy2" class="form-control" placeholder="Top100FY2">
+                                <label for="clasificacion_incidencia_dev">Clasificación de Incidencia:</label>
+                                <select id="clasificacion_incidencia_dev" name="clasificacion_incidencia" class="form-control">
+                                    <option value="">Seleccione una clasificación</option>
+                                    <option value="RG1">RG - Reclamación General</option>
+                                    <option value="RL1">RL - Reclamación Legal</option>
+                                </select>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -716,6 +717,15 @@
                                     <option value="Grave">Grave</option>
                                     <option value="Crítica">Crítica</option>
                                 </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label for="top100fy2">Top100FY2:</label>
+                                <input type="text" id="top100fy2" name="top100fy2" class="form-control" placeholder="Top100FY2">
                             </div>
                         </div>
                     </div>
