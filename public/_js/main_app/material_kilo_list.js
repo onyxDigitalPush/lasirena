@@ -6,25 +6,93 @@ $(document).ready(function () {
     var table = $('#table_material_kilo').DataTable({
         paging: false,       // 🚫 Desactiva paginación de DataTables
         info: false,         // 🚫 Desactiva resumen tipo "Mostrando X de Y"
-        ordering: false,     // (opcional) Desactiva ordenamiento si no lo usas
-        searching: false,    // 🚫 Desactiva el buscador general (usamos por columna)
+        ordering: true,      // ✅ Activa ordenamiento
+        searching: true,     // ✅ Activa búsqueda para filtros por columna
+        dom: 't',           // Solo muestra la tabla (sin buscador general)
         orderCellsTop: true,
-        fixedHeader: true
+        fixedHeader: true,
+        language: {
+            search: "Buscar:",
+            searchPlaceholder: "Buscar...",
+            emptyTable: "No hay datos disponibles",
+            zeroRecords: "No se encontraron registros que coincidan"
+        }
     });
 
     // Aplica los filtros de las celdas del segundo thead (por columna)
     $('#table_material_kilo thead tr:eq(1) th').each(function (i) {
         var input = $(this).find('input');
         if (input.length) {
-            input.on('keyup change', function () {
-                if (table.column(i).search() !== this.value) {
-                    table
-                        .column(i)
-                        .search(this.value)
-                        .draw();
+            // Configurar evento con debounce para mejor rendimiento
+            let timeout;
+            input.on('keyup change clear', function () {
+                var that = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(function() {
+                    if (table.column(i).search() !== that.value) {
+                        table
+                            .column(i)
+                            .search(that.value)
+                            .draw();
+                        
+                        // Actualizar estado de filtros
+                        updateFilterStatus();
+                    }
+                }, 300); // Esperar 300ms después de que el usuario deje de escribir
+            });
+            
+            // Limpiar filtro al hacer click en el input vacío
+            input.on('click', function() {
+                if (this.value === '') {
+                    table.column(i).search('').draw();
+                    updateFilterStatus();
                 }
             });
         }
+    });
+
+    // Función para actualizar el estado de los filtros
+    function updateFilterStatus() {
+        var activeFilters = 0;
+        $('#table_material_kilo thead tr:eq(1) th input').each(function() {
+            if ($(this).val().trim() !== '') {
+                activeFilters++;
+            }
+        });
+        
+        var clearButton = $('#clearFilters');
+        if (activeFilters > 0) {
+            clearButton.removeClass('btn-outline-secondary').addClass('btn-warning');
+            clearButton.find('i').removeClass('fa-eraser').addClass('fa-filter');
+            clearButton.html('<i class="fa fa-filter mr-1"></i>Limpiar Filtros (' + activeFilters + ')');
+        } else {
+            clearButton.removeClass('btn-warning').addClass('btn-outline-secondary');
+            clearButton.find('i').removeClass('fa-filter').addClass('fa-eraser');
+            clearButton.html('<i class="fa fa-eraser mr-1"></i>Limpiar Filtros');
+        }
+    }
+
+    // Funcionalidad para limpiar todos los filtros
+    $('#clearFilters').on('click', function() {
+        // Limpiar todos los inputs de filtro
+        $('#table_material_kilo thead tr:eq(1) th input').val('');
+        
+        // Limpiar todas las búsquedas por columna y redibujar
+        table.search('').columns().search('').draw();
+        
+        // Actualizar estado
+        updateFilterStatus();
+        
+        // Mostrar notificación
+        var clearButton = $(this);
+        clearButton.addClass('btn-success').removeClass('btn-outline-secondary btn-warning');
+        var originalHtml = '<i class="fa fa-eraser mr-1"></i>Limpiar Filtros';
+        clearButton.html('<i class="fa fa-check mr-1"></i>Filtros Limpiados');
+        
+        setTimeout(() => {
+            clearButton.removeClass('btn-success').addClass('btn-outline-secondary');
+            clearButton.html(originalHtml);
+        }, 1500);
     });
 
     // Funcionalidad de click en las filas para editar material

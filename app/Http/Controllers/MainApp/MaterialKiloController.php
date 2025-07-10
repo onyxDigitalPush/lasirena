@@ -278,8 +278,23 @@ class MaterialKiloController extends Controller
         }
     }    public function evaluacionContinuaProveedores(Request $request)
     {
-        $mes = $request->get('mes', 1); // Por defecto enero (mes 1)
+        $mes = $request->get('mes');
         $año = $request->get('año', \Carbon\Carbon::now()->year);
+        $proveedor = $request->get('proveedor', ''); // Asegurar que sea string
+        $idProveedor = $request->get('id_proveedor', ''); // Asegurar que sea string
+        
+        // Asegurar que $año sea numérico
+        $año = (int) $año;
+        
+        // Debug: Log para verificar los tipos de variables
+        Log::info('Variables recibidas en evaluacionContinuaProveedores', [
+            'mes' => $mes,
+            'año' => $año,
+            'proveedor' => $proveedor,
+            'proveedor_type' => gettype($proveedor),
+            'idProveedor' => $idProveedor,
+            'idProveedor_type' => gettype($idProveedor)
+        ]);
 
         // Obtener totales por proveedor para el mes y año específicos
         $query = DB::table('material_kilos')
@@ -295,6 +310,16 @@ class MaterialKiloController extends Controller
         // Si mes está seleccionado, filtrar por mes específico
         if ($mes) {
             $query->where('material_kilos.mes', $mes);
+        }
+
+        // Filtrar por proveedor si está seleccionado
+        if ($proveedor && is_string($proveedor)) {
+            $query->where('proveedores.nombre_proveedor', $proveedor);
+        }
+
+        // Filtrar por ID proveedor si está especificado
+        if ($idProveedor && is_string($idProveedor)) {
+            $query->where('proveedores.id_proveedor', 'LIKE', '%' . $idProveedor . '%');
         }
 
         $totales_por_proveedor = $query->groupBy('proveedores.id_proveedor', 'proveedores.nombre_proveedor')
@@ -339,7 +364,9 @@ class MaterialKiloController extends Controller
         foreach ($totales_por_proveedor as $proveedor) {
             $metricas = isset($metricas_por_proveedor[$proveedor->id_proveedor]) 
                 ? $metricas_por_proveedor[$proveedor->id_proveedor] 
-                : null;            if ($metricas && $proveedor->total_kg_proveedor > 0) {
+                : null;
+
+            if ($metricas && $proveedor->total_kg_proveedor > 0) {
                 // Cálculos de indicadores (valores * 1000000 / total_kg)
                 $proveedor->rg_ind1 = ($metricas->rg1 ?? 0) * 1000000 / $proveedor->total_kg_proveedor;
                 $proveedor->rl_ind1 = ($metricas->rl1 ?? 0) * 1000000 / $proveedor->total_kg_proveedor;
@@ -372,11 +399,32 @@ class MaterialKiloController extends Controller
             }
         }
 
+        // Obtener todos los proveedores disponibles para el select (sin filtros)
+        $proveedores_disponibles = DB::table('material_kilos')
+            ->join('proveedores', 'material_kilos.proveedor_id', '=', 'proveedores.id_proveedor')
+            ->select('proveedores.id_proveedor', 'proveedores.nombre_proveedor')
+            ->where('material_kilos.año', $año)
+            ->groupBy('proveedores.id_proveedor', 'proveedores.nombre_proveedor')
+            ->orderBy('proveedores.nombre_proveedor', 'asc')
+            ->get();
+
+        // Asegurar que $proveedores_disponibles no esté vacío
+        if ($proveedores_disponibles->isEmpty()) {
+            $proveedores_disponibles = collect();
+        }
+
+        // Asegurar que las variables sean strings o null
+        $proveedor = is_string($proveedor) ? $proveedor : '';
+        $idProveedor = is_string($idProveedor) ? $idProveedor : '';
+
         return view('MainApp/material_kilo.evaluacion_continua_proveedores', compact(
             'totales_por_proveedor', 
             'metricas_por_proveedor',
             'mes',
-            'año'
+            'año',
+            'proveedor',
+            'idProveedor',
+            'proveedores_disponibles'
         ));
     }
 

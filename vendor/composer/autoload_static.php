@@ -618,6 +618,7 @@ class ComposerStaticInit705fb73970ef4b361891267ba219e830
     );
 
     public static $classMap = array (
+        'App\\Console\\Commands\\SincronizarMetricasProveedores' => __DIR__ . '/../..' . '/app/Console/Commands/SincronizarMetricasProveedores.php',
         'App\\Console\\Kernel' => __DIR__ . '/../..' . '/app/Console/Kernel.php',
         'App\\Exceptions\\Handler' => __DIR__ . '/../..' . '/app/Exceptions/Handler.php',
         'App\\Http\\Controllers\\Auth\\ConfirmPasswordController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/ConfirmPasswordController.php',
@@ -649,12 +650,15 @@ class ComposerStaticInit705fb73970ef4b361891267ba219e830
         'App\\Models\\EmailingApp\\EmailImpact' => __DIR__ . '/../..' . '/app/Models/EmailingApp/EmailImpact.php',
         'App\\Models\\EmailingApp\\OpenTracking' => __DIR__ . '/../..' . '/app/Models/EmailingApp/OpenTracking.php',
         'App\\Models\\EmailingApp\\SendingQueue' => __DIR__ . '/../..' . '/app/Models/EmailingApp/SendingQueue.php',
+        'App\\Models\\MainApp\\DevolucionProveedor' => __DIR__ . '/../..' . '/app/Models/MainApp/DevolucionProveedor.php',
         'App\\Models\\MainApp\\Email' => __DIR__ . '/../..' . '/app/Models/MainApp/Email.php',
+        'App\\Models\\MainApp\\IncidenciaProveedor' => __DIR__ . '/../..' . '/app/Models/MainApp/IncidenciaProveedor.php',
         'App\\Models\\MainApp\\Material' => __DIR__ . '/../..' . '/app/Models/MainApp/Material.php',
         'App\\Models\\MainApp\\MaterialKilo' => __DIR__ . '/../..' . '/app/Models/MainApp/MaterialKilo.php',
         'App\\Models\\MainApp\\Product' => __DIR__ . '/../..' . '/app/Models/MainApp/Product.php',
         'App\\Models\\MainApp\\Project' => __DIR__ . '/../..' . '/app/Models/MainApp/Project.php',
         'App\\Models\\MainApp\\Proveedor' => __DIR__ . '/../..' . '/app/Models/MainApp/Proveedor.php',
+        'App\\Models\\MainApp\\ProveedorMetric' => __DIR__ . '/../..' . '/app/Models/MainApp/ProveedorMetric.php',
         'App\\Models\\User' => __DIR__ . '/../..' . '/app/Models/User.php',
         'App\\Providers\\AppServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AppServiceProvider.php',
         'App\\Providers\\AuthServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AuthServiceProvider.php',

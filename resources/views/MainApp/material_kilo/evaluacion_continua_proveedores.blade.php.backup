@@ -115,9 +115,9 @@
                                         @endforeach
                                     @endif
                                 </select>
-                                @if($proveedor)
+                                @if($proveedor && is_string($proveedor))
                                     <small class="form-text text-success">
-                                        <i class="fa fa-check mr-1"></i>Filtrado por: {{ is_string($proveedor) ? $proveedor : '' }}
+                                        <i class="fa fa-check mr-1"></i>Filtrado por: {{ $proveedor }}
                                     </small>
                                 @endif
                             </div>
@@ -125,9 +125,9 @@
                                 <label for="filtro_id_proveedor">ID Proveedor:</label>
                                 <input type="text" id="filtro_id_proveedor" class="form-control" 
                                        placeholder="Escribir ID..." value="{{ is_string($idProveedor) ? $idProveedor : '' }}">
-                                @if($idProveedor)
+                                @if($idProveedor && is_string($idProveedor))
                                     <small class="form-text text-success">
-                                        <i class="fa fa-check mr-1"></i>Filtrado por ID: {{ is_string($idProveedor) ? $idProveedor : '' }}
+                                        <i class="fa fa-check mr-1"></i>Filtrado por ID: {{ $idProveedor }}
                                     </small>
                                 @endif
                             </div>
@@ -157,13 +157,13 @@
                             <i class="fa fa-users mr-2"></i>Total Proveedores
                         </h5>
                         <h3 class="card-text" id="total-proveedores">{{ $totales_por_proveedor->count() }}</h3>
-                        @if($proveedor || $idProveedor)
+                        @if($proveedor || ($idProveedor && is_string($idProveedor)))
                             <small class="text-white-50">
                                 @if($proveedor)
-                                    Filtrado por: {{ is_string($proveedor) ? $proveedor : '' }}
+                                    Filtrado por: {{ $proveedor }}
                                 @endif
-                                @if($idProveedor)
-                                    ID: {{ is_string($idProveedor) ? $idProveedor : '' }}
+                                @if($idProveedor && is_string($idProveedor))
+                                    ID: {{ $idProveedor }}
                                 @endif
                             </small>
                         @endif
@@ -205,12 +205,12 @@
                             <i class="fa fa-filter mr-2"></i>Filtros Activos
                         </h5>
                         <div class="card-text">
-                            @if($proveedor || $idProveedor)
+                            @if($proveedor || ($idProveedor && is_string($idProveedor)))
                                 @if($proveedor)
-                                    <small class="d-block">✓ Proveedor: {{ is_string($proveedor) ? $proveedor : '' }}</small>
+                                    <small class="d-block">✓ Proveedor: {{ $proveedor }}</small>
                                 @endif
-                                @if($idProveedor)
-                                    <small class="d-block">✓ ID: {{ is_string($idProveedor) ? $idProveedor : '' }}</small>
+                                @if($idProveedor && is_string($idProveedor))
+                                    <small class="d-block">✓ ID: {{ $idProveedor }}</small>
                                 @endif
                             @else
                                 <small>Sin filtros aplicados</small>

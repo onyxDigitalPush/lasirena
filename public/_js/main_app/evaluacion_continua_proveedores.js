@@ -5,21 +5,21 @@ $(document).ready(function () {
         info: true,
         ordering: true,
         searching: true,
-        orderCellsTop: false, // Cambiado a false para headers complejos
-        fixedHeader: false, // Deshabilitado temporalmente para evitar conflictos
-        order: [[2, 'desc']], // Ordenar por Total KG descendente por defecto
-        scrollX: true, // Permitir scroll horizontal para tantas columnas
-        dom: '<"top"f>rt<"bottom"lip><"clear">', // Layout personalizado
+        orderCellsTop: true,
+        fixedHeader: false,
+        order: [[2, 'desc']],
+        scrollX: true,
+        dom: '<"top"f>rt<"bottom"lip><"clear">',
         columnDefs: [
             {
-                targets: [0, 1], // ID Proveedor y Nombre Proveedor - permitir filtrado y ordenamiento
+                targets: [0, 1],
                 orderable: true,
                 searchable: true
             },
             {
-                targets: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], // Todas las columnas numéricas
+                targets: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
                 orderable: true,
-                searchable: false // Las columnas numéricas no necesitan ser searchables individualmente
+                searchable: false
             }
         ],
         language: {
@@ -54,85 +54,111 @@ $(document).ready(function () {
         var totalProveedores = filasVisibles.length;
         var totalKg = 0;
         
-        // Calcular suma de KG de las filas visibles
         filasVisibles.each(function(data, index) {
-            // La columna 2 contiene el total KG (necesitamos extraer el número del badge)
             var kgText = $(data[2]).text() || data[2];
             var kgValue = parseFloat(kgText.replace(/[^\d.-]/g, '')) || 0;
             totalKg += kgValue;
         });
         
-        // Actualizar los elementos en la interfaz usando los IDs específicos
         $('#total-proveedores').text(totalProveedores);
         $('#total-kg-general').text(new Intl.NumberFormat('es-ES', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         }).format(totalKg) + ' kg');
-    }    // Aplica los filtros de las celdas con inputs (búsqueda directa)
-    $('#table_evaluacion_continua thead input').each(function() {
-        var $input = $(this);
-        var columnIndex = $input.closest('th').index();
-        
-        console.log('Configurando filtro para columna:', columnIndex, 'Placeholder:', $input.attr('placeholder'));
-        
-        $input.on('keyup change', function() {
-            var searchValue = this.value.trim();
-            console.log('Filtrando columna', columnIndex, 'con valor:', searchValue);
-            
-            if (table.column(columnIndex).search() !== searchValue) {
-                table.column(columnIndex).search(searchValue).draw();
-                
-                // Actualizar totales después de filtrar
-                setTimeout(function() {
-                    actualizarTotales();
-                }, 100);
-            }
-        });
+    }
+
+    // Filtro de proveedor en tiempo real
+    $('#filtro_proveedor').on('change', function() {
+        var searchValue = this.value.trim();
+        table.column(1).search(searchValue).draw();
+        actualizarTotales();
     });
-    
-    // También actualizar totales cuando se use el buscador general
+
+    // Filtro de ID proveedor
+    $('#filtro_id_proveedor').on('keyup input', function() {
+        var searchValue = this.value.trim();
+        table.column(0).search(searchValue).draw();
+        actualizarTotales();
+    });
+
+    // Limpiar filtros de tabla
+    $('#limpiarFiltrosTabla').on('click', function() {
+        $('#filtro_proveedor').val('');
+        $('#filtro_id_proveedor').val('');
+        table.search('').columns().search('').draw();
+        actualizarTotales();
+    });
+
+    // Actualizar totales cuando se use el buscador general
     table.on('search.dt', function() {
         actualizarTotales();
     });
-    
-    // Actualizar totales cuando se redibuje la tabla
-    table.on('draw.dt', function() {
-        actualizarTotales();
-    });
-    
-    // Actualizar totales al cargar la página inicialmente
+
+    // Actualizar totales al cargar
     actualizarTotales();
     
     // Funcionalidad para filtros por mes y año
     $('#aplicarFiltros').on('click', function() {
         var mes = $('#filtro_mes').val();
         var año = $('#filtro_año').val();
+        var proveedor = $('#filtro_proveedor').val();
+        var idProveedor = $('#filtro_id_proveedor').val();
+        
+        // Validar que al menos año esté seleccionado
+        if (!año) {
+            alert('Por favor seleccione un año');
+            return;
+        }
         
         // Construir URL con parámetros
         var url = new URL(window.location.href);
         
+        // Limpiar parámetros existentes
+        url.searchParams.delete('mes');
+        url.searchParams.delete('año');
+        url.searchParams.delete('proveedor');
+        url.searchParams.delete('id_proveedor');
+        
+        // Agregar nuevos parámetros
         if (mes) {
             url.searchParams.set('mes', mes);
-        } else {
-            url.searchParams.delete('mes');
         }
         
         if (año) {
             url.searchParams.set('año', año);
-        } else {
-            url.searchParams.delete('año');
         }
+        
+        if (proveedor) {
+            url.searchParams.set('proveedor', proveedor);
+        }
+        
+        if (idProveedor) {
+            url.searchParams.set('id_proveedor', idProveedor);
+        }
+        
+        // Mostrar mensaje de carga
+        $('#aplicarFiltros').html('<i class="fa fa-spinner fa-spin mr-1"></i>Aplicando...');
         
         // Recargar página con nuevos filtros
         window.location.href = url.toString();
     });
     
     $('#limpiarFiltros').on('click', function() {
-        // Redireccionar sin parámetros de filtro
-        var url = new URL(window.location.href);
-        url.searchParams.delete('mes');
-        url.searchParams.delete('año');
-        window.location.href = url.toString();
+        // Mostrar mensaje de confirmación
+        if (confirm('¿Está seguro que desea limpiar todos los filtros?')) {
+            // Redireccionar sin parámetros de filtro
+            var url = new URL(window.location.href);
+            url.searchParams.delete('mes');
+            url.searchParams.delete('año');
+            url.searchParams.delete('proveedor');
+            url.searchParams.delete('id_proveedor');
+            
+            // Mantener solo el año actual
+            url.searchParams.set('año', new Date().getFullYear());
+            
+            $('#limpiarFiltros').html('<i class="fa fa-spinner fa-spin mr-1"></i>Limpiando...');
+            window.location.href = url.toString();
+        }
     });
     
     // Inicializar filtros desde URL
@@ -142,5 +168,39 @@ $(document).ready(function () {
     }
     if (urlParams.has('año')) {
         $('#filtro_año').val(urlParams.get('año'));
+    }
+    if (urlParams.has('proveedor')) {
+        $('#filtro_proveedor').val(urlParams.get('proveedor'));
+    }
+    if (urlParams.has('id_proveedor')) {
+        $('#filtro_id_proveedor').val(urlParams.get('id_proveedor'));
+    }
+    
+    // Mostrar mensaje si hay filtros aplicados
+    if (urlParams.has('proveedor') || urlParams.has('id_proveedor')) {
+        var mensaje = 'Filtros aplicados: ';
+        var filtros = [];
+        
+        if (urlParams.has('proveedor')) {
+            filtros.push('Proveedor: ' + urlParams.get('proveedor'));
+        }
+        if (urlParams.has('id_proveedor')) {
+            filtros.push('ID: ' + urlParams.get('id_proveedor'));
+        }
+        
+        mensaje += filtros.join(', ');
+        
+        // Mostrar mensaje temporal
+        $('body').prepend('<div class="alert alert-info alert-dismissible fade show" role="alert" style="position: fixed; top: 10px; right: 10px; z-index: 9999; max-width: 400px;">' +
+            '<i class="fa fa-info-circle mr-2"></i>' + mensaje +
+            '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+            '<span aria-hidden="true">&times;</span>' +
+            '</button>' +
+            '</div>');
+        
+        // Auto-ocultar después de 5 segundos
+        setTimeout(function() {
+            $('.alert').fadeOut();
+        }, 5000);
     }
 });

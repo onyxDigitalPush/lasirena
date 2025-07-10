@@ -6,6 +6,7 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'App\\Console\\Commands\\SincronizarMetricasProveedores' => $baseDir . '/app/Console/Commands/SincronizarMetricasProveedores.php',
     'App\\Console\\Kernel' => $baseDir . '/app/Console/Kernel.php',
     'App\\Exceptions\\Handler' => $baseDir . '/app/Exceptions/Handler.php',
     'App\\Http\\Controllers\\Auth\\ConfirmPasswordController' => $baseDir . '/app/Http/Controllers/Auth/ConfirmPasswordController.php',
@@ -37,12 +38,15 @@ return array(
     'App\\Models\\EmailingApp\\EmailImpact' => $baseDir . '/app/Models/EmailingApp/EmailImpact.php',
     'App\\Models\\EmailingApp\\OpenTracking' => $baseDir . '/app/Models/EmailingApp/OpenTracking.php',
     'App\\Models\\EmailingApp\\SendingQueue' => $baseDir . '/app/Models/EmailingApp/SendingQueue.php',
+    'App\\Models\\MainApp\\DevolucionProveedor' => $baseDir . '/app/Models/MainApp/DevolucionProveedor.php',
     'App\\Models\\MainApp\\Email' => $baseDir . '/app/Models/MainApp/Email.php',
+    'App\\Models\\MainApp\\IncidenciaProveedor' => $baseDir . '/app/Models/MainApp/IncidenciaProveedor.php',
     'App\\Models\\MainApp\\Material' => $baseDir . '/app/Models/MainApp/Material.php',
     'App\\Models\\MainApp\\MaterialKilo' => $baseDir . '/app/Models/MainApp/MaterialKilo.php',
     'App\\Models\\MainApp\\Product' => $baseDir . '/app/Models/MainApp/Product.php',
     'App\\Models\\MainApp\\Project' => $baseDir . '/app/Models/MainApp/Project.php',
     'App\\Models\\MainApp\\Proveedor' => $baseDir . '/app/Models/MainApp/Proveedor.php',
+    'App\\Models\\MainApp\\ProveedorMetric' => $baseDir . '/app/Models/MainApp/ProveedorMetric.php',
     'App\\Models\\User' => $baseDir . '/app/Models/User.php',
     'App\\Providers\\AppServiceProvider' => $baseDir . '/app/Providers/AppServiceProvider.php',
     'App\\Providers\\AuthServiceProvider' => $baseDir . '/app/Providers/AuthServiceProvider.php',

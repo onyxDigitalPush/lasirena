@@ -12,6 +12,31 @@
     .material-row:hover td {
         background-color: #f8f9fa !important;
     }
+    
+    /* Estilos para los filtros */
+    .filter-input {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    
+    .filter-input:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    
+    .filter-input:hover {
+        border-color: #adb5bd;
+    }
+    
+    /* Mejorar la apariencia del botón de limpiar filtros */
+    #clearFilters {
+        transition: all 0.3s ease;
+    }
+    
+    #clearFilters:hover {
+        transform: translateY(-1px);
+    }
 </style>
 @endsection
 
@@ -68,6 +93,11 @@
             <a class="m-2 btn btn-success" href="{{ route('material_kilo.total_kg_proveedor') }}">
                 <i class="fa fa-bar-chart mr-2"></i>Total KG por Proveedor
             </a>
+            
+            <!-- Botón para limpiar filtros -->
+            <button class="btn btn-outline-secondary" id="clearFilters" title="Limpiar todos los filtros">
+                <i class="fa fa-eraser mr-1"></i>Limpiar Filtros
+            </button>
         </div>
     </div>
 
@@ -119,16 +149,14 @@
                         <th class="text-center">Eliminar</th>
                     </tr>
                     <tr>
-                        <th><input type="text" class="form-control form-control-sm" placeholder="Buscar Código" /></th>
-                        <th><input type="text" class="form-control form-control-sm" placeholder="Buscar Proveedor" />
-                        </th>
-                        <th><input type="text" class="form-control form-control-sm" placeholder="Buscar Descripción" />
-                        </th>
+                        <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Buscar Código" /></th>
+                        <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Buscar Proveedor" /></th>
+                        <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Buscar Descripción" /></th>
                         <th></th>
                         <th></th>
                         <th></th>
                         <th></th>
-                        <th><input type="text" class="form-control form-control-sm" placeholder="Mes" />
+                        <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Mes" /></th>
                         <th></th>
                         <th></th>
                         <th></th>
