@@ -90,6 +90,14 @@
                         </a>
                     </li>
                 @endif
+                @if (Auth::user()->type_user == '1' || Auth::user()->type_user == '2')
+                    <li class="active">
+                        <a href="{{ route('material_kilo.historial_incidencias_devoluciones') }}" title="Historial Incidencias y Devoluciones" class="active">
+                            <i class="metismenu-icon fa fa-exclamation-triangle"></i>
+                            Historial Incidencias
+                        </a>
+                    </li>
+                @endif
 
             </ul>
         </div>

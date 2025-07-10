@@ -663,8 +663,167 @@ class MaterialKiloController extends Controller
         );
     }
 
+    public function obtenerIncidencia($id)
+    {
+        try {
+            $incidencia = DB::table('incidencias_proveedores')
+                ->where('id', $id)
+                ->first();
+            
+            if (!$incidencia) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Incidencia no encontrada'
+                ], 404);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'incidencia' => $incidencia
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener la incidencia: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    public function obtenerDevolucion($id)
+    {
+        try {
+            $devolucion = DB::table('devoluciones_proveedores')
+                ->where('id', $id)
+                ->first();
+            
+            if (!$devolucion) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Devolución no encontrada'
+                ], 404);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'devolucion' => $devolucion
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener la devolución: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     /**
-     * Obtener incidencias de un proveedor
+     * Obtener historial de incidencias y devoluciones
+     */
+    public function historialIncidenciasYDevoluciones(Request $request)
+    {
+        $mes = $request->get('mes');
+        $año = $request->get('año', \Carbon\Carbon::now()->year);
+        $proveedor = $request->get('proveedor', '');
+        $tipo = $request->get('tipo', ''); // 'incidencia', 'devolucion', o vacío para ambos
+        
+        $resultados = collect();
+        
+        // Obtener incidencias usando las tablas correctas (sin _kilo)
+        if (!$tipo || $tipo === 'incidencia') {
+            $incidencias = DB::table('incidencias_proveedores as i')
+                ->leftJoin('proveedores as p', 'i.id_proveedor', '=', 'p.id_proveedor')
+                ->select(
+                    'i.id',
+                    'i.id_proveedor',
+                    'p.nombre_proveedor',
+                    'i.fecha_incidencia as fecha_principal',
+                    'i.clasificacion_incidencia',
+                    'i.descripcion_incidencia',
+                    'i.codigo',
+                    'i.producto',
+                    'i.origen',
+                    'i.mes',
+                    'i.año',
+                    'i.fecha_respuesta_proveedor',
+                    'i.fecha_envio_proveedor',
+                    DB::raw('NULL as abierto'), // Para incidencias no aplica
+                    DB::raw("'incidencia' as tipo_registro")
+                )
+                ->where('i.año', $año);
+                
+            if ($mes) {
+                $incidencias->where('i.mes', $mes);
+            }
+            
+            if ($proveedor) {
+                $incidencias->where('p.nombre_proveedor', 'LIKE', '%' . $proveedor . '%');
+            }
+            
+            $resultados = $resultados->merge($incidencias->get());
+        }
+        
+        // Obtener devoluciones usando las tablas correctas (sin _kilo)
+        if (!$tipo || $tipo === 'devolucion') {
+            $devoluciones = DB::table('devoluciones_proveedores as d')
+                ->leftJoin('proveedores as p', 'd.codigo_proveedor', '=', 'p.id_proveedor')
+                ->select(
+                    'd.id',
+                    'd.codigo_proveedor',
+                    'p.nombre_proveedor',
+                    'd.fecha_inicio as fecha_principal',
+                    'd.clasificacion_incidencia',
+                    'd.descripcion_motivo as descripcion_incidencia',
+                    'd.codigo_producto',
+                    'd.descripcion_producto',
+                    'd.origen',
+                    'd.mes',
+                    'd.año',
+                    'd.fecha_respuesta_proveedor',
+                    'd.fecha_envio_proveedor',
+                    'd.abierto',
+                    DB::raw("'devolucion' as tipo_registro")
+                )
+                ->where('d.año', $año);
+                
+            if ($mes) {
+                $devoluciones->where('d.mes', $mes);
+            }
+            
+            if ($proveedor) {
+                $devoluciones->where('p.nombre_proveedor', 'LIKE', '%' . $proveedor . '%');
+            }
+            
+            $resultados = $resultados->merge($devoluciones->get());
+        }
+        
+        // Ordenar por fecha descendente
+        $resultados = $resultados->sortByDesc('fecha_principal');
+        
+        // Obtener proveedores para el filtro usando la tabla correcta
+        $proveedores_disponibles = DB::table('proveedores')
+            ->select('id_proveedor', 'nombre_proveedor')
+            ->orderBy('nombre_proveedor')
+            ->get();
+            
+        // Estadísticas
+        $total_incidencias = $resultados->where('tipo_registro', 'incidencia')->count();
+        $total_devoluciones = $resultados->where('tipo_registro', 'devolucion')->count();
+        $total_registros = $resultados->count();
+        
+        return view('MainApp/material_kilo.historial_incidencias_devoluciones', compact(
+            'resultados',
+            'proveedores_disponibles',
+            'mes',
+            'año',
+            'proveedor',
+            'tipo',
+            'total_incidencias',
+            'total_devoluciones',
+            'total_registros'
+        ));
+    }
+
+    /**
+     * Obtener incidencias de un proveedor para modal
      */
     public function obtenerIncidencias(Request $request)
     {
@@ -679,319 +838,5 @@ class MaterialKiloController extends Controller
             ->get();
 
         return response()->json($incidencias);
-    }
-    
-    /**
-     * Guardar una nueva devolución de proveedor
-     */
-    public function guardarDevolucion(Request $request)
-    {
-        try {
-            $request->validate([
-                'codigo_producto' => 'required|string|max:255',
-                'id_proveedor' => 'required|integer',
-                'descripcion_producto' => 'nullable|string',
-                'fecha_inicio' => 'nullable|date',
-                'fecha_fin' => 'nullable|date',
-                'np' => 'nullable|string|max:255',
-                'año' => 'required|integer',
-                'mes' => 'required|integer|between:1,12',
-                'fecha_reclamacion' => 'nullable|date',
-                'clasificacion_incidencia' => 'nullable|in:RG1,RL1',
-                'top100fy2' => 'nullable|string|max:255',
-                'descripcion_motivo' => 'nullable|string',
-                'especificacion_motivo_reclamacion_leve' => 'nullable|string',
-                'especificacion_motivo_reclamacion_grave' => 'nullable|string',
-                'recuperamos_objeto_extraño' => 'nullable|in:Si,No',
-                'descripcion_queja' => 'nullable|string',
-                'nombre_tienda' => 'nullable|string|max:255',
-                'no_queja' => 'nullable|string|max:255',
-                'origen' => 'nullable|string|max:255',
-                'lote_sirena' => 'nullable|string|max:255',
-                'lote_proveedor' => 'nullable|string|max:255',
-                'informe_a_proveedor' => 'nullable|in:Si,No',
-                'informe' => 'nullable|string',
-                'fecha_envio_proveedor' => 'nullable|date',
-                'fecha_respuesta_proveedor' => 'nullable|date',
-                'informe_respuesta' => 'nullable|string',
-                'tipo_reclamacion' => 'nullable|string|max:255',
-                'comentarios' => 'nullable|string',
-                'fecha_reclamacion_respuesta' => 'nullable|date',
-                'abierto' => 'nullable|in:Si,No'
-            ]);
-
-            // Obtener el nombre del proveedor
-            $proveedor = DB::table('material_kilos')
-                ->join('proveedores', 'material_kilos.proveedor_id', '=', 'proveedores.id_proveedor')
-                ->where('proveedores.id_proveedor', $request->id_proveedor)
-                ->select('proveedores.nombre_proveedor', 'proveedores.id_proveedor')
-                ->first();
-
-            if (!$proveedor) {
-                return response()->json(['error' => 'Proveedor no encontrado'], 404);
-            }
-
-            // Calcular tiempo de respuesta si hay fechas
-            $tiempo_respuesta = null;
-            if ($request->fecha_envio_proveedor && $request->fecha_respuesta_proveedor) {
-                $fecha_envio = \Carbon\Carbon::parse($request->fecha_envio_proveedor);
-                $fecha_respuesta = \Carbon\Carbon::parse($request->fecha_respuesta_proveedor);
-                $dias = $fecha_envio->diffInDays($fecha_respuesta);
-                $tiempo_respuesta = $dias . ' días';
-            }
-
-            // Crear la devolución
-            $devolucion = DevolucionProveedor::create([
-                'codigo_producto' => $request->codigo_producto,
-                'nombre_proveedor' => $proveedor->nombre_proveedor,
-                'codigo_proveedor' => $proveedor->id_proveedor, // Usamos el ID ya que no existe codigo_proveedor
-                'descripcion_producto' => $request->descripcion_producto,
-                'fecha_inicio' => $request->fecha_inicio,
-                'fecha_fin' => $request->fecha_fin,
-                'np' => $request->np,
-                'año' => $request->año,
-                'mes' => $request->mes,
-                'fecha_reclamacion' => $request->fecha_reclamacion,
-                'clasificacion_incidencia' => $request->clasificacion_incidencia,
-                'top100fy2' => $request->top100fy2,
-                'descripcion_motivo' => $request->descripcion_motivo,
-                'especificacion_motivo_reclamacion_leve' => $request->especificacion_motivo_reclamacion_leve,
-                'especificacion_motivo_reclamacion_grave' => $request->especificacion_motivo_reclamacion_grave,
-                'recuperamos_objeto_extraño' => $request->recuperamos_objeto_extraño,
-                'descripcion_queja' => $request->descripcion_queja,
-                'nombre_tienda' => $request->nombre_tienda,
-                'no_queja' => $request->no_queja,
-                'origen' => $request->origen,
-                'lote_sirena' => $request->lote_sirena,
-                'lote_proveedor' => $request->lote_proveedor,
-                'informe_a_proveedor' => $request->informe_a_proveedor,
-                'informe' => $request->informe,
-                'fecha_envio_proveedor' => $request->fecha_envio_proveedor,
-                'fecha_respuesta_proveedor' => $request->fecha_respuesta_proveedor,
-                'tiempo_respuesta' => $tiempo_respuesta,
-                'informe_respuesta' => $request->informe_respuesta,
-                'tipo_reclamacion' => $request->tipo_reclamacion,
-                'comentarios' => $request->comentarios,
-                'fecha_reclamacion_respuesta' => $request->fecha_reclamacion_respuesta,
-                'abierto' => $request->abierto ?? 'Si'
-            ]);
-
-            // Si hay clasificación de incidencia, actualizar métricas
-            if ($request->clasificacion_incidencia) {
-                $this->actualizarMetricasDevolucion($request->id_proveedor, $request->año, $request->mes, $request->clasificacion_incidencia);
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Devolución guardada correctamente',
-                'devolucion' => $devolucion
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Error al guardar devolución: ' . $e->getMessage());
-            return response()->json(['error' => 'Error al guardar la devolución'], 500);
-        }
-    }
-
-    /**
-     * Obtener devoluciones de un proveedor
-     */
-    public function obtenerDevoluciones(Request $request)
-    {
-        $codigo_proveedor = $request->get('codigo_proveedor');
-        $año = $request->get('año');
-        $mes = $request->get('mes');
-
-        $query = DevolucionProveedor::query();
-
-        if ($codigo_proveedor) {
-            $query->where('codigo_proveedor', $codigo_proveedor);
-        }
-        if ($año) {
-            $query->where('año', $año);
-        }
-        if ($mes) {
-            $query->where('mes', $mes);
-        }
-
-        $devoluciones = $query->orderBy('fecha_reclamacion', 'desc')->get();
-
-        return response()->json($devoluciones);
-    }
-
-    /**
-     * Buscar proveedores para autocompletado
-     */
-    public function buscarProveedores(Request $request)
-    {
-        $term = $request->get('term');
-        
-        $proveedores = DB::table('material_kilos')
-            ->join('proveedores', 'material_kilos.proveedor_id', '=', 'proveedores.id_proveedor')
-            ->where('proveedores.nombre_proveedor', 'LIKE', '%' . $term . '%')
-            ->select('proveedores.id_proveedor as codigo', 'proveedores.nombre_proveedor as nombre')
-            ->distinct()
-            ->orderBy('proveedores.nombre_proveedor', 'asc')
-            ->limit(10)
-            ->get();
-
-        return response()->json($proveedores);
-    }
-
-    /**
-     * Buscar productos de un proveedor
-     */
-    public function buscarProductosProveedor(Request $request)
-    {
-        $codigo_proveedor = $request->get('codigo_proveedor');
-        $term = $request->get('term');
-        
-        $query = DB::table('material_kilos')
-            ->join('materiales', 'material_kilos.codigo_material', '=', 'materiales.codigo')
-            ->where('material_kilos.proveedor_id', $codigo_proveedor);
-            
-        if ($term) {
-            $query->where(function($q) use ($term) {
-                $q->where('materiales.codigo', 'LIKE', '%' . $term . '%')
-                  ->orWhere('materiales.descripcion', 'LIKE', '%' . $term . '%');
-            });
-        }
-        
-        $productos = $query->select('materiales.codigo', 'materiales.descripcion')
-            ->distinct()
-            ->limit(10)
-            ->get();
-
-        return response()->json($productos);
-    }
-
-    /**
-     * Buscar códigos de productos para autocompletar
-     */
-    public function buscarCodigosProductos(Request $request)
-    {
-        $term = $request->get('term');
-        
-        if (!$term) {
-            return response()->json([]);
-        }
-        
-        $productos = DB::table('material_kilos')
-            ->join('materiales', 'material_kilos.codigo_material', '=', 'materiales.codigo')
-            ->where('materiales.codigo', 'LIKE', '%' . $term . '%')
-            ->select('materiales.codigo', 'materiales.descripcion')
-            ->distinct()
-            ->limit(10)
-            ->get();
-        
-        return response()->json($productos);
-    }
-    
-    /**
-     * Buscar producto por código para obtener su nombre
-     */
-    public function buscarProductoPorCodigo(Request $request)
-    {
-        $codigo = $request->get('codigo');
-        
-        if (!$codigo) {
-            return response()->json(['error' => 'Código de producto requerido'], 400);
-        }
-        
-        $producto = DB::table('material_kilos')
-            ->join('materiales', 'material_kilos.codigo_material', '=', 'materiales.codigo')
-            ->where('materiales.codigo', $codigo)
-            ->select('materiales.codigo', 'materiales.descripcion')
-            ->distinct()
-            ->first();
-        
-        if ($producto) {
-            return response()->json([
-                'success' => true,
-                'codigo' => $producto->codigo,
-                'descripcion' => $producto->descripcion
-            ]);
-        } else {
-            return response()->json([
-                'success' => false,
-                'message' => 'Producto no encontrado'
-            ], 404);
-        }
-    }
-
-    /**
-     * Método de prueba para diagnosticar problemas de incidencias
-     */
-    public function testIncidencia(Request $request)
-    {
-        try {
-            // Verificar si la tabla existe
-            $tableExists = Schema::hasTable('incidencias_proveedores');
-            
-            // Verificar campos de la tabla
-            $columns = [];
-            if ($tableExists) {
-                $columns = Schema::getColumnListing('incidencias_proveedores');
-            }
-            
-            // Probar crear una incidencia simple
-            $testData = [
-                'id_proveedor' => 1,
-                'nombre_proveedor' => 'Test Proveedor',
-                'año' => 2025,
-                'mes' => 1,
-                'clasificacion_incidencia' => 'RG1'
-            ];
-            
-            return response()->json([
-                'table_exists' => $tableExists,
-                'columns' => $columns,
-                'test_data' => $testData
-            ]);
-            
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-        }
-    }
-
-    /**
-     * Actualizar métricas cuando se guarda una devolución con clasificación
-     */
-    private function actualizarMetricasDevolucion($id_proveedor, $año, $mes, $clasificacion_incidencia)
-    {
-        try {
-            // Buscar o crear la métrica para el proveedor, año y mes
-            $metrica = ProveedorMetric::firstOrCreate([
-                'proveedor_id' => $id_proveedor,
-                'año' => $año,
-                'mes' => $mes
-            ], [
-                'rg1' => 0,
-                'rl1' => 0,
-                'dev1' => 0,
-                'rok1' => 0,
-                'ret1' => 0
-            ]);
-
-            // Incrementar la métrica correspondiente según la clasificación
-            switch ($clasificacion_incidencia) {
-                case 'RG1':
-                    $metrica->rg1 += 1;
-                    break;
-                case 'RL1':
-                    $metrica->rl1 += 1;
-                    break;
-            }
-
-            $metrica->save();
-
-            Log::info("Métrica actualizada por devolución: Proveedor {$id_proveedor}, {$clasificacion_incidencia} +1");
-
-        } catch (\Exception $e) {
-            Log::error("Error al actualizar métricas por devolución: " . $e->getMessage());
-        }
     }
 }

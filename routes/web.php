@@ -194,21 +194,64 @@ Route::group(['middleware' => ['auth']], function () {
     Route::put('/material_kilo/update-material', 'MaterialKiloController@updateMaterial')->name('material_kilo.update_material');
     Route::get('/material_kilo/total-kg-proveedor', 'MaterialKiloController@totalKgPorProveedor')->name('material_kilo.total_kg_proveedor');
     Route::get('/material_kilo/evaluacion-continua-proveedores', 'MaterialKiloController@evaluacionContinuaProveedores')->name('material_kilo.evaluacion_continua_proveedores');
+    Route::get('/material_kilo/historial-incidencias-devoluciones', 'MaterialKiloController@historialIncidenciasYDevoluciones')->name('material_kilo.historial_incidencias_devoluciones');
     Route::post('/material_kilo/delete', 'MaterialKiloController@destroy')->name('material_kilo.delete');
     Route::post('/material_kilo/guardar-metricas', 'MaterialKiloController@guardarMetricas')->name('material_kilo.guardar_metricas');
     
     // Rutas para incidencias de proveedores
     Route::post('/material_kilo/guardar-incidencia', 'MaterialKiloController@guardarIncidencia')->name('material_kilo.guardar_incidencia');
     Route::get('/material_kilo/obtener-incidencias', 'MaterialKiloController@obtenerIncidencias')->name('material_kilo.obtener_incidencias');
+    Route::get('/material_kilo/obtener-incidencia/{id}', 'MaterialKiloController@obtenerIncidencia')->name('material_kilo.obtener_incidencia');
     
     // Rutas para devoluciones de proveedores
     Route::post('/material_kilo/guardar-devolucion', 'MaterialKiloController@guardarDevolucion')->name('material_kilo.guardar_devolucion');
     Route::get('/material_kilo/obtener-devoluciones', 'MaterialKiloController@obtenerDevoluciones')->name('material_kilo.obtener_devoluciones');
+    Route::get('/material_kilo/obtener-devolucion/{id}', 'MaterialKiloController@obtenerDevolucion')->name('material_kilo.obtener_devolucion');
     Route::get('/material_kilo/buscar-proveedores', 'MaterialKiloController@buscarProveedores')->name('material_kilo.buscar_proveedores');
     Route::get('/material_kilo/buscar-productos-proveedor', 'MaterialKiloController@buscarProductosProveedor')->name('material_kilo.buscar_productos_proveedor');
     Route::get('/material_kilo/buscar-producto-por-codigo', 'MaterialKiloController@buscarProductoPorCodigo')->name('material_kilo.buscar_producto_por_codigo');
     Route::get('/material_kilo/buscar-codigos-productos', 'MaterialKiloController@buscarCodigosProductos')->name('material_kilo.buscar_codigos_productos');
     Route::get('/material_kilo/test-incidencia', 'MaterialKiloController@testIncidencia')->name('material_kilo.test_incidencia');
+
+    // Ruta de prueba para verificar obtener-devolucion
+    Route::get('/material_kilo/test-obtener-devolucion/{id}', function($id) {
+        $devolucion = DB::table('devoluciones_proveedores')
+            ->where('id', $id)
+            ->first();
+        
+        if (!$devolucion) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Devolución no encontrada',
+                'id' => $id
+            ], 404);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'devolucion' => $devolucion,
+            'id' => $id
+        ]);
+    })->name('material_kilo.test_obtener_devolucion');
+
+    // Ruta de prueba para verificar datos en la tabla devoluciones_proveedores
+    Route::get('/material_kilo/test-devoluciones-table', function() {
+        try {
+            $count = DB::table('devoluciones_proveedores')->count();
+            $sample = DB::table('devoluciones_proveedores')->limit(5)->get();
+            
+            return response()->json([
+                'success' => true,
+                'count' => $count,
+                'sample' => $sample
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ]);
+        }
+    })->name('material_kilo.test_devoluciones_table');
 
   });
 });
