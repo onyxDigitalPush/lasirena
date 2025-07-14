@@ -455,34 +455,6 @@ class MaterialKiloController extends Controller
         ));
     }
 
-    public function crearIncidencia(Request $request)
-    {
-        try {
-            $request->validate([
-                'proveedor_id' => 'required|exists:proveedores,id_proveedor',
-                'descripcion' => 'required|string|max:255',
-                'fecha_incidencia' => 'required|date',
-            ]);
-
-            IncidenciaProveedor::create([
-                'proveedor_id' => $request->input('proveedor_id'),
-                'descripcion' => $request->input('descripcion'),
-                'fecha_incidencia' => $request->input('fecha_incidencia'),
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Incidencia creada correctamente'
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al crear la incidencia: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
     public function eliminarIncidencia(Request $request)
     {
         try {
@@ -838,5 +810,501 @@ class MaterialKiloController extends Controller
             ->get();
 
         return response()->json($incidencias);
+    }
+
+    /**
+     * Mostrar formulario para crear nueva incidencia
+     */
+    public function crearIncidencia()
+    {
+        // Obtener proveedores disponibles
+        $proveedores = DB::table('proveedores')
+            ->select('id_proveedor', 'nombre_proveedor')
+            ->orderBy('nombre_proveedor')
+            ->get();
+        
+        // Variables para valores por defecto
+        $mes = now()->month;
+        $año = now()->year;
+            
+        return view('MainApp/material_kilo.incidencia_form', compact('proveedores', 'mes', 'año'));
+    }
+
+    /**
+     * Mostrar formulario para editar incidencia
+     */
+    public function editarIncidencia($id)
+    {
+        $incidencia = IncidenciaProveedor::findOrFail($id);
+        
+        // Obtener proveedores disponibles
+        $proveedores = DB::table('proveedores')
+            ->select('id_proveedor', 'nombre_proveedor')
+            ->orderBy('nombre_proveedor')
+            ->get();
+        
+        // Variables para valores por defecto
+        $mes = now()->month;
+        $año = now()->year;
+            
+        return view('MainApp/material_kilo.incidencia_form', compact('incidencia', 'proveedores', 'mes', 'año'));
+    }
+
+    /**
+     * Guardar nueva incidencia desde página completa
+     */
+    public function guardarIncidenciaCompleta(Request $request)
+    {
+        $request->validate([
+            'id_proveedor' => 'required|integer',
+            'año' => 'required|integer',
+            'mes' => 'required|integer|between:1,12',
+            'clasificacion_incidencia' => 'nullable|string|max:255',
+            'origen' => 'nullable|string|max:255',
+            'fecha_incidencia' => 'nullable|date',
+            'numero_inspeccion_sap' => 'nullable|string|max:255',
+            'resolucion_almacen' => 'nullable|string|max:255',
+            'cantidad_devuelta' => 'nullable|numeric',
+            'kg_un' => 'nullable|numeric',
+            'pedido_sap_devolucion' => 'nullable|string|max:255',
+            'resolucion_tienda' => 'nullable|string|max:255',
+            'retirada_tiendas' => 'nullable|in:Si,No',
+            'cantidad_afectada' => 'nullable|numeric',
+            'descripcion_incidencia' => 'nullable|string',
+            'codigo' => 'nullable|string|max:255',
+            'producto' => 'nullable|string|max:255',
+            'lote_sirena' => 'nullable|string|max:255',
+            'lote_proveedor' => 'nullable|string|max:255',
+            'lote' => 'nullable|string|max:255',
+            'fcp' => 'nullable|date',
+            'caducidad' => 'nullable|date',
+            'cantidad_kg' => 'nullable|numeric',
+            'cantidad_unidades' => 'nullable|numeric',
+            'proveedor_alternativo' => 'nullable|string|max:255',
+            'dias_sin_servicio' => 'nullable|numeric',
+            'informe_a_proveedor' => 'nullable|in:Si,No',
+            'numero_informe' => 'nullable|string|max:255',
+            'fecha_envio_proveedor' => 'nullable|date',
+            'fecha_respuesta_proveedor' => 'nullable|date',
+            'informe_respuesta' => 'nullable|string',
+            'comentarios' => 'nullable|string',
+        ]);
+
+        try {
+            // Obtener el nombre del proveedor
+            $proveedor = DB::table('proveedores')
+                ->where('id_proveedor', $request->id_proveedor)
+                ->select('nombre_proveedor')
+                ->first();
+
+            if (!$proveedor) {
+                return redirect()->back()->with('error', 'Proveedor no encontrado');
+            }
+
+            // Calcular días de respuesta si hay fechas
+            $dias_respuesta_proveedor = null;
+            $dias_sin_respuesta_informe = null;
+
+            if ($request->fecha_envio_proveedor && $request->fecha_respuesta_proveedor) {
+                $fecha_envio = \Carbon\Carbon::parse($request->fecha_envio_proveedor);
+                $fecha_respuesta = \Carbon\Carbon::parse($request->fecha_respuesta_proveedor);
+                $dias_respuesta_proveedor = $fecha_envio->diffInDays($fecha_respuesta);
+            }
+
+            if ($request->fecha_envio_proveedor && !$request->fecha_respuesta_proveedor) {
+                $fecha_envio = \Carbon\Carbon::parse($request->fecha_envio_proveedor);
+                $dias_sin_respuesta_informe = $fecha_envio->diffInDays(\Carbon\Carbon::now());
+            }
+
+            // Crear la incidencia
+            $incidencia = IncidenciaProveedor::create([
+                'id_proveedor' => $request->id_proveedor,
+                'nombre_proveedor' => $proveedor->nombre_proveedor,
+                'año' => $request->año,
+                'mes' => $request->mes,
+                'clasificacion_incidencia' => $request->clasificacion_incidencia,
+                'origen' => $request->origen,
+                'fecha_incidencia' => $request->fecha_incidencia,
+                'numero_inspeccion_sap' => $request->numero_inspeccion_sap,
+                'resolucion_almacen' => $request->resolucion_almacen,
+                'cantidad_devuelta' => $request->cantidad_devuelta,
+                'kg_un' => $request->kg_un,
+                'pedido_sap_devolucion' => $request->pedido_sap_devolucion,
+                'resolucion_tienda' => $request->resolucion_tienda,
+                'retirada_tiendas' => $request->retirada_tiendas,
+                'cantidad_afectada' => $request->cantidad_afectada,
+                'descripcion_incidencia' => $request->descripcion_incidencia,
+                'codigo' => $request->codigo,
+                'producto' => $request->producto,
+                'lote_sirena' => $request->lote_sirena,
+                'lote_proveedor' => $request->lote_proveedor,
+                'lote' => $request->lote,
+                'fcp' => $request->fcp,
+                'caducidad' => $request->caducidad,
+                'cantidad_kg' => $request->cantidad_kg,
+                'cantidad_unidades' => $request->cantidad_unidades,
+                'proveedor_alternativo' => $request->proveedor_alternativo,
+                'dias_sin_servicio' => $request->dias_sin_servicio,
+                'informe_a_proveedor' => $request->informe_a_proveedor,
+                'numero_informe' => $request->numero_informe,
+                'fecha_envio_proveedor' => $request->fecha_envio_proveedor,
+                'fecha_respuesta_proveedor' => $request->fecha_respuesta_proveedor,
+                'informe_respuesta' => $request->informe_respuesta,
+                'comentarios' => $request->comentarios,
+                'dias_respuesta_proveedor' => $dias_respuesta_proveedor,
+                'dias_sin_respuesta_informe' => $dias_sin_respuesta_informe,
+            ]);
+
+            // Actualizar las métricas automáticamente
+            $this->actualizarMetricasIncidencias($request->id_proveedor, $request->año, $request->mes);
+
+            return redirect()->route('material_kilo.historial_incidencias_devoluciones')->with('success', 'Incidencia guardada correctamente');
+
+        } catch (\Exception $e) {
+            Log::error('Error al guardar incidencia: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error al guardar la incidencia: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    /**
+     * Actualizar incidencia existente
+     */
+    public function actualizarIncidencia(Request $request, $id)
+    {
+        $request->validate([
+            'id_proveedor' => 'required|integer',
+            'año' => 'required|integer',
+            'mes' => 'required|integer|between:1,12',
+            'clasificacion_incidencia' => 'nullable|string|max:255',
+            'origen' => 'nullable|string|max:255',
+            'fecha_incidencia' => 'nullable|date',
+            'numero_inspeccion_sap' => 'nullable|string|max:255',
+            'resolucion_almacen' => 'nullable|string|max:255',
+            'cantidad_devuelta' => 'nullable|numeric',
+            'kg_un' => 'nullable|numeric',
+            'pedido_sap_devolucion' => 'nullable|string|max:255',
+            'resolucion_tienda' => 'nullable|string|max:255',
+            'retirada_tiendas' => 'nullable|in:Si,No',
+            'cantidad_afectada' => 'nullable|numeric',
+            'descripcion_incidencia' => 'nullable|string',
+            'codigo' => 'nullable|string|max:255',
+            'producto' => 'nullable|string|max:255',
+            'lote_sirena' => 'nullable|string|max:255',
+            'lote_proveedor' => 'nullable|string|max:255',
+            'lote' => 'nullable|string|max:255',
+            'fcp' => 'nullable|date',
+            'caducidad' => 'nullable|date',
+            'cantidad_kg' => 'nullable|numeric',
+            'cantidad_unidades' => 'nullable|numeric',
+            'proveedor_alternativo' => 'nullable|string|max:255',
+            'dias_sin_servicio' => 'nullable|numeric',
+            'informe_a_proveedor' => 'nullable|in:Si,No',
+            'numero_informe' => 'nullable|string|max:255',
+            'fecha_envio_proveedor' => 'nullable|date',
+            'fecha_respuesta_proveedor' => 'nullable|date',
+            'informe_respuesta' => 'nullable|string',
+            'comentarios' => 'nullable|string',
+        ]);
+
+        try {
+            $incidencia = IncidenciaProveedor::findOrFail($id);
+
+            // Obtener el nombre del proveedor
+            $proveedor = DB::table('proveedores')
+                ->where('id_proveedor', $request->id_proveedor)
+                ->select('nombre_proveedor')
+                ->first();
+
+            if (!$proveedor) {
+                return redirect()->back()->with('error', 'Proveedor no encontrado');
+            }
+
+            // Calcular días de respuesta si hay fechas
+            $dias_respuesta_proveedor = null;
+            $dias_sin_respuesta_informe = null;
+
+            if ($request->fecha_envio_proveedor && $request->fecha_respuesta_proveedor) {
+                $fecha_envio = \Carbon\Carbon::parse($request->fecha_envio_proveedor);
+                $fecha_respuesta = \Carbon\Carbon::parse($request->fecha_respuesta_proveedor);
+                $dias_respuesta_proveedor = $fecha_envio->diffInDays($fecha_respuesta);
+            }
+
+            if ($request->fecha_envio_proveedor && !$request->fecha_respuesta_proveedor) {
+                $fecha_envio = \Carbon\Carbon::parse($request->fecha_envio_proveedor);
+                $dias_sin_respuesta_informe = $fecha_envio->diffInDays(\Carbon\Carbon::now());
+            }
+
+            // Actualizar la incidencia
+            $incidencia->update([
+                'id_proveedor' => $request->id_proveedor,
+                'nombre_proveedor' => $proveedor->nombre_proveedor,
+                'año' => $request->año,
+                'mes' => $request->mes,
+                'clasificacion_incidencia' => $request->clasificacion_incidencia,
+                'origen' => $request->origen,
+                'fecha_incidencia' => $request->fecha_incidencia,
+                'numero_inspeccion_sap' => $request->numero_inspeccion_sap,
+                'resolucion_almacen' => $request->resolucion_almacen,
+                'cantidad_devuelta' => $request->cantidad_devuelta,
+                'kg_un' => $request->kg_un,
+                'pedido_sap_devolucion' => $request->pedido_sap_devolucion,
+                'resolucion_tienda' => $request->resolucion_tienda,
+                'retirada_tiendas' => $request->retirada_tiendas,
+                'cantidad_afectada' => $request->cantidad_afectada,
+                'descripcion_incidencia' => $request->descripcion_incidencia,
+                'codigo' => $request->codigo,
+                'producto' => $request->producto,
+                'lote_sirena' => $request->lote_sirena,
+                'lote_proveedor' => $request->lote_proveedor,
+                'lote' => $request->lote,
+                'fcp' => $request->fcp,
+                'caducidad' => $request->caducidad,
+                'cantidad_kg' => $request->cantidad_kg,
+                'cantidad_unidades' => $request->cantidad_unidades,
+                'proveedor_alternativo' => $request->proveedor_alternativo,
+                'dias_sin_servicio' => $request->dias_sin_servicio,
+                'informe_a_proveedor' => $request->informe_a_proveedor,
+                'numero_informe' => $request->numero_informe,
+                'fecha_envio_proveedor' => $request->fecha_envio_proveedor,
+                'fecha_respuesta_proveedor' => $request->fecha_respuesta_proveedor,
+                'informe_respuesta' => $request->informe_respuesta,
+                'comentarios' => $request->comentarios,
+                'dias_respuesta_proveedor' => $dias_respuesta_proveedor,
+                'dias_sin_respuesta_informe' => $dias_sin_respuesta_informe,
+            ]);
+
+            // Actualizar las métricas automáticamente
+            $this->actualizarMetricasIncidencias($request->id_proveedor, $request->año, $request->mes);
+
+            return redirect()->route('material_kilo.historial_incidencias_devoluciones')->with('success', 'Incidencia actualizada correctamente');
+
+        } catch (\Exception $e) {
+            Log::error('Error al actualizar incidencia: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error al actualizar la incidencia: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    /**
+     * Mostrar formulario para crear nueva devolución
+     */
+    public function crearDevolucion()
+    {
+        // Obtener proveedores disponibles
+        $proveedores = DB::table('proveedores')
+            ->select('id_proveedor', 'nombre_proveedor')
+            ->orderBy('nombre_proveedor')
+            ->get();
+        
+        // Variables para valores por defecto
+        $mes = now()->month;
+        $año = now()->year;
+            
+        return view('MainApp/material_kilo.devolucion_form', compact('proveedores', 'mes', 'año'));
+    }
+
+    /**
+     * Mostrar formulario para editar devolución
+     */
+    public function editarDevolucion($id)
+    {
+        $devolucion = DevolucionProveedor::findOrFail($id);
+        
+        // Obtener proveedores disponibles
+        $proveedores = DB::table('proveedores')
+            ->select('id_proveedor', 'nombre_proveedor')
+            ->orderBy('nombre_proveedor')
+            ->get();
+        
+        // Variables para valores por defecto
+        $mes = now()->month;
+        $año = now()->year;
+            
+        return view('MainApp/material_kilo.devolucion_form', compact('devolucion', 'proveedores', 'mes', 'año'));
+    }
+
+    /**
+     * Guardar nueva devolución desde página completa
+     */
+    public function guardarDevolucionCompleta(Request $request)
+    {
+        $request->validate([
+            'codigo_producto' => 'required|string|max:255',
+            'codigo_proveedor' => 'required|integer',
+            'descripcion_producto' => 'nullable|string|max:255',
+            'año' => 'required|integer',
+            'mes' => 'required|integer|between:1,12',
+            'fecha_inicio' => 'nullable|date',
+            'fecha_fin' => 'nullable|date',
+            'fecha_reclamacion' => 'nullable|date',
+            'fecha_reclamacion_respuesta' => 'nullable|date',
+            'np' => 'nullable|string|max:255',
+            'no_queja' => 'nullable|string|max:255',
+            'origen' => 'nullable|string|max:255',
+            'nombre_tienda' => 'nullable|string|max:255',
+            'clasificacion_incidencia' => 'nullable|string|max:255',
+            'tipo_reclamacion' => 'nullable|string|max:255',
+            'top100fy2' => 'nullable|string|max:255',
+            'descripcion_motivo' => 'nullable|string',
+            'descripcion_queja' => 'nullable|string',
+            'especificacion_motivo_reclamacion_leve' => 'nullable|string',
+            'especificacion_motivo_reclamacion_grave' => 'nullable|string',
+            'lote_sirena' => 'nullable|string|max:255',
+            'lote_proveedor' => 'nullable|string|max:255',
+            'recuperamos_objeto_extraño' => 'nullable|in:Si,No',
+            'informe_a_proveedor' => 'nullable|in:Si,No',
+            'fecha_envio_proveedor' => 'nullable|date',
+            'fecha_respuesta_proveedor' => 'nullable|date',
+            'informe' => 'nullable|string',
+            'informe_respuesta' => 'nullable|string',
+            'abierto' => 'nullable|in:Si,No',
+            'comentarios' => 'nullable|string',
+        ]);
+
+        try {
+            // Obtener el nombre del proveedor
+            $proveedor = DB::table('proveedores')
+                ->where('id_proveedor', $request->codigo_proveedor)
+                ->select('nombre_proveedor')
+                ->first();
+
+            if (!$proveedor) {
+                return redirect()->back()->with('error', 'Proveedor no encontrado');
+            }
+
+            // Crear la devolución
+            $devolucion = DevolucionProveedor::create([
+                'codigo_producto' => $request->codigo_producto,
+                'codigo_proveedor' => $request->codigo_proveedor,
+                'nombre_proveedor' => $proveedor->nombre_proveedor,
+                'descripcion_producto' => $request->descripcion_producto,
+                'año' => $request->año,
+                'mes' => $request->mes,
+                'fecha_inicio' => $request->fecha_inicio,
+                'fecha_fin' => $request->fecha_fin,
+                'fecha_reclamacion' => $request->fecha_reclamacion,
+                'fecha_reclamacion_respuesta' => $request->fecha_reclamacion_respuesta,
+                'np' => $request->np,
+                'no_queja' => $request->no_queja,
+                'origen' => $request->origen,
+                'nombre_tienda' => $request->nombre_tienda,
+                'clasificacion_incidencia' => $request->clasificacion_incidencia,
+                'tipo_reclamacion' => $request->tipo_reclamacion,
+                'top100fy2' => $request->top100fy2,
+                'descripcion_motivo' => $request->descripcion_motivo,
+                'descripcion_queja' => $request->descripcion_queja,
+                'especificacion_motivo_reclamacion_leve' => $request->especificacion_motivo_reclamacion_leve,
+                'especificacion_motivo_reclamacion_grave' => $request->especificacion_motivo_reclamacion_grave,
+                'lote_sirena' => $request->lote_sirena,
+                'lote_proveedor' => $request->lote_proveedor,
+                'recuperamos_objeto_extraño' => $request->recuperamos_objeto_extraño,
+                'informe_a_proveedor' => $request->informe_a_proveedor,
+                'fecha_envio_proveedor' => $request->fecha_envio_proveedor,
+                'fecha_respuesta_proveedor' => $request->fecha_respuesta_proveedor,
+                'informe' => $request->informe,
+                'informe_respuesta' => $request->informe_respuesta,
+                'abierto' => $request->abierto ?? 'Si',
+                'comentarios' => $request->comentarios,
+            ]);
+
+            return redirect()->route('material_kilo.historial_incidencias_devoluciones')->with('success', 'Devolución guardada correctamente');
+
+        } catch (\Exception $e) {
+            Log::error('Error al guardar devolución: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error al guardar la devolución: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    /**
+     * Actualizar devolución existente
+     */
+    public function actualizarDevolucion(Request $request, $id)
+    {
+        $request->validate([
+            'codigo_producto' => 'required|string|max:255',
+            'codigo_proveedor' => 'required|integer',
+            'descripcion_producto' => 'nullable|string|max:255',
+            'año' => 'required|integer',
+            'mes' => 'required|integer|between:1,12',
+            'fecha_inicio' => 'nullable|date',
+            'fecha_fin' => 'nullable|date',
+            'fecha_reclamacion' => 'nullable|date',
+            'fecha_reclamacion_respuesta' => 'nullable|date',
+            'np' => 'nullable|string|max:255',
+            'no_queja' => 'nullable|string|max:255',
+            'origen' => 'nullable|string|max:255',
+            'nombre_tienda' => 'nullable|string|max:255',
+            'clasificacion_incidencia' => 'nullable|string|max:255',
+            'tipo_reclamacion' => 'nullable|string|max:255',
+            'top100fy2' => 'nullable|string|max:255',
+            'descripcion_motivo' => 'nullable|string',
+            'descripcion_queja' => 'nullable|string',
+            'especificacion_motivo_reclamacion_leve' => 'nullable|string',
+            'especificacion_motivo_reclamacion_grave' => 'nullable|string',
+            'lote_sirena' => 'nullable|string|max:255',
+            'lote_proveedor' => 'nullable|string|max:255',
+            'recuperamos_objeto_extraño' => 'nullable|in:Si,No',
+            'informe_a_proveedor' => 'nullable|in:Si,No',
+            'fecha_envio_proveedor' => 'nullable|date',
+            'fecha_respuesta_proveedor' => 'nullable|date',
+            'informe' => 'nullable|string',
+            'informe_respuesta' => 'nullable|string',
+            'abierto' => 'nullable|in:Si,No',
+            'comentarios' => 'nullable|string',
+        ]);
+
+        try {
+            $devolucion = DevolucionProveedor::findOrFail($id);
+
+            // Obtener el nombre del proveedor
+            $proveedor = DB::table('proveedores')
+                ->where('id_proveedor', $request->codigo_proveedor)
+                ->select('nombre_proveedor')
+                ->first();
+
+            if (!$proveedor) {
+                return redirect()->back()->with('error', 'Proveedor no encontrado');
+            }
+
+            // Actualizar la devolución
+            $devolucion->update([
+                'codigo_producto' => $request->codigo_producto,
+                'codigo_proveedor' => $request->codigo_proveedor,
+                'nombre_proveedor' => $proveedor->nombre_proveedor,
+                'descripcion_producto' => $request->descripcion_producto,
+                'año' => $request->año,
+                'mes' => $request->mes,
+                'fecha_inicio' => $request->fecha_inicio,
+                'fecha_fin' => $request->fecha_fin,
+                'fecha_reclamacion' => $request->fecha_reclamacion,
+                'fecha_reclamacion_respuesta' => $request->fecha_reclamacion_respuesta,
+                'np' => $request->np,
+                'no_queja' => $request->no_queja,
+                'origen' => $request->origen,
+                'nombre_tienda' => $request->nombre_tienda,
+                'clasificacion_incidencia' => $request->clasificacion_incidencia,
+                'tipo_reclamacion' => $request->tipo_reclamacion,
+                'top100fy2' => $request->top100fy2,
+                'descripcion_motivo' => $request->descripcion_motivo,
+                'descripcion_queja' => $request->descripcion_queja,
+                'especificacion_motivo_reclamacion_leve' => $request->especificacion_motivo_reclamacion_leve,
+                'especificacion_motivo_reclamacion_grave' => $request->especificacion_motivo_reclamacion_grave,
+                'lote_sirena' => $request->lote_sirena,
+                'lote_proveedor' => $request->lote_proveedor,
+                'recuperamos_objeto_extraño' => $request->recuperamos_objeto_extraño,
+                'informe_a_proveedor' => $request->informe_a_proveedor,
+                'fecha_envio_proveedor' => $request->fecha_envio_proveedor,
+                'fecha_respuesta_proveedor' => $request->fecha_respuesta_proveedor,
+                'informe' => $request->informe,
+                'informe_respuesta' => $request->informe_respuesta,
+                'abierto' => $request->abierto ?? 'Si',
+                'comentarios' => $request->comentarios,
+            ]);
+
+            return redirect()->route('material_kilo.historial_incidencias_devoluciones')->with('success', 'Devolución actualizada correctamente');
+
+        } catch (\Exception $e) {
+            Log::error('Error al actualizar devolución: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error al actualizar la devolución: ' . $e->getMessage())->withInput();
+        }
     }
 }

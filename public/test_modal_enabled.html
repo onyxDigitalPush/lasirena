@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de Modales - Campos Habilitados</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* CSS específico para prevenir campos "gris" en modales */
+        #modalIncidencias input, #modalIncidencias select, #modalIncidencias textarea,
+        #modalDevoluciones input, #modalDevoluciones select, #modalDevoluciones textarea {
+            background-color: #fff !important;
+            color: #495057 !important;
+            border: 1px solid #ced4da !important;
+            cursor: auto !important;
+            opacity: 1 !important;
+        }
+        
+        #modalIncidencias input:focus, #modalIncidencias select:focus, #modalIncidencias textarea:focus,
+        #modalDevoluciones input:focus, #modalDevoluciones select:focus, #modalDevoluciones textarea:focus {
+            background-color: #fff !important;
+            border-color: #007bff !important;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+            outline: none !important;
+        }
+        
+        /* Forzar que todos los elementos del modal sean clickeables */
+        #modalIncidencias *, #modalDevoluciones * {
+            pointer-events: auto !important;
+        }
+        
+        /* Prevenir cualquier estado disabled visualmente */
+        #modalIncidencias input:disabled, #modalIncidencias select:disabled, #modalIncidencias textarea:disabled,
+        #modalDevoluciones input:disabled, #modalDevoluciones select:disabled, #modalDevoluciones textarea:disabled {
+            background-color: #fff !important;
+            color: #495057 !important;
+            opacity: 1 !important;
+            cursor: auto !important;
+        }
+        
+        .btn-test {
+            margin: 10px;
+            padding: 15px 30px;
+            font-size: 16px;
+        }
+        
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="text-center mb-4">🔧 Prueba de Modales - Campos Habilitados</h1>
+                <div class="text-center">
+                    <p class="lead">Esta página sirve para probar que los modales se abren correctamente con todos los campos habilitados.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-md-6 text-center">
+                <button class="btn btn-warning btn-test" onclick="testModalIncidencia()">
+                    <i class="fa fa-exclamation-triangle mr-2"></i>
+                    Probar Modal Incidencia
+                </button>
+            </div>
+            <div class="col-md-6 text-center">
+                <button class="btn btn-info btn-test" onclick="testModalDevolucion()">
+                    <i class="fa fa-undo mr-2"></i>
+                    Probar Modal Devolución
+                </button>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fa fa-clipboard-check mr-2"></i>Instrucciones de Prueba</h5>
+                    </div>
+                    <div class="card-body">
+                        <ol>
+                            <li><strong>Haz clic en los botones</strong> para abrir los modales</li>
+                            <li><strong>Verifica que todos los campos estén habilitados</strong> (no grises)</li>
+                            <li><strong>Intenta escribir en los campos de texto</strong> - debe funcionar</li>
+                            <li><strong>Intenta seleccionar opciones</strong> en los desplegables</li>
+                            <li><strong>Verifica que los campos respondan</strong> al hacer clic</li>
+                            <li><strong>Si algún campo se ve gris</strong>, reporta el problema</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12">
+                <div id="statusContainer">
+                    <div class="status success">
+                        <strong>✅ Estado:</strong> Listo para probar modales
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Incidencias (versión simplificada para pruebas) -->
+    <div class="modal fade" id="modalIncidencias" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title">
+                        <i class="fa fa-exclamation-triangle mr-2"></i>Modal de Incidencias - Prueba
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Campo de Texto 1:</label>
+                                <input type="text" class="form-control" placeholder="Escribe aquí...">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Campo de Texto 2:</label>
+                                <input type="text" class="form-control" placeholder="Escribe aquí...">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Select 1:</label>
+                                <select class="form-control">
+                                    <option value="">Selecciona una opción</option>
+                                    <option value="1">Opción 1</option>
+                                    <option value="2">Opción 2</option>
+                                    <option value="3">Opción 3</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Select 2:</label>
+                                <select class="form-control">
+                                    <option value="">Selecciona una opción</option>
+                                    <option value="A">Opción A</option>
+                                    <option value="B">Opción B</option>
+                                    <option value="C">Opción C</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label>Textarea:</label>
+                                <textarea class="form-control" rows="3" placeholder="Escribe un comentario..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-warning">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Devoluciones (versión simplificada para pruebas) -->
+    <div class="modal fade" id="modalDevoluciones" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">
+                        <i class="fa fa-undo mr-2"></i>Modal de Devoluciones - Prueba
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Campo de Texto 1:</label>
+                                <input type="text" class="form-control" placeholder="Escribe aquí...">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Campo de Texto 2:</label>
+                                <input type="text" class="form-control" placeholder="Escribe aquí...">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Select 1:</label>
+                                <select class="form-control">
+                                    <option value="">Selecciona una opción</option>
+                                    <option value="1">Opción 1</option>
+                                    <option value="2">Opción 2</option>
+                                    <option value="3">Opción 3</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Select 2:</label>
+                                <select class="form-control">
+                                    <option value="">Selecciona una opción</option>
+                                    <option value="A">Opción A</option>
+                                    <option value="B">Opción B</option>
+                                    <option value="C">Opción C</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label>Textarea:</label>
+                                <textarea class="form-control" rows="3" placeholder="Escribe un comentario..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-info">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery y Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // ============================================================================
+        // FUNCIÓN ESPECIAL PARA FORZAR HABILITACIÓN DE CAMPOS - SOLUCIÓN DEFINITIVA
+        // ============================================================================
+        function forceEnableAllModalFields() {
+            setTimeout(function() {
+                // Para modal de incidencias
+                $('#modalIncidencias input, #modalIncidencias select, #modalIncidencias textarea').each(function() {
+                    var $this = $(this);
+                    
+                    // Remover todos los atributos que puedan deshabilitar
+                    $this.removeAttr('disabled')
+                         .removeAttr('readonly')
+                         .prop('disabled', false)
+                         .prop('readonly', false);
+                    
+                    // Forzar estilos CSS para que se vea habilitado
+                    $this.css({
+                        'background-color': '#ffffff !important',
+                        'color': '#495057 !important',
+                        'border': '1px solid #ced4da !important',
+                        'cursor': 'text !important',
+                        'opacity': '1 !important',
+                        'pointer-events': 'auto !important'
+                    });
+                    
+                    // Remover clases que puedan hacer que se vea deshabilitado
+                    $this.removeClass('disabled').removeClass('readonly');
+                });
+                
+                // Para modal de devoluciones
+                $('#modalDevoluciones input, #modalDevoluciones select, #modalDevoluciones textarea').each(function() {
+                    var $this = $(this);
+                    
+                    // Remover todos los atributos que puedan deshabilitar
+                    $this.removeAttr('disabled')
+                         .removeAttr('readonly')
+                         .prop('disabled', false)
+                         .prop('readonly', false);
+                    
+                    // Forzar estilos CSS para que se vea habilitado
+                    $this.css({
+                        'background-color': '#ffffff !important',
+                        'color': '#495057 !important',
+                        'border': '1px solid #ced4da !important',
+                        'cursor': 'text !important',
+                        'opacity': '1 !important',
+                        'pointer-events': 'auto !important'
+                    });
+                    
+                    // Remover clases que puedan hacer que se vea deshabilitado
+                    $this.removeClass('disabled').removeClass('readonly');
+                });
+                
+                console.log('🔧 Todos los campos forzados a estar habilitados');
+            }, 100);
+        }
+        
+        // Función para probar modal de incidencia
+        function testModalIncidencia() {
+            updateStatus('Abriendo modal de incidencia...', 'info');
+            
+            $('#modalIncidencias').modal('show');
+            
+            setTimeout(function() {
+                forceEnableAllModalFields();
+                updateStatus('✅ Modal de incidencia abierto. Verifica que todos los campos estén habilitados.', 'success');
+            }, 500);
+        }
+        
+        // Función para probar modal de devolución
+        function testModalDevolucion() {
+            updateStatus('Abriendo modal de devolución...', 'info');
+            
+            $('#modalDevoluciones').modal('show');
+            
+            setTimeout(function() {
+                forceEnableAllModalFields();
+                updateStatus('✅ Modal de devolución abierto. Verifica que todos los campos estén habilitados.', 'success');
+            }, 500);
+        }
+        
+        // Función para actualizar el estado
+        function updateStatus(message, type) {
+            var statusClass = type === 'error' ? 'error' : 'success';
+            $('#statusContainer').html(
+                '<div class="status ' + statusClass + '">' +
+                '<strong>Estado:</strong> ' + message +
+                '</div>'
+            );
+        }
+        
+        // Event listeners para cuando se muestran los modales
+        $('#modalIncidencias').on('shown.bs.modal', function() {
+            forceEnableAllModalFields();
+        });
+        
+        $('#modalDevoluciones').on('shown.bs.modal', function() {
+            forceEnableAllModalFields();
+        });
+        
+        // Ejecutar cada vez que se hace clic en un campo
+        $(document).on('click', '#modalIncidencias input, #modalIncidencias select, #modalIncidencias textarea', function() {
+            forceEnableAllModalFields();
+        });
+        
+        $(document).on('click', '#modalDevoluciones input, #modalDevoluciones select, #modalDevoluciones textarea', function() {
+            forceEnableAllModalFields();
+        });
+        
+        // Ejecutar periódicamente mientras los modales estén abiertos
+        setInterval(function() {
+            if ($('#modalIncidencias').hasClass('show') || $('#modalDevoluciones').hasClass('show')) {
+                forceEnableAllModalFields();
+            }
+        }, 2000);
+        
+        console.log('🔧 JavaScript de prueba cargado correctamente');
+    </script>
+</body>
+</html>

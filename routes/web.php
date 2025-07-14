@@ -203,10 +203,22 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/material_kilo/obtener-incidencias', 'MaterialKiloController@obtenerIncidencias')->name('material_kilo.obtener_incidencias');
     Route::get('/material_kilo/obtener-incidencia/{id}', 'MaterialKiloController@obtenerIncidencia')->name('material_kilo.obtener_incidencia');
     
+    // Páginas completas para editar incidencias y devoluciones
+    Route::get('/material_kilo/incidencia/crear', 'MaterialKiloController@crearIncidencia')->name('material_kilo.crear_incidencia');
+    Route::get('/material_kilo/incidencia/editar/{id}', 'MaterialKiloController@editarIncidencia')->name('material_kilo.editar_incidencia');
+    Route::post('/material_kilo/incidencia/guardar', 'MaterialKiloController@guardarIncidenciaCompleta')->name('material_kilo.guardar_incidencia_completa');
+    Route::put('/material_kilo/incidencia/actualizar/{id}', 'MaterialKiloController@actualizarIncidencia')->name('material_kilo.actualizar_incidencia');
+
     // Rutas para devoluciones de proveedores
     Route::post('/material_kilo/guardar-devolucion', 'MaterialKiloController@guardarDevolucion')->name('material_kilo.guardar_devolucion');
     Route::get('/material_kilo/obtener-devoluciones', 'MaterialKiloController@obtenerDevoluciones')->name('material_kilo.obtener_devoluciones');
     Route::get('/material_kilo/obtener-devolucion/{id}', 'MaterialKiloController@obtenerDevolucion')->name('material_kilo.obtener_devolucion');
+    
+    // Páginas completas para editar devoluciones
+    Route::get('/material_kilo/devolucion/crear', 'MaterialKiloController@crearDevolucion')->name('material_kilo.crear_devolucion');
+    Route::get('/material_kilo/devolucion/editar/{id}', 'MaterialKiloController@editarDevolucion')->name('material_kilo.editar_devolucion');
+    Route::post('/material_kilo/devolucion/guardar', 'MaterialKiloController@guardarDevolucionCompleta')->name('material_kilo.guardar_devolucion_completa');
+    Route::put('/material_kilo/devolucion/actualizar/{id}', 'MaterialKiloController@actualizarDevolucion')->name('material_kilo.actualizar_devolucion');
     Route::get('/material_kilo/buscar-proveedores', 'MaterialKiloController@buscarProveedores')->name('material_kilo.buscar_proveedores');
     Route::get('/material_kilo/buscar-productos-proveedor', 'MaterialKiloController@buscarProductosProveedor')->name('material_kilo.buscar_productos_proveedor');
     Route::get('/material_kilo/buscar-producto-por-codigo', 'MaterialKiloController@buscarProductoPorCodigo')->name('material_kilo.buscar_producto_por_codigo');

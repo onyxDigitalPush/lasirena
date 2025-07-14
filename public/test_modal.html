@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de Modales</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .modal-backdrop {
+            z-index: 1040 !important;
+        }
+        .modal {
+            z-index: 1050 !important;
+        }
+        .modal-dialog {
+            z-index: 1060 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Prueba de Modales - Historial Incidencias y Devoluciones</h1>
+        <p>Esta página sirve para probar que los modales se abren correctamente sin campos "gris" (deshabilitados).</p>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <button class="btn btn-primary btn-lg" onclick="testModalIncidencia()">
+                    Probar Modal Incidencia
+                </button>
+            </div>
+            <div class="col-md-6">
+                <button class="btn btn-success btn-lg" onclick="testModalDevolucion()">
+                    Probar Modal Devolución
+                </button>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <h3>Instrucciones:</h3>
+            <ul>
+                <li>Haz clic en los botones para abrir los modales</li>
+                <li>Verifica que todos los campos estén habilitados (no grises)</li>
+                <li>Verifica que puedas escribir en todos los campos de texto</li>
+                <li>Verifica que puedas seleccionar opciones en los desplegables</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- jQuery y Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Función para probar el modal de incidencia
+        function testModalIncidencia() {
+            // Simular datos de prueba
+            var incidencia = {
+                id: 1,
+                codigo_proveedor: 'PROV001',
+                año: '2024',
+                mes: '01',
+                codigo_producto: 'PROD001',
+                descripcion_producto: 'Producto de prueba',
+                fecha_inicio: '2024-01-01',
+                fecha_fin: '2024-01-31',
+                np: 'NP001',
+                fecha_reclamacion: '2024-01-15',
+                clasificacion_incidencia: 'Grave',
+                tipo_reclamacion: 'Calidad',
+                top100fy2: 'Si',
+                descripcion_motivo: 'Descripción del motivo de prueba',
+                especificacion_motivo_reclamacion_leve: 'Especificación leve',
+                especificacion_motivo_reclamacion_grave: 'Especificación grave',
+                recuperamos_objeto_extraño: 'No',
+                nombre_tienda: 'Tienda 01',
+                no_queja: 'Q001',
+                origen: 'Cliente',
+                descripcion_queja: 'Descripción de la queja',
+                lote_sirena: 'LS001',
+                lote_proveedor: 'LP001',
+                informe_a_proveedor: 'Si',
+                informe: 'Informe de prueba',
+                fecha_envio_proveedor: '2024-01-20',
+                fecha_respuesta_proveedor: '2024-01-25',
+                fecha_reclamacion_respuesta: '2024-01-30',
+                abierto: 'Si',
+                informe_respuesta: 'Respuesta del informe',
+                comentarios: 'Comentarios de prueba'
+            };
+
+            // Abrir modal y llenar datos
+            $('#modalIncidencia').modal('show');
+            
+            // Simular carga de datos
+            setTimeout(function() {
+                $('#proveedor_incidencia').val(incidencia.codigo_proveedor);
+                $('#año_incidencia').val(incidencia.año);
+                $('#mes_incidencia').val(incidencia.mes);
+                $('#codigo_producto_incidencia').val(incidencia.codigo_producto);
+                $('#descripcion_producto_incidencia').val(incidencia.descripcion_producto);
+                $('#fecha_inicio_incidencia').val(incidencia.fecha_inicio);
+                $('#fecha_fin_incidencia').val(incidencia.fecha_fin);
+                $('#np_incidencia').val(incidencia.np);
+                $('#fecha_reclamacion_incidencia').val(incidencia.fecha_reclamacion);
+                $('#clasificacion_incidencia_inc').val(incidencia.clasificacion_incidencia);
+                $('#tipo_reclamacion_incidencia').val(incidencia.tipo_reclamacion);
+                $('#top100fy2_incidencia').val(incidencia.top100fy2);
+                $('#descripcion_motivo_incidencia').val(incidencia.descripcion_motivo);
+                $('#especificacion_motivo_leve_incidencia').val(incidencia.especificacion_motivo_reclamacion_leve);
+                $('#especificacion_motivo_grave_incidencia').val(incidencia.especificacion_motivo_reclamacion_grave);
+                $('#recuperamos_objeto_extraño_incidencia').val(incidencia.recuperamos_objeto_extraño);
+                $('#nombre_tienda_incidencia').val(incidencia.nombre_tienda);
+                $('#no_queja_incidencia').val(incidencia.no_queja);
+                $('#origen_incidencia').val(incidencia.origen);
+                $('#descripcion_queja_incidencia').val(incidencia.descripcion_queja);
+                $('#lote_sirena_incidencia').val(incidencia.lote_sirena);
+                $('#lote_proveedor_incidencia').val(incidencia.lote_proveedor);
+                $('#informe_a_proveedor_incidencia').val(incidencia.informe_a_proveedor);
+                $('#informe_incidencia').val(incidencia.informe);
+                $('#fecha_envio_proveedor_incidencia').val(incidencia.fecha_envio_proveedor);
+                $('#fecha_respuesta_proveedor_incidencia').val(incidencia.fecha_respuesta_proveedor);
+                $('#fecha_reclamacion_respuesta_incidencia').val(incidencia.fecha_reclamacion_respuesta);
+                $('#abierto_incidencia').val(incidencia.abierto);
+                $('#informe_respuesta_incidencia').val(incidencia.informe_respuesta);
+                $('#comentarios_incidencia').val(incidencia.comentarios);
+                
+                // Asegurar que todos los campos estén habilitados
+                $('#modalIncidencia input, #modalIncidencia select, #modalIncidencia textarea').prop('disabled', false);
+                
+                console.log('Modal de incidencia cargado con datos de prueba');
+            }, 500);
+        }
+
+        // Función para probar el modal de devolución
+        function testModalDevolucion() {
+            // Simular datos de prueba
+            var devolucion = {
+                id: 1,
+                codigo_proveedor: 'PROV002',
+                año: '2024',
+                mes: '01',
+                codigo_producto: 'PROD002',
+                descripcion_producto: 'Producto devuelto',
+                fecha_inicio: '2024-01-01',
+                fecha_fin: '2024-01-31',
+                np: 'NP002',
+                fecha_reclamacion: '2024-01-15',
+                clasificacion_incidencia: 'Leve',
+                tipo_reclamacion: 'Devolución',
+                top100fy2: 'No',
+                descripcion_motivo: 'Motivo de devolución',
+                especificacion_motivo_reclamacion_leve: 'Especificación leve dev',
+                especificacion_motivo_reclamacion_grave: 'Especificación grave dev',
+                recuperamos_objeto_extraño: 'Si',
+                nombre_tienda: 'Tienda 02',
+                no_queja: 'Q002',
+                origen: 'Proveedor',
+                descripcion_queja: 'Descripción de devolución',
+                lote_sirena: 'LS002',
+                lote_proveedor: 'LP002',
+                informe_a_proveedor: 'No',
+                informe: 'Informe de devolución',
+                fecha_envio_proveedor: '2024-01-20',
+                fecha_respuesta_proveedor: '2024-01-25',
+                fecha_reclamacion_respuesta: '2024-01-30',
+                abierto: 'Si',
+                informe_respuesta: 'Respuesta devolución',
+                comentarios: 'Comentarios de devolución'
+            };
+
+            // Abrir modal y llenar datos
+            $('#modalDevolucion').modal('show');
+            
+            // Simular carga de datos
+            setTimeout(function() {
+                $('#proveedor_devolucion').val(devolucion.codigo_proveedor);
+                $('#año_devolucion').val(devolucion.año);
+                $('#mes_devolucion').val(devolucion.mes);
+                $('#codigo_producto_devolucion').val(devolucion.codigo_producto);
+                $('#descripcion_producto_devolucion').val(devolucion.descripcion_producto);
+                $('#fecha_inicio').val(devolucion.fecha_inicio);
+                $('#fecha_fin').val(devolucion.fecha_fin);
+                $('#np').val(devolucion.np);
+                $('#fecha_reclamacion').val(devolucion.fecha_reclamacion);
+                $('#clasificacion_incidencia_dev').val(devolucion.clasificacion_incidencia);
+                $('#tipo_reclamacion').val(devolucion.tipo_reclamacion);
+                $('#top100fy2').val(devolucion.top100fy2);
+                $('#descripcion_motivo').val(devolucion.descripcion_motivo);
+                $('#especificacion_motivo_leve').val(devolucion.especificacion_motivo_reclamacion_leve);
+                $('#especificacion_motivo_grave').val(devolucion.especificacion_motivo_reclamacion_grave);
+                $('#recuperamos_objeto_extraño').val(devolucion.recuperamos_objeto_extraño);
+                $('#nombre_tienda').val(devolucion.nombre_tienda);
+                $('#no_queja').val(devolucion.no_queja);
+                $('#origen_dev').val(devolucion.origen);
+                $('#descripcion_queja').val(devolucion.descripcion_queja);
+                $('#lote_sirena_dev').val(devolucion.lote_sirena);
+                $('#lote_proveedor_dev').val(devolucion.lote_proveedor);
+                $('#informe_a_proveedor_dev').val(devolucion.informe_a_proveedor);
+                $('#informe_dev').val(devolucion.informe);
+                $('#fecha_envio_proveedor_devolucion').val(devolucion.fecha_envio_proveedor);
+                $('#fecha_respuesta_proveedor_devolucion').val(devolucion.fecha_respuesta_proveedor);
+                $('#fecha_reclamacion_respuesta').val(devolucion.fecha_reclamacion_respuesta);
+                $('#abierto').val(devolucion.abierto);
+                $('#informe_respuesta_dev').val(devolucion.informe_respuesta);
+                $('#comentarios_devolucion').val(devolucion.comentarios);
+                
+                // Asegurar que todos los campos estén habilitados
+                $('#modalDevolucion input, #modalDevolucion select, #modalDevolucion textarea').prop('disabled', false);
+                
+                console.log('Modal de devolución cargado con datos de prueba');
+            }, 500);
+        }
+    </script>
+</body>
+</html>

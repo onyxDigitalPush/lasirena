@@ -1,6 +1,11 @@
 $(document).ready(function () {
     console.log('Iniciando historial incidencias y devoluciones...');
     
+    // Limpiar modales al inicio
+    $('.modal').modal('hide');
+    $('.modal-backdrop').remove();
+    $('body').removeClass('modal-open').css('padding-right', '');
+    
     // Configurar DataTable
     var table = $('#table_historial').DataTable({
         paging: true,
@@ -29,12 +34,67 @@ $(document).ready(function () {
         }
     });
     
+    // ============================================================================
+    // FUNCIÓN ESPECIAL PARA FORZAR HABILITACIÓN DE CAMPOS - SOLUCIÓN DEFINITIVA
+    // ============================================================================
+    function forceEnableAllModalFields() {
+        setTimeout(function() {
+            // Para modal de incidencias
+            $('#modalIncidencias input, #modalIncidencias select, #modalIncidencias textarea').each(function() {
+                var $this = $(this);
+                
+                // Remover todos los atributos que puedan deshabilitar
+                $this.removeAttr('disabled')
+                     .removeAttr('readonly')
+                     .prop('disabled', false)
+                     .prop('readonly', false);
+                
+                // Forzar estilos CSS para que se vea habilitado
+                $this.css({
+                    'background-color': '#ffffff !important',
+                    'color': '#495057 !important',
+                    'border': '1px solid #ced4da !important',
+                    'cursor': 'text !important',
+                    'opacity': '1 !important',
+                    'pointer-events': 'auto !important'
+                });
+                
+                // Remover clases que puedan hacer que se vea deshabilitado
+                $this.removeClass('disabled').removeClass('readonly');
+            });
+            
+            // Para modal de devoluciones
+            $('#modalDevoluciones input, #modalDevoluciones select, #modalDevoluciones textarea').each(function() {
+                var $this = $(this);
+                
+                // Remover todos los atributos que puedan deshabilitar
+                $this.removeAttr('disabled')
+                     .removeAttr('readonly')
+                     .prop('disabled', false)
+                     .prop('readonly', false);
+                
+                // Forzar estilos CSS para que se vea habilitado
+                $this.css({
+                    'background-color': '#ffffff !important',
+                    'color': '#495057 !important',
+                    'border': '1px solid #ced4da !important',
+                    'cursor': 'text !important',
+                    'opacity': '1 !important',
+                    'pointer-events': 'auto !important'
+                });
+                
+                // Remover clases que puedan hacer que se vea deshabilitado
+                $this.removeClass('disabled').removeClass('readonly');
+            });
+            
+            console.log('🔧 Todos los campos forzados a estar habilitados');
+        }, 100);
+    }
+    
     // Event listeners para filas de la tabla
     $(document).on('click', '.registro-fila', function() {
         var tipo = $(this).data('tipo');
         var id = $(this).data('id');
-        
-        console.log('Clic en fila:', tipo, id);
         
         if (tipo === 'incidencia') {
             abrirModalIncidencia(id);
@@ -45,12 +105,10 @@ $(document).ready(function () {
     
     // Botones para nuevo registro
     $('#nuevoRegistro').on('click', function() {
-        console.log('Botón nuevo registro');
         $('#modalTipoRegistro').modal('show');
     });
     
     $('#btnNuevaIncidencia').on('click', function() {
-        console.log('Nueva incidencia');
         $('#modalTipoRegistro').modal('hide');
         setTimeout(function() {
             abrirModalIncidencia(null);
@@ -58,21 +116,25 @@ $(document).ready(function () {
     });
     
     $('#btnNuevaDevolucion').on('click', function() {
-        console.log('Nueva devolución');
         $('#modalTipoRegistro').modal('hide');
         setTimeout(function() {
             abrirModalDevolucion(null);
         }, 300);
     });
     
-    // Funciones para abrir modales
+    // ============================================================================
+    // FUNCIONES PRINCIPALES PARA ABRIR MODALES
+    // ============================================================================
     function abrirModalIncidencia(incidenciaId) {
-        console.log('Abriendo modal incidencia:', incidenciaId);
+        console.log('=== ABRIENDO MODAL DE INCIDENCIA ===');
+        console.log('ID:', incidenciaId);
         
-        try {
-            // Cerrar todos los modales primero
-            $('.modal').modal('hide');
-            
+        // Cerrar cualquier modal abierto
+        $('.modal').modal('hide');
+        $('body').removeClass('modal-open');
+        $('.modal-backdrop').remove();
+        
+        setTimeout(function() {
             // Limpiar formulario
             $('#formIncidencia')[0].reset();
             $('#incidencia_id').val('');
@@ -85,36 +147,32 @@ $(document).ready(function () {
                 $('#modalIncidenciasLabel').html('<i class="fa fa-exclamation-triangle mr-2"></i>Nueva Incidencia');
             }
             
-            // Mostrar modal con configuración específica
-            $('#modalIncidencias').modal({
-                backdrop: true,
-                keyboard: true,
-                focus: true,
-                show: true
-            });
+            // Mostrar modal
+            $('#modalIncidencias').modal('show');
             
-            // Cargar datos después de que el modal se haya mostrado
-            $('#modalIncidencias').on('shown.bs.modal', function() {
-                console.log('Modal incidencia mostrado');
+            // Forzar habilitación de campos
+            setTimeout(function() {
+                forceEnableAllModalFields();
+                
+                // Cargar datos si es edición
                 if (incidenciaId) {
                     cargarDatosIncidencia(incidenciaId);
                 }
-            });
+            }, 300);
             
-            console.log('Modal incidencia configurado');
-            
-        } catch (error) {
-            console.error('Error al abrir modal incidencia:', error);
-        }
+        }, 100);
     }
     
     function abrirModalDevolucion(devolucionId) {
-        console.log('Abriendo modal devolución:', devolucionId);
+        console.log('=== ABRIENDO MODAL DE DEVOLUCIÓN ===');
+        console.log('ID:', devolucionId);
         
-        try {
-            // Cerrar todos los modales primero
-            $('.modal').modal('hide');
-            
+        // Cerrar cualquier modal abierto
+        $('.modal').modal('hide');
+        $('body').removeClass('modal-open');
+        $('.modal-backdrop').remove();
+        
+        setTimeout(function() {
             // Limpiar formulario
             $('#formDevolucion')[0].reset();
             $('#devolucion_id').val('');
@@ -127,36 +185,30 @@ $(document).ready(function () {
                 $('#modalDevolucionesLabel').html('<i class="fa fa-undo mr-2"></i>Nueva Devolución');
             }
             
-            // Mostrar modal con configuración específica
-            $('#modalDevoluciones').modal({
-                backdrop: true,
-                keyboard: true,
-                focus: true,
-                show: true
-            });
+            // Mostrar modal
+            $('#modalDevoluciones').modal('show');
             
-            // Cargar datos después de que el modal se haya mostrado
-            $('#modalDevoluciones').on('shown.bs.modal', function() {
-                console.log('Modal devolución mostrado');
+            // Forzar habilitación de campos
+            setTimeout(function() {
+                forceEnableAllModalFields();
+                
+                // Cargar datos si es edición
                 if (devolucionId) {
                     cargarDatosDevolucion(devolucionId);
                 }
-            });
+            }, 300);
             
-            console.log('Modal devolución configurado');
-            
-        } catch (error) {
-            console.error('Error al abrir modal devolución:', error);
-        }
+        }, 100);
     }
     
-    // Funciones para cargar datos
+    // ============================================================================
+    // FUNCIONES DE CARGA DE DATOS
+    // ============================================================================
     function cargarDatosIncidencia(incidenciaId) {
         console.log('Cargando datos de incidencia ID:', incidenciaId);
         
-        if (!incidenciaId) return;
-        
         var url = window.obtenerIncidenciaUrl + '/' + incidenciaId;
+        console.log('URL:', url);
         
         $.ajax({
             url: url,
@@ -167,7 +219,7 @@ $(document).ready(function () {
                 if (data.success) {
                     var incidencia = data.incidencia;
                     
-                    // Llenar campos del formulario
+                    // Llenar todos los campos del formulario de incidencia
                     $('#proveedor_incidencia').val(incidencia.codigo_proveedor || incidencia.id_proveedor || '');
                     $('#año_incidencia').val(incidencia.año || '');
                     $('#mes_incidencia').val(incidencia.mes || '');
@@ -189,6 +241,11 @@ $(document).ready(function () {
                     $('#fecha_respuesta_proveedor').val(incidencia.fecha_respuesta_proveedor || '');
                     $('#comentarios').val(incidencia.comentarios || '');
                     
+                    // Forzar habilitación después de cargar datos
+                    setTimeout(function() {
+                        forceEnableAllModalFields();
+                    }, 200);
+                    
                     console.log('Datos de incidencia cargados correctamente');
                 } else {
                     console.error('Error al cargar datos de incidencia:', data.message);
@@ -203,9 +260,8 @@ $(document).ready(function () {
     function cargarDatosDevolucion(devolucionId) {
         console.log('Cargando datos de devolución ID:', devolucionId);
         
-        if (!devolucionId) return;
-        
         var url = window.obtenerDevolucionUrl + '/' + devolucionId;
+        console.log('URL:', url);
         
         $.ajax({
             url: url,
@@ -216,7 +272,7 @@ $(document).ready(function () {
                 if (data.success) {
                     var devolucion = data.devolucion;
                     
-                    // Llenar campos del formulario
+                    // Llenar todos los campos del formulario de devolución
                     $('#proveedor_devolucion').val(devolucion.codigo_proveedor || devolucion.id_proveedor || '');
                     $('#año_devolucion').val(devolucion.año || '');
                     $('#mes_devolucion').val(devolucion.mes || '');
@@ -245,6 +301,13 @@ $(document).ready(function () {
                     $('#fecha_respuesta_proveedor_devolucion').val(devolucion.fecha_respuesta_proveedor || '');
                     $('#fecha_reclamacion_respuesta').val(devolucion.fecha_reclamacion_respuesta || '');
                     $('#abierto').val(devolucion.abierto || 'Si');
+                    $('#informe_respuesta_dev').val(devolucion.informe_respuesta || '');
+                    $('#comentarios_devolucion').val(devolucion.comentarios || '');
+                    
+                    // Forzar habilitación después de cargar datos
+                    setTimeout(function() {
+                        forceEnableAllModalFields();
+                    }, 200);
                     
                     console.log('Datos de devolución cargados correctamente');
                 } else {
@@ -257,7 +320,39 @@ $(document).ready(function () {
         });
     }
     
-    // Filtros
+    // ============================================================================
+    // EVENT LISTENERS PARA MODALES
+    // ============================================================================
+    
+    // Ejecutar cuando se muestran los modales
+    $('#modalIncidencias').on('shown.bs.modal', function() {
+        forceEnableAllModalFields();
+    });
+    
+    $('#modalDevoluciones').on('shown.bs.modal', function() {
+        forceEnableAllModalFields();
+    });
+    
+    // Ejecutar cuando se hace clic en cualquier campo
+    $(document).on('click', '#modalIncidencias input, #modalIncidencias select, #modalIncidencias textarea', function() {
+        forceEnableAllModalFields();
+    });
+    
+    $(document).on('click', '#modalDevoluciones input, #modalDevoluciones select, #modalDevoluciones textarea', function() {
+        forceEnableAllModalFields();
+    });
+    
+    // Ejecutar periódicamente mientras los modales estén abiertos
+    setInterval(function() {
+        if ($('#modalIncidencias').hasClass('show') || $('#modalDevoluciones').hasClass('show')) {
+            forceEnableAllModalFields();
+        }
+    }, 2000);
+    
+    // ============================================================================
+    // FILTROS
+    // ============================================================================
+    
     $('#aplicarFiltros').on('click', function() {
         var form = $('#filtrosForm');
         var baseUrl = window.location.href.split('?')[0];
@@ -274,86 +369,6 @@ $(document).ready(function () {
         $('#filtrosForm')[0].reset();
         var baseUrl = window.location.href.split('?')[0];
         window.location.href = baseUrl;
-    });
-    
-    // Guardar incidencia
-    $('#guardarIncidencia').on('click', function() {
-        console.log('Guardando incidencia...');
-        
-        var form = $('#formIncidencia');
-        var formData = form.serialize();
-        
-        $.ajax({
-            url: window.guardarIncidenciaUrl,
-            method: 'POST',
-            data: formData,
-            success: function(response) {
-                console.log('Respuesta guardar incidencia:', response);
-                if (response.success) {
-                    alert('Incidencia guardada correctamente');
-                    $('#modalIncidencias').modal('hide');
-                    location.reload();
-                } else {
-                    alert('Error al guardar la incidencia: ' + response.message);
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Error AJAX:', error);
-                alert('Error al guardar la incidencia');
-            }
-        });
-    });
-    
-    // Guardar devolución
-    $('#guardarDevolucion').on('click', function() {
-        console.log('Guardando devolución...');
-        
-        var form = $('#formDevolucion');
-        var formData = form.serialize();
-        
-        $.ajax({
-            url: window.guardarDevolucionUrl,
-            method: 'POST',
-            data: formData,
-            success: function(response) {
-                console.log('Respuesta guardar devolución:', response);
-                if (response.success) {
-                    alert('Devolución guardada correctamente');
-                    $('#modalDevoluciones').modal('hide');
-                    location.reload();
-                } else {
-                    alert('Error al guardar la devolución: ' + response.message);
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Error AJAX:', error);
-                alert('Error al guardar la devolución');
-            }
-        });
-    });
-    
-    // Hacer funciones disponibles globalmente para depuración
-    window.abrirModalIncidencia = abrirModalIncidencia;
-    window.abrirModalDevolucion = abrirModalDevolucion;
-    
-    // Event listeners adicionales para asegurar que los modales funcionen
-    $('.modal').on('hidden.bs.modal', function () {
-        console.log('Modal cerrado');
-        $('body').removeClass('modal-open');
-        $('.modal-backdrop').remove();
-    });
-    
-    // Asegurar que los botones de cerrar funcionen
-    $('.modal .close, .modal [data-dismiss="modal"]').on('click', function() {
-        console.log('Botón cerrar clickeado');
-        $(this).closest('.modal').modal('hide');
-    });
-    
-    // Cerrar modal con ESC
-    $(document).keyup(function(e) {
-        if (e.keyCode === 27) { // ESC key
-            $('.modal').modal('hide');
-        }
     });
     
     console.log('JavaScript de historial incidencias y devoluciones cargado correctamente');
