@@ -821,9 +821,15 @@ $(document).ready(function () {
                 url: window.buscarProductoPorCodigoUrl,
                 data: { codigo: term },
                 success: function(response) {
-                    if (response.success) {
-                        $('#producto').val(response.descripcion);
-                        console.log('Producto encontrado:', response.descripcion);
+                    if (response.success && response.producto) {
+                        // Si el backend devuelve el objeto producto, usar su descripcion
+                        if (response.producto.descripcion) {
+                            $('#producto').val(response.producto.descripcion);
+                            console.log('Producto encontrado:', response.producto.descripcion);
+                        } else {
+                            $('#producto').val('');
+                            console.log('Producto encontrado pero sin descripción:', response.producto);
+                        }
                     } else {
                         // Limpiar el campo si no se encuentra el producto
                         $('#producto').val('');

@@ -1307,4 +1307,41 @@ class MaterialKiloController extends Controller
             return redirect()->back()->with('error', 'Error al actualizar la devolución: ' . $e->getMessage())->withInput();
         }
     }
+
+    /**
+     * Buscar producto por código (AJAX)
+     */
+    public function buscarProductoPorCodigo(Request $request)
+    {
+        $codigo = $request->get('codigo');
+        $producto = \DB::table('materiales')->where('codigo', $codigo)->first();
+        if ($producto) {
+            return response()->json(['success' => true, 'producto' => $producto]);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Producto no encontrado'], 404);
+        }
+    }
+
+    /**
+     * Buscar productos por término (AJAX para autocompletar)
+     */
+    public function buscarCodigosProductos(Request $request)
+    {
+        $term = $request->get('term');
+        $productos = \DB::table('materiales')
+            ->where('codigo', 'like', "%{$term}%")
+            ->orWhere('descripcion', 'like', "%{$term}%")
+            ->limit(20)
+            ->get();
+        $result = [];
+        foreach ($productos as $producto) {
+            $result[] = [
+                'id' => $producto->codigo,
+                'label' => $producto->codigo . ' - ' . $producto->descripcion,
+                'value' => $producto->codigo,
+                'descripcion' => $producto->descripcion
+            ];
+        }
+        return response()->json($result);
+    }
 }

@@ -288,7 +288,6 @@
                     <th class="text-center">Mes/Año</th>
                     <th class="text-center">Clasificación</th>
                     <th class="text-center">Descripción/Producto</th>
-                    <th class="text-center">Estado</th>
                 </tr>
             </thead>
             <tbody>
@@ -331,8 +330,12 @@
                         </td>
                         <td class="text-center">
                             @if($registro->clasificacion_incidencia)
-                                <span class="badge badge-{{ $registro->clasificacion_incidencia == 'RG1' ? 'danger' : ($registro->clasificacion_incidencia == 'RL1' ? 'warning' : 'info') }}">
-                                    {{ $registro->clasificacion_incidencia }}
+                                @php
+                                    $clase = $registro->clasificacion_incidencia == 'RG1' ? 'danger' : ($registro->clasificacion_incidencia == 'RL1' ? 'warning' : 'info');
+                                    $texto = preg_replace('/1$/', '', $registro->clasificacion_incidencia);
+                                @endphp
+                                <span class="badge badge-{{ $clase }}">
+                                    {{ $texto }}
                                 </span>
                             @else
                                 <span class="text-muted">Sin clasificar</span>
@@ -343,23 +346,6 @@
                                 {{ $registro->descripcion_incidencia ?? $registro->producto ?? 'Sin descripción' }}
                             @else
                                 {{ $registro->descripcion_producto ?? $registro->codigo_producto ?? 'Sin descripción' }}
-                            @endif
-                        </td>
-                        <td class="text-center">
-                            @if($registro->tipo_registro == 'incidencia')
-                                @if($registro->fecha_respuesta_proveedor)
-                                    <span class="badge badge-success">Respondido</span>
-                                @elseif($registro->fecha_envio_proveedor)
-                                    <span class="badge badge-warning">Enviado</span>
-                                @else
-                                    <span class="badge badge-secondary">Registrado</span>
-                                @endif
-                            @else
-                                @if($registro->abierto == 'No')
-                                    <span class="badge badge-success">Cerrado</span>
-                                @else
-                                    <span class="badge badge-danger">Abierto</span>
-                                @endif
                             @endif
                         </td>
                     </tr>
