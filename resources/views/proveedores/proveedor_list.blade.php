@@ -35,7 +35,7 @@
 
 
 @endsection
-
+<br><br><br><br><br>
 {{-- Mensajes de éxito y error --}}
 @if (session('success'))
     <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
