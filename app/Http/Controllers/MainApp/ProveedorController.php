@@ -30,12 +30,18 @@ class ProveedorController extends Controller
 
     public function store(Request $request)
     {
-        //
-        $proveedor = new Proveedor();
-        $proveedor->id_proveedor = $request->id_proveedor;
-        $proveedor->nombre_proveedor = $request->nombre_proveedor;
-        $proveedor->save();
-        return redirect()->back()->with('success', 'Proveedor creado correctamente.');
+        try {
+            $proveedor = new Proveedor();
+            $proveedor->id_proveedor = $request->id_proveedor;
+            $proveedor->nombre_proveedor = $request->nombre_proveedor;
+            $proveedor->save();
+            return redirect()->back()->with('success', 'Proveedor creado correctamente.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->getCode() == 23000) { // Duplicado clave primaria
+                return redirect()->back()->with('error', 'El ID de proveedor ya existe.');
+            }
+            return redirect()->back()->with('error', 'Error al crear proveedor: ' . $e->getMessage());
+        }
     }
 
 

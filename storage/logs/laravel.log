@@ -866,3 +866,13 @@
 #50 {main}
 "} 
  
+[2025-07-14 18:48:35] local.INFO: Parámetros recibidos: {"orden":null,"filtro":null} 
+[2025-07-14 18:48:35] local.INFO: Aplicando ordenamiento: {"orden":null} 
+[2025-07-14 18:49:19] local.INFO: Parámetros recibidos: {"orden":null,"filtro":null} 
+[2025-07-14 18:49:19] local.INFO: Aplicando ordenamiento: {"orden":null} 
+[2025-07-14 18:51:15] local.INFO: Parámetros recibidos: {"orden":null,"filtro":null} 
+[2025-07-14 18:51:15] local.INFO: Aplicando ordenamiento: {"orden":null} 
+[2025-07-14 18:52:24] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string"} 
+[2025-07-14 18:52:39] local.INFO: Parámetros recibidos: {"orden":null,"filtro":null} 
+[2025-07-14 18:52:39] local.INFO: Aplicando ordenamiento: {"orden":null} 
+[2025-07-14 18:53:25] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string"} 
