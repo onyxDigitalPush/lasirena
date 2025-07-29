@@ -97,10 +97,10 @@
                             </a>
                         </td>
                         <td class="text-center d-flex justify-content-center">
-                            <form action="{{ route('usuarios.delete') }}" method="POST" style="display:inline-block;"
-                                onsubmit="return confirm('¿Estás seguro de que deseas eliminar este usuario?');">
+                            <form action="{{ route('proveedores.delete') }}" method="POST" style="display:inline-block;"
+                                onsubmit="return confirm('¿Estás seguro de que deseas eliminar este proveedor?');">
                                 @csrf
-                                {{-- <input type="hidden" name="id" value="{{ $user->id }}"> --}}
+                                 <input type="hidden" name="id" value="{{ $proveedor->id_proveedor }}">
                                 <button type="submit" class="btn btn-danger mt-2">
                                     <i class="fa fa-trash"></i>
                                 </button>

@@ -85,11 +85,29 @@ class ProveedorController extends Controller
 
     public function destroy(Request $request)
     {
-        //  $user = User::findOrFail($request->input('id'));
-        // $user->delete();
-        // return redirect()->back()->with('success', 'Usuario eliminado correctamente.');
+        $proveedorId = $request->input('id');
+        $proveedor = Proveedor::find($proveedorId);
+        if (!$proveedor) {
+            return redirect()->back()->with('error', 'Proveedor no encontrado.');
+        }
 
-    }    public function importarArchivo(Request $request)
+        // Verificar si el proveedor tiene materiales asociados y borrarlos tambien
+        $materiales = Material::where('proveedor_id', $proveedor->id_proveedor)->get();
+        if ($materiales->isNotEmpty()) {
+            foreach ($materiales as $material) {
+                // Eliminar registros de MaterialKilo asociados
+                MaterialKilo::where('codigo_material', $material->codigo)->delete();
+                // Eliminar el material
+                $material->delete();
+            }
+        }
+    
+        $proveedor->delete();
+        return redirect()->back()->with('success', 'Proveedor eliminado correctamente.');
+
+    }
+
+    public function importarArchivo(Request $request)
     {
         // Aumentar límites para procesar archivos grandes
         ini_set('memory_limit', '512M');
