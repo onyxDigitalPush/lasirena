@@ -60,11 +60,11 @@
                    class="btn btn-secondary {{ !request('orden') ? 'active' : '' }}">
                     <i class="fa fa-list mr-1"></i>Por Defecto
                 </a>
-                <a href="{{ route('material_kilo.index', ['orden' => 'total_kg_desc']) }}" 
+                <a href="{{ route('material_kilo.index', array_merge(request()->except('orden'), ['orden' => 'total_kg_desc'])) }}" 
                    class="btn btn-info {{ request('orden') == 'total_kg_desc' ? 'active' : '' }}">
                     <i class="fa fa-sort-amount-desc mr-1"></i>Total KG Mayor
                 </a>
-                <a href="{{ route('material_kilo.index', ['orden' => 'total_kg_asc']) }}" 
+                <a href="{{ route('material_kilo.index', array_merge(request()->except('orden'), ['orden' => 'total_kg_asc'])) }}" 
                    class="btn btn-warning {{ request('orden') == 'total_kg_asc' ? 'active' : '' }}">
                     <i class="fa fa-sort-amount-asc mr-1"></i>Total KG Menor
                 </a>
@@ -137,6 +137,7 @@
                 <thead>
                     <tr>
                         <th class="text-center">Codigo Material</th>
+                        <th class="text-center">ID Proveedor</th>
                         <th class="text-center">Proveedor </th>
                         <th class="text-center">Descripcion </th>
                         <th class="text-center">Ctd. EM-DEV</th>
@@ -150,6 +151,7 @@
                     </tr>
                     <tr>
                         <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Buscar Código" /></th>
+                        <th><input type="text" class="form-control form-control-sm filter-input" placeholder="ID Proveedor" /></th>
                         <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Buscar Proveedor" /></th>
                         <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Buscar Descripción" /></th>
                         <th></th>
@@ -163,27 +165,29 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($array_material_kilo as $material_kilo)
-                        <tr class="material-row" data-id="{{ $material_kilo->id }}" style="cursor: pointer;">
-                            <td class="text-center">{{ $material_kilo->codigo_material }}</td>
-                            <td class="text-center">{{ $material_kilo->nombre_proveedor }}</td>
+                    @foreach ($array_material_kilo as $material_kilo)   
+                             
+                    <tr class="material-row" data-id="{{ $material_kilo->id }}" style="cursor: pointer;">
+                        <td class="text-center">{{ $material_kilo->codigo_material }}</td>
+                        <td class="text-center">{{ $material_kilo['proveedor_id'] }}</td>
+                        <td class="text-center">{{ $material_kilo->nombre_proveedor }}</td>
                             <td class="text-center">{{ $material_kilo->nombre_material }}</td>
                             <td class="text-center">{{ $material_kilo->ctd_emdev }}</td>
                             <td class="text-center">{{ $material_kilo->umb }}</td>
-                            <td class="text-center">{{ $material_kilo->valor_emdev }}</td>
+                        <td class="text-center">{{ number_format($material_kilo->valor_emdev, 2, ',', '.') }}</td>
                             <td class="text-center">{{ $material_kilo->umb }}</td>
                             <td class="text-center">{{ $material_kilo->mes }}</td>
                             <td class="text-center">
                                 @if($material_kilo->factor_conversion !== null && $material_kilo->factor_conversion > 0)
-                                    <span class="badge badge-success">{{ number_format($material_kilo->factor_conversion, 2) }}</span>
+                                    <span class="badge badge-success">{{ number_format($material_kilo->factor_conversion, 2, ',', '.') }}</span>
                                 @elseif($material_kilo->factor_conversion == 0)
-                                    <span class="badge badge-danger">{{ number_format($material_kilo->factor_conversion, 2) }}</span>
+                                    <span class="badge badge-danger">{{ number_format($material_kilo->factor_conversion, 2, ',', '.') }}</span>
                                 @else
                                     <span class="badge badge-warning">Sin Factor</span>
                                 @endif
                             </td>
                             <td class="text-center">
-                                <strong class="text-primary">{{ number_format($material_kilo->total_kg, 2) }} KG</strong>
+                                <strong class="text-primary">{{ number_format($material_kilo->total_kg, 2, ',', '.') }} KG</strong>
                             </td>
                             <td class="text-center d-flex justify-content-center">
                                 <form action="{{ route('material_kilo.delete') }}" method="POST"
