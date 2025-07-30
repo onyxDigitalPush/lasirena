@@ -201,11 +201,11 @@
                     <th class="text-center">Total KG</th>
                     <th class="text-center">Cantidad de Registros</th>
                     <th class="text-center">Porcentaje del Total</th>
-                    <th class="text-center bg-warning">RG</th>
-                    <th class="text-center bg-warning">RL</th>
-                    <th class="text-center bg-warning">DEV</th>
-                    <th class="text-center bg-warning">ROK</th>
-                    <th class="text-center bg-warning">RET</th>
+                    <th class="text-center bg-warning">Reclamaciones Graves</th>
+                    <th class="text-center bg-warning">Reclamaciones Leves</th>
+                    <th class="text-center bg-warning">Rechazos en Almacen</th>
+                    <th class="text-center bg-warning">Aceptaciones Almacen</th>
+                    <th class="text-center bg-warning">Retiradas de Tiendas</th>
                 </tr>
                 <tr>
                     <th><input type="text" class="form-control form-control-sm" placeholder="Buscar ID" /></th>

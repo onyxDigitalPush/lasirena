@@ -16,7 +16,39 @@ $(document).ready(function () {
             searchPlaceholder: "Buscar...",
             emptyTable: "No hay datos disponibles",
             zeroRecords: "No se encontraron registros que coincidan"
-        }
+        },
+        columnDefs: [
+            {
+                targets: 3, // Cantidad de registros (4ta columna, índice 3)
+                orderable: true,
+                searchable: false,
+                render: function (data, type, row) {
+                    if (type === 'sort' || type === 'type' || type === 'filter') {
+                        // Extrae solo el número antes de la palabra 'registro'
+                        var text = $('<div>').html(data).text();
+                        var match = text.match(/(\d+[\.,]?\d*)/);
+                        var num = match ? parseFloat(match[1].replace(',', '.')) : 0;
+                        return isNaN(num) ? 0 : num;
+                    }
+                    return data;
+                }
+            },
+            {
+                targets: 4, // Porcentaje (5ta columna, índice 4)
+                orderable: true,
+                searchable: false,
+                render: function (data, type, row) {
+                    if (type === 'sort' || type === 'type' || type === 'filter') {
+                        // Extrae solo el número antes del símbolo %
+                        var text = $('<div>').html(data).text();
+                        var match = text.match(/(\d+[\.,]?\d*)/);
+                        var num = match ? parseFloat(match[1].replace(',', '.')) : 0;
+                        return isNaN(num) ? 0 : num;
+                    }
+                    return data;
+                }
+            }
+        ]
     });
 
     // Aplica los filtros de las celdas del segundo thead (por columna)
