@@ -64,7 +64,7 @@
                    class="btn btn-info {{ request('orden') == 'total_kg_desc' ? 'active' : '' }}">
                     <i class="fa fa-sort-amount-desc mr-1"></i>Total KG Mayor
                 </a>
-                <a href="{{ route('material_kilo.index', array_merge(request()->except('orden'), ['orden' => 'total_kg_asc'])) }}" 
+                <a href="{{ route('material_kilo.index', ['orden' => 'total_kg_asc']) }}" 
                    class="btn btn-warning {{ request('orden') == 'total_kg_asc' ? 'active' : '' }}">
                     <i class="fa fa-sort-amount-asc mr-1"></i>Total KG Menor
                 </a>

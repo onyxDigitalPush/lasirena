@@ -192,12 +192,15 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/material_kilo/list', 'MaterialKiloController@index')->name('material_kilo.index');
     Route::get('/material_kilo/{id}/edit', 'MaterialKiloController@edit')->name('material_kilo.edit');
     Route::put('/material_kilo/update-material', 'MaterialKiloController@updateMaterial')->name('material_kilo.update_material');
+    Route::post('/material-kilo/update', 'MaterialKiloController@update')->name('material_kilo.update');
     Route::get('/material_kilo/total-kg-proveedor', 'MaterialKiloController@totalKgPorProveedor')->name('material_kilo.total_kg_proveedor');
     Route::get('/material_kilo/evaluacion-continua-proveedores', 'MaterialKiloController@evaluacionContinuaProveedores')->name('material_kilo.evaluacion_continua_proveedores');
     Route::get('/material_kilo/historial-incidencias-devoluciones', 'MaterialKiloController@historialIncidenciasYDevoluciones')->name('material_kilo.historial_incidencias_devoluciones');
     Route::post('/material_kilo/delete', 'MaterialKiloController@destroy')->name('material_kilo.delete');
     Route::post('/material_kilo/guardar-metricas', 'MaterialKiloController@guardarMetricas')->name('material_kilo.guardar_metricas');
-    
+    Route::post('/material_kilo/data', 'MaterialKiloController@data')->name('material-kilo.data');
+
+
     // Rutas para incidencias de proveedores
     Route::post('/material_kilo/guardar-incidencia', 'MaterialKiloController@guardarIncidencia')->name('material_kilo.guardar_incidencia');
     Route::get('/material_kilo/obtener-incidencias', 'MaterialKiloController@obtenerIncidencias')->name('material_kilo.obtener_incidencias');
