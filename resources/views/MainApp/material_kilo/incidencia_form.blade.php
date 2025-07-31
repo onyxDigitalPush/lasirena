@@ -161,21 +161,61 @@
                     <div class="form-section">
                         <h6><i class="fa fa-tags mr-2"></i>Clasificación y Origen</h6>
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="clasificacion_incidencia">Clasificación de Incidencia:</label>
+                                    <label for="clasificacion_incidencia">Tipo de Incidencia:</label>
                                     <select id="clasificacion_incidencia" name="clasificacion_incidencia" class="form-control">
                                         <option value="">Seleccione una clasificación</option>
-                                        <option value="DEV1" {{ old('clasificacion_incidencia', isset($incidencia) ? $incidencia->clasificacion_incidencia : '') == 'DEV1' ? 'selected' : '' }}>DEV - Rechazos en almacen</option>
-                                        <option value="ROK1" {{ old('clasificacion_incidencia', isset($incidencia) ? $incidencia->clasificacion_incidencia : '') == 'ROK1' ? 'selected' : '' }}>ROK - Aceptaciones Condicionales en almacen</option>
-                                        <option value="RET1" {{ old('clasificacion_incidencia', isset($incidencia) ? $incidencia->clasificacion_incidencia : '') == 'RET1' ? 'selected' : '' }}>RET - Retiradas generales de tiendas</option>
+                                        <option value="DEV1" {{ old('clasificacion_incidencia', isset($incidencia) ? $incidencia->clasificacion_incidencia : '') == 'DEV1' ? 'selected' : '' }}>Incidencia Almacen</option>
+                                        <option value="ROK1" {{ old('clasificacion_incidencia', isset($incidencia) ? $incidencia->clasificacion_incidencia : '') == 'ROK1' ? 'selected' : '' }}>Incidencia Tienda</option>
+                                        <option value="RET1" {{ old('clasificacion_incidencia', isset($incidencia) ? $incidencia->clasificacion_incidencia : '') == 'RET1' ? 'selected' : '' }}>Incidencia VAD</option>
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="tipo_incidencia">Clasificación de Incidencia:</label>
+                                    <select id="tipo_incidencia" name="tipo_incidencia" class="form-control">
+                                        <option value="">Seleccione clasificacion de incidencia</option>
+                                        <option value="Aspecto" {{ old('tipo_incidencia', isset($incidencia) ? $incidencia->tipo_incidencia : '') == 'Aspecto' ? 'selected' : '' }}>Aspecto</option>
+                                        <option value="Caducidad" {{ old('tipo_incidencia', isset($incidencia) ? $incidencia->tipo_incidencia : '') == 'Caducidad' ? 'selected' : '' }}>Caducidad</option>
+                                        <option value="Cata" {{ old('tipo_incidencia', isset($incidencia) ? $incidencia->tipo_incidencia : '') == 'Cata' ? 'selected' : '' }}>Cata</option>
+                                        <option value="Corte de la rodaja" {{ old('tipo_incidencia', isset($incidencia) ? $incidencia->tipo_incidencia : '') == 'Corte de la rodaja' ? 'selected' : '' }}>Corte de la rodaja</option>
+                                        <option value="Cuerpos extraños" {{ old('tipo_incidencia', isset($incidencia) ? $incidencia->tipo_incidencia : '') == 'Cuerpos extraños' ? 'selected' : '' }}>Cuerpos extraños</option>
+                                        <option value="Descongelacion" {{ old('tipo_incidencia', isset($incidencia) ? $incidencia->tipo_incidencia : '') == 'Descongelacion' ? 'selected' : '' }}>Descongelacion</option>
+                                        <option value="Dimensiones" {{ old('tipo_incidencia', isset($incidencia) ? $incidencia->tipo_incidencia : '') == 'Dimensiones' ? 'selected' : '' }}>Dimensiones</option>
+                                        <option value="Envase defectuoso" {{ old('tipo_incidencia', isset($incidencia) ? $incidencia->tipo_incidencia : '') == 'Envase defectuoso' ? 'selected' : '' }}>Envase defectuoso</option>
+                                        <option value="Estado embalaje" {{ old('tipo_incidencia', isset($incidencia) ? $incidencia->tipo_incidencia : '') == 'Estado embalaje' ? 'selected' : '' }}>Estado embalaje</option>
+                                        <option value="Glaseo" {{ old('tipo_incidencia', isset($incidencia) ? $incidencia->tipo_incidencia : '') == 'Glaseo' ? 'selected' : '' }}>Glaseo</option>
+                                        <option value="Gramaje" {{ old('tipo_incidencia', isset($incidencia) ? $incidencia->tipo_incidencia : '') == 'Gramaje' ? 'selected' : '' }}>Gramaje</option>
+                                        <option value="Identificacion" {{ old('tipo_incidencia', isset($incidencia) ? $incidencia->tipo_incidencia : '') == 'Identificacion' ? 'selected' : '' }}>Identificacion</option>
+                                        <option value="Olor" {{ old('tipo_incidencia', isset($incidencia) ? $incidencia->tipo_incidencia : '') == 'Olor' ? 'selected' : '' }}>Olor</option>
+                                        <option value="Organoleptico" {{ old('tipo_incidencia', isset($incidencia) ? $incidencia->tipo_incidencia : '') == 'Organoleptico' ? 'selected' : '' }}>Organoleptico</option>
+                                        <option value="Peso" {{ old('tipo_incidencia', isset($incidencia) ? $incidencia->tipo_incidencia : '') == 'Peso' ? 'selected' : '' }}>Peso</option>
+                                        <option value="Temperatura" {{ old('tipo_incidencia', isset($incidencia) ? $incidencia->tipo_incidencia : '') == 'Temperatura' ? 'selected' : '' }}>Temperatura</option>
+                                        <option value="Otros" {{ old('tipo_incidencia', isset($incidencia) ? $incidencia->tipo_incidencia : '') == 'Otros' ? 'selected' : '' }}>Otros</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="origen">Origen:</label>
-                                    <input type="text" id="origen" name="origen" class="form-control" placeholder="Origen de la incidencia" value="{{ old('origen', isset($incidencia) ? $incidencia->origen : '') }}">
+                                    <select name="origen" id="origen" class="form-control">
+                                        <option value="">Seleccione un origen</option>
+                                        <option value="Administracion" {{ old('origen', isset($incidencia) ? $incidencia->origen : '') == 'Administracion' ? 'selected' : '' }}>Administracion</option>
+                                        <option value="Alertas" {{ old('origen', isset($incidencia) ? $incidencia->origen : '') == 'Alertas' ? 'selected' : '' }}>Alertas</option>
+                                        <option value="Auditoria o Visita" {{ old('origen', isset($incidencia) ? $incidencia->origen : '') == 'Auditoria o Visita' ? 'selected' : '' }}>Auditoria o Visita</option>
+                                        <option value="Cambio de tapas" {{ old('origen', isset($incidencia) ? $incidencia->origen : '') == 'Cambio de tapas' ? 'selected' : '' }}>Cambio de tapas</option>
+                                        <option value="Contacto central" {{ old('origen', isset($incidencia) ? $incidencia->origen : '') == 'Contacto central' ? 'selected' : '' }}>Contacto central</option>
+                                        <option value="Descarga Almacen" {{ old('origen', isset($incidencia) ? $incidencia->origen : '') == 'Descarga Almacen' ? 'selected' : '' }}>Descarga Almacen</option>
+                                        <option value="Inspeccion - cata" {{ old('origen', isset($incidencia) ? $incidencia->origen : '') == 'Inspeccion - cata' ? 'selected' : '' }}>Inspeccion - cata</option>
+                                        <option value="Inspeccion - visual" {{ old('origen', isset($incidencia) ? $incidencia->origen : '') == 'Inspeccion - visual' ? 'selected' : '' }}>Inspeccion - visual/dimensional</option>
+                                        <option value="Laboratorio externo" {{ old('origen', isset($incidencia) ? $incidencia->origen : '') == 'Laboratorio externo' ? 'selected' : '' }}>Laboratorio externo</option>
+                                        <option value="Maquillas Externas" {{ old('origen', isset($incidencia) ? $incidencia->origen : '') == 'Maquillas Externas' ? 'selected' : '' }}>Maquillas Externas</option>
+                                        <option value="NPs" {{ old('origen', isset($incidencia) ? $incidencia->origen : '') == 'NPs' ? 'selected' : '' }}>NPs</option>
+                                        <option value="Proveedor" {{ old('origen', isset($incidencia) ? $incidencia->origen : '') == 'Proveedor' ? 'selected' : '' }}>Proveedor</option>
+                                        <option value="Otros" {{ old('origen', isset($incidencia) ? $incidencia->origen : '') == 'Otros' ? 'selected' : '' }}>Otros</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -200,7 +240,15 @@
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="resolucion_almacen">Resolución Almacén:</label>
-                                    <input type="text" id="resolucion_almacen" name="resolucion_almacen" class="form-control" placeholder="Resolución del almacén" value="{{ old('resolucion_almacen', isset($incidencia) ? $incidencia->resolucion_almacen : '') }}">
+                                    <select id="resolucion_almacen" name="resolucion_almacen" class="form-control">
+                                        <option value="">Seleccione una resolución</option>
+                                        <option value="Aceptada" {{ old('resolucion_almacen', isset($incidencia) ? $incidencia->resolucion_almacen : '') == 'Aceptada' ? 'selected' : '' }}>Aceptada</option>
+                                        <option value="Aceptado Condicional" {{ old('resolucion_almacen', isset($incidencia) ? $incidencia->resolucion_almacen : '') == 'Aceptado Condicional' ? 'selected' : '' }}>Aceptado Condicional</option>
+                                        <option value="Bloque de producto" {{ old('resolucion_almacen', isset($incidencia) ? $incidencia->resolucion_almacen : '') == 'Bloque de producto' ? 'selected' : '' }}>Bloque de producto</option>
+                                        <option value="Devolucion a proveedor" {{ old('resolucion_almacen', isset($incidencia) ? $incidencia->resolucion_almacen : '') == 'Devolucion a proveedor' ? 'selected' : '' }}>Devolucion a proveedor</option>
+                                        <option value="No aplica" {{ old('resolucion_almacen', isset($incidencia) ? $incidencia->resolucion_almacen : '') == 'No aplica' ? 'selected' : '' }}>No aplica</option>
+                                        <option value="Retirado General" {{ old('resolucion_almacen', isset($incidencia) ? $incidencia->resolucion_almacen : '') == 'Retirado General' ? 'selected' : '' }}>Retirado General</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -219,7 +267,11 @@
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="kg_un">Kg/un:</label>
-                                    <input type="number" id="kg_un" name="kg_un" class="form-control" step="0.0001" placeholder="0.0000" value="{{ old('kg_un', isset($incidencia) ? $incidencia->kg_un : '') }}">
+                                    <select id="kg_un" name="kg_un" class="form-control">
+                                        <option value="">Seleccione </option>
+                                        <option value="kg" {{ old('kg_un', isset($incidencia) ? $incidencia->kg_un : '') == 'kg' ? 'selected' : '' }}>Kilogramos</option>
+                                        <option value="un" {{ old('kg_un', isset($incidencia) ? $incidencia->kg_un : '') == 'un' ? 'selected' : '' }}>Unidades</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="col-md-4">

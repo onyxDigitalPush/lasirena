@@ -199,6 +199,8 @@ Route::group(['middleware' => ['auth']], function () {
     Route::post('/material_kilo/delete', 'MaterialKiloController@destroy')->name('material_kilo.delete');
     Route::post('/material_kilo/guardar-metricas', 'MaterialKiloController@guardarMetricas')->name('material_kilo.guardar_metricas');
     Route::post('/material_kilo/data', 'MaterialKiloController@data')->name('material-kilo.data');
+    Route::get('/material_kilo/buscar-proveedor/{id}', 'MaterialKiloController@buscarProveedor');
+
 
 
     // Rutas para incidencias de proveedores

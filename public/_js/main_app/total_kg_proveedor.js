@@ -1,3 +1,47 @@
+//fecha en los inputs cuando se digita la fecha incidencia
+document  .getElementById("fecha_incidencia")
+  .addEventListener("change", function () {
+    const fecha = this.value.split("-"); // "2025-01-01" → ["2025", "01", "01"]
+
+    const año = parseInt(fecha[0]);
+    const mes = parseInt(fecha[1]); // no hay que sumar ni restar meses
+
+    // Asignamos los valores a los selects
+    document.getElementById("año_incidencia").value = año;
+    document.getElementById("mes_incidencia").value = mes;
+  });
+
+//codigo de proveedor
+document  .getElementById("codigo_proveedor_incidencia")
+  .addEventListener("blur", function () {
+    const codigoProveedor = this.value;
+
+    if (codigoProveedor.trim() === "") return;
+    const baseUrl = window.appBaseUrl;
+    fetch(`${baseUrl}/material_kilo/buscar-proveedor/${codigoProveedor}`)
+      .then((response) => {
+        if (!response.ok) throw new Error("Proveedor no encontrado");
+        return response.json();
+      })
+      .then((data) => {
+        const select = document.getElementById("proveedor_incidencia");
+        // Buscar opción que coincida con el ID recibido
+        const optionToSelect = Array.from(select.options).find(
+          (opt) => opt.value == data.id_proveedor
+        );
+
+        if (optionToSelect) {
+          select.value = optionToSelect.value;
+        } else {
+          alert("Proveedor no encontrado en el listado.");
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        alert("Error buscando proveedor.");
+      });
+  });
+
 $(document).ready(function () {
   console.log("jQuery y DataTables cargados correctamente");
 

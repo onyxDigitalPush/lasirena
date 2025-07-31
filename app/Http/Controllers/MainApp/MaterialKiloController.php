@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use App\Models\MainApp\Proveedor;
 
 class MaterialKiloController extends Controller
 {
@@ -456,6 +457,19 @@ class MaterialKiloController extends Controller
             'año'
         ));
     }
+    public function buscarProveedor($codigo)
+    {
+        $proveedor = Proveedor::where('id_proveedor', $codigo)->first();
+
+        if (!$proveedor) {
+            return response()->json(['error' => 'Proveedor no encontrado'], 404);
+        }
+
+        return response()->json([
+            'id_proveedor' => $proveedor->id_proveedor,
+            'nombre' => $proveedor->nombre_proveedor
+        ]);
+    }
 
     public function eliminarIncidencia(Request $request)
     {
@@ -495,7 +509,6 @@ class MaterialKiloController extends Controller
                 'numero_inspeccion_sap' => 'nullable|string|max:255',
                 'resolucion_almacen' => 'nullable|string|max:255',
                 'cantidad_devuelta' => 'nullable|numeric',
-                'kg_un' => 'nullable|numeric',
                 'pedido_sap_devolucion' => 'nullable|string|max:255',
                 'resolucion_tienda' => 'nullable|string|max:255',
                 'retirada_tiendas' => 'nullable|in:Si,No',
@@ -578,7 +591,8 @@ class MaterialKiloController extends Controller
                 'tiempo_respuesta' => $tiempo_respuesta,
                 'fecha_reclamacion_respuesta1' => $request->fecha_reclamacion_respuesta1,
                 'fecha_reclamacion_respuesta2' => $request->fecha_reclamacion_respuesta2,
-                'fecha_decision_destino_producto' => $request->fecha_decision_destino_producto
+                'fecha_decision_destino_producto' => $request->fecha_decision_destino_producto,
+                'tipo_incidencia' => $request->tipo_incidencia ?? ''
             ]);
 
             // Actualizar las métricas automáticamente
@@ -953,6 +967,7 @@ class MaterialKiloController extends Controller
                 'comentarios' => $request->comentarios,
                 'dias_respuesta_proveedor' => $dias_respuesta_proveedor,
                 'dias_sin_respuesta_informe' => $dias_sin_respuesta_informe,
+                'tipo_incidencia' => $request->tipo_incidencia ?? ''
             ]);
 
             // Actualizar las métricas automáticamente
@@ -980,7 +995,6 @@ class MaterialKiloController extends Controller
             'numero_inspeccion_sap' => 'nullable|string|max:255',
             'resolucion_almacen' => 'nullable|string|max:255',
             'cantidad_devuelta' => 'nullable|numeric',
-            'kg_un' => 'nullable|numeric',
             'pedido_sap_devolucion' => 'nullable|string|max:255',
             'resolucion_tienda' => 'nullable|string|max:255',
             'retirada_tiendas' => 'nullable|in:Si,No',
@@ -1070,6 +1084,7 @@ class MaterialKiloController extends Controller
                 'comentarios' => $request->comentarios,
                 'dias_respuesta_proveedor' => $dias_respuesta_proveedor,
                 'dias_sin_respuesta_informe' => $dias_sin_respuesta_informe,
+                'tipo_incidencia' => $request->tipo_incidencia ?? ''
             ]);
 
             // Actualizar las métricas automáticamente

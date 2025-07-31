@@ -238,7 +238,7 @@
                 <div class="card bg-info text-white">
                     <div class="card-body">
                         <h5 class="card-title">
-                            <i class="fa fa-undo mr-2"></i>Total Devoluciones
+                            <i class="fa fa-undo mr-2"></i>Total Reclamaciones de clientes
                         </h5>
                         <h3 class="card-text">{{ $total_devoluciones }}</h3>
                     </div>
