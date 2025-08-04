@@ -1140,38 +1140,38 @@ class MaterialKiloController extends Controller
      */
     public function guardarDevolucionCompleta(Request $request)
     {
-        $request->validate([
-            'codigo_producto' => 'required|string|max:255',
-            'codigo_proveedor' => 'required|integer',
-            'descripcion_producto' => 'nullable|string|max:255',
-            'año' => 'required|integer',
-            'mes' => 'required|integer|between:1,12',
-            'fecha_inicio' => 'nullable|date',
-            'fecha_fin' => 'nullable|date',
-            'fecha_reclamacion' => 'nullable|date',
-            'fecha_reclamacion_respuesta' => 'nullable|date',
-            'np' => 'nullable|string|max:255',
-            'no_queja' => 'nullable|string|max:255',
-            'origen' => 'nullable|string|max:255',
-            'nombre_tienda' => 'nullable|string|max:255',
-            'clasificacion_incidencia' => 'nullable|string|max:255',
-            'tipo_reclamacion' => 'nullable|string|max:255',
-            'top100fy2' => 'nullable|string|max:255',
-            'descripcion_motivo' => 'nullable|string',
-            'descripcion_queja' => 'nullable|string',
-            'especificacion_motivo_reclamacion_leve' => 'nullable|string',
-            'especificacion_motivo_reclamacion_grave' => 'nullable|string',
-            'lote_sirena' => 'nullable|string|max:255',
-            'lote_proveedor' => 'nullable|string|max:255',
-            'recuperamos_objeto_extraño' => 'nullable|in:Si,No',
-            'informe_a_proveedor' => 'nullable|in:Si,No',
-            'fecha_envio_proveedor' => 'nullable|date',
-            'fecha_respuesta_proveedor' => 'nullable|date',
-            'informe' => 'nullable|string',
-            'informe_respuesta' => 'nullable|string',
-            'abierto' => 'nullable|in:Si,No',
-            'comentarios' => 'nullable|string',
-        ]);
+        
+        // $request->validate([
+        //     'codigo_producto' => 'required|string|max:255',
+        //     'descripcion_producto' => 'nullable|string|max:255',
+        //     'año' => 'required|integer',
+        //     'mes' => 'required|integer|between:1,12',
+        //     'fecha_inicio' => 'nullable|date',
+        //     'fecha_fin' => 'nullable|date',
+        //     'fecha_reclamacion' => 'nullable|date',
+        //     'fecha_reclamacion_respuesta' => 'nullable|date',
+        //     'np' => 'nullable|string|max:255',
+        //     'no_queja' => 'nullable|string|max:255',
+        //     'origen' => 'nullable|string|max:255',
+        //     'nombre_tienda' => 'nullable|string|max:255',
+        //     'clasificacion_incidencia' => 'nullable|string|max:255',
+        //     'tipo_reclamacion' => 'nullable|string|max:255',
+        //     'top100fy2' => 'nullable|string|max:255',
+        //     'descripcion_motivo' => 'nullable|string',
+        //     'descripcion_queja' => 'nullable|string',
+        //     'especificacion_motivo_reclamacion_leve' => 'nullable|string',
+        //     'especificacion_motivo_reclamacion_grave' => 'nullable|string',
+        //     'lote_sirena' => 'nullable|string|max:255',
+        //     'lote_proveedor' => 'nullable|string|max:255',
+        //     'recuperamos_objeto_extraño' => 'nullable|in:Si,No',
+        //     'informe_a_proveedor' => 'nullable|in:Si,No',
+        //     'fecha_envio_proveedor' => 'nullable|date',
+        //     'fecha_respuesta_proveedor' => 'nullable|date',
+        //     'informe' => 'nullable|string',
+        //     'informe_respuesta' => 'nullable|string',
+        //     'abierto' => 'nullable|in:Si,No',
+        //     'comentarios' => 'nullable|string',
+        // ]);
 
         try {
             // Obtener el nombre del proveedor
@@ -1181,6 +1181,9 @@ class MaterialKiloController extends Controller
                 ->first();
 
             if (!$proveedor) {
+                if ($request->ajax()) {
+                    return response()->json(['success' => false, 'message' => 'Proveedor no encontrado'], 404);
+                }
                 return redirect()->back()->with('error', 'Proveedor no encontrado');
             }
 
@@ -1202,6 +1205,7 @@ class MaterialKiloController extends Controller
                 'nombre_tienda' => $request->nombre_tienda,
                 'clasificacion_incidencia' => $request->clasificacion_incidencia,
                 'tipo_reclamacion' => $request->tipo_reclamacion,
+                'tipo_reclamacion_grave' => $request->tipo_reclamacion_grave,
                 'top100fy2' => $request->top100fy2,
                 'descripcion_motivo' => $request->descripcion_motivo,
                 'descripcion_queja' => $request->descripcion_queja,
@@ -1219,9 +1223,16 @@ class MaterialKiloController extends Controller
                 'comentarios' => $request->comentarios,
             ]);
 
+
+            if ($request->ajax()) {
+                return response()->json(['success' => true, 'message' => 'Devolución guardada correctamente']);
+            }
             return redirect()->route('material_kilo.historial_incidencias_devoluciones')->with('success', 'Devolución guardada correctamente');
         } catch (\Exception $e) {
             Log::error('Error al guardar devolución: ' . $e->getMessage());
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Error al guardar la devolución: ' . $e->getMessage()], 500);
+            }
             return redirect()->back()->with('error', 'Error al guardar la devolución: ' . $e->getMessage())->withInput();
         }
     }
@@ -1295,6 +1306,7 @@ class MaterialKiloController extends Controller
                 'nombre_tienda' => $request->nombre_tienda,
                 'clasificacion_incidencia' => $request->clasificacion_incidencia,
                 'tipo_reclamacion' => $request->tipo_reclamacion,
+                'tipo_reclamacion_grave' => $request->tipo_reclamacion_grave,
                 'top100fy2' => $request->top100fy2,
                 'descripcion_motivo' => $request->descripcion_motivo,
                 'descripcion_queja' => $request->descripcion_queja,

@@ -11,6 +11,31 @@ document  .getElementById("fecha_incidencia")
     document.getElementById("mes_incidencia").value = mes;
   });
 
+  //fecha devolucion reclamaciones clientes
+  document  .getElementById("fecha_reclamacion")
+  .addEventListener("change", function () {
+    var fecha_dev = this.value.split("-"); // "2025-01-01" → ["2025", "01", "01"]
+
+    var año_dev = parseInt(fecha_dev[0]);
+    var mes_dev = parseInt(fecha_dev[1]); // no hay que sumar ni restar meses
+
+    // Asignamos los valores a los selects
+    document.getElementById("año_devolucion").value = año_dev;
+    document.getElementById("mes_devolucion").value = mes_dev;
+  });
+
+// Mostrar/ocultar tipo_reclamacion_grave según selección en tipo_reclamacion
+document.getElementById("tipo_reclamacion").addEventListener("change", function () {
+  var valor = this.value;
+  var formGroup = document.getElementById("tipo_reclamacion_grave").closest(".form-group");
+  if (valor === "Grave") {
+    formGroup.classList.remove("d-none");
+  } else {
+    formGroup.classList.add("d-none");
+    document.getElementById("tipo_reclamacion_grave").value = "";
+  }
+});
+
 //codigo de proveedor
 document  .getElementById("codigo_proveedor_incidencia")
   .addEventListener("blur", function () {
@@ -41,6 +66,39 @@ document  .getElementById("codigo_proveedor_incidencia")
         alert("Error buscando proveedor.");
       });
   });
+
+
+  //codigo de proveedor devoluciones reclamaciones cliente
+document  .getElementById("codigo_proveedor_devolucion")
+  .addEventListener("blur", function () {
+    const codigoProveedor = this.value;
+
+    if (codigoProveedor.trim() === "") return;
+    const baseUrl = window.appBaseUrl;
+    fetch(`${baseUrl}/material_kilo/buscar-proveedor/${codigoProveedor}`)
+      .then((response) => {
+        if (!response.ok) throw new Error("Proveedor no encontrado");
+        return response.json();
+      })
+      .then((data) => {
+        const select = document.getElementById("proveedor_devolucion");
+        // Buscar opción que coincida con el ID recibido
+        const optionToSelect = Array.from(select.options).find(
+          (opt) => opt.value == data.id_proveedor
+        );
+
+        if (optionToSelect) {
+          select.value = optionToSelect.value;
+        } else {
+          alert("Proveedor no encontrado en el listado.");
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        alert("Error buscando proveedor.");
+      });
+  });
+
 
 $(document).ready(function () {
   console.log("jQuery y DataTables cargados correctamente");
@@ -752,12 +810,9 @@ $(document).ready(function () {
         url: window.buscarProductoPorCodigoUrl,
         data: { codigo: term },
         success: function (response) {
-          if (response.success) {
-            $("#descripcion_producto").val(response.descripcion);
-            console.log(
-              "Producto encontrado para devolución:",
-              response.descripcion
-            );
+          if (response.success && response.producto && response.producto.descripcion) {
+            $("#descripcion_producto").val(response.producto.descripcion);
+            console.log("Producto encontrado para devolución:", response.producto.descripcion);
           } else {
             // Limpiar el campo si no se encuentra el producto
             $("#descripcion_producto").val("");
@@ -765,10 +820,7 @@ $(document).ready(function () {
           }
         },
         error: function (xhr) {
-          console.error(
-            "Error al buscar producto para devolución:",
-            xhr.responseText
-          );
+          console.error("Error al buscar producto para devolución:", xhr.responseText);
           $("#descripcion_producto").val("");
         },
       });
@@ -799,7 +851,6 @@ $(document).ready(function () {
   // Manejar envío del formulario de devoluciones
   $("#guardarDevolucion").on("click", function () {
     var formData = new FormData(document.getElementById("formDevolucion"));
-
     $.ajax({
       url: window.guardarDevolucionUrl,
       type: "POST",

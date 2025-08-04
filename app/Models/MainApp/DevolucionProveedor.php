@@ -41,6 +41,7 @@ class DevolucionProveedor extends Model
         'tiempo_respuesta',
         'informe_respuesta',
         'tipo_reclamacion',
+        'tipo_reclamacion_grave',
         'comentarios',
         'fecha_reclamacion_respuesta',
         'abierto'

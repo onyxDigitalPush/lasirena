@@ -64,7 +64,7 @@
         window.appBaseUrl = '{{ url('') }}';
         window.guardarMetricasUrl = '{{ route('material_kilo.guardar_metricas') }}';
         window.guardarIncidenciaUrl = '{{ route('material_kilo.guardar_incidencia') }}';
-        window.guardarDevolucionUrl = '{{ route('material_kilo.guardar_devolucion') }}';
+        window.guardarDevolucionUrl = '{{ route('material_kilo.guardar_devolucion_completa') }}';
         window.buscarProveedoresUrl = '{{ route('material_kilo.buscar_proveedores') }}';
         window.buscarProductosProveedorUrl = '{{ route('material_kilo.buscar_productos_proveedor') }}';
         window.buscarProductoPorCodigoUrl = '{{ route('material_kilo.buscar_producto_por_codigo') }}';
@@ -172,7 +172,7 @@
                                         <i class="fa fa-exclamation-triangle mr-1"></i>Incidencias
                                     </button>
                                     <button type="button" id="gestionarDevoluciones" class="btn btn-info">
-                                        <i class="fa fa-undo mr-1"></i>Devoluciones
+                                        <i class="fa fa-undo mr-1"></i>Reclamaciones de Clientes
                                     </button>
                                 </div>
                             </div>
@@ -428,23 +428,23 @@
                                 <label for="origen">Origen:</label>
                                 {{-- <input type="text" id="origen" name="origen" class="form-control"
                                     placeholder="Origen de la incidencia"> --}}
-                                    <select name="origen" id="origen" class="form-control">
-                                        <option value="">Seleccione un origen</option>
-                                        <option value="Administracion">Administracion</option>
-                                        <option value="Alertas">Alertas</option>
-                                        <option value="Auditoria o Visita">Auditoria o Visita</option>
-                                        <option value="Cambio de tapas">Cambio de tapas</option>
-                                        <option value="Contacto central">Contacto central</option>
-                                        <option value="Descarga Almacen">Descarga Almacen</option>
-                                        <option value="Inspeccion - cata">Inspeccion - cata
-                                        <option value="Inspeccion - visual">Inspeccion - visual/dimensional</option>
-                                        <option value="Laboratorio externo">Laboratorio externo</option>
-                                        <option value="Maquillas Externas">Maquillas Externas</option>
-                                        <option value="NPs">NPs</option>
-                                        <option value="Proveedor">Proveedor</option>
-                                        <option value="Otros">Otros</option>
-                                        </option>
-                                    </select>
+                                <select name="origen" id="origen" class="form-control">
+                                    <option value="">Seleccione un origen</option>
+                                    <option value="Administracion">Administracion</option>
+                                    <option value="Alertas">Alertas</option>
+                                    <option value="Auditoria o Visita">Auditoria o Visita</option>
+                                    <option value="Cambio de tapas">Cambio de tapas</option>
+                                    <option value="Contacto central">Contacto central</option>
+                                    <option value="Descarga Almacen">Descarga Almacen</option>
+                                    <option value="Inspeccion - cata">Inspeccion - cata
+                                    <option value="Inspeccion - visual">Inspeccion - visual/dimensional</option>
+                                    <option value="Laboratorio externo">Laboratorio externo</option>
+                                    <option value="Maquillas Externas">Maquillas Externas</option>
+                                    <option value="NPs">NPs</option>
+                                    <option value="Proveedor">Proveedor</option>
+                                    <option value="Otros">Otros</option>
+                                    </option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -681,7 +681,7 @@
         <div class="modal-content">
             <div class="modal-header bg-info text-white">
                 <h5 class="modal-title" id="modalDevolucionesLabel">
-                    <i class="fa fa-undo mr-2"></i>Gestión de Devoluciones de Proveedores
+                    <i class="fa fa-undo mr-2"></i>Gestión de Reclamaciones de Clientes
                 </h5>
                 <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -699,6 +699,26 @@
                                     class="form-control" placeholder="Código del producto" required>
                             </div>
                         </div>
+
+                        <!-- Descripción del producto -->
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="descripcion_producto">Descripción del Producto:</label>
+                                <input type="text" id="descripcion_producto" name="descripcion_producto"
+                                    class="form-control" placeholder="Descripción del producto">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="codigo_proveedor_devolucion">Código Proveedor:</label>
+                                <input type="text" id="codigo_proveedor_devolucion"
+                                    name="codigo_proveedor" class="form-control"
+                                    placeholder="Código del proveedor">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+
                         <!-- Nombre proveedor con select -->
                         <div class="col-md-4">
                             <div class="form-group">
@@ -712,16 +732,7 @@
                                 </select>
                             </div>
                         </div>
-                        <!-- Descripción del producto -->
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="descripcion_producto">Descripción del Producto:</label>
-                                <input type="text" id="descripcion_producto" name="descripcion_producto"
-                                    class="form-control" placeholder="Descripción del producto">
-                            </div>
-                        </div>
                     </div>
-
                     <div class="row">
                         <div class="col-md-3">
                             <div class="form-group">
@@ -788,8 +799,8 @@
                                 <select id="clasificacion_incidencia_dev" name="clasificacion_incidencia"
                                     class="form-control">
                                     <option value="">Seleccione una clasificación</option>
-                                    <option value="RG1">RG - Reclamación General</option>
-                                    <option value="RL1">RL - Reclamación Legal</option>
+                                    <option value="RG1">RG - Reclamación Grave</option>
+                                    <option value="RL1">RL - Reclamación Leve</option>
                                 </select>
                             </div>
                         </div>
@@ -800,7 +811,18 @@
                                     <option value="">Seleccione tipo</option>
                                     <option value="Leve">Leve</option>
                                     <option value="Grave">Grave</option>
-                                    <option value="Crítica">Crítica</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group d-none">
+                                <label for="tipo_reclamacion_grave">Tipo de reclamacion grave:</label>
+                                <select id="tipo_reclamacion_grave" name="tipo_reclamacion_grave" class="form-control">
+                                    <option value="">Seleccione tipo grave</option>
+                                    <option value="Presencia objetos extraños">Presencia objetos extraños</option>
+                                    <option value="Afeccion salud cliente">Afeccion salud cliente</option>
                                 </select>
                             </div>
                         </div>
@@ -809,7 +831,7 @@
                     <div class="row">
                         <div class="col-12">
                             <div class="form-group">
-                                <label for="top100fy2">Top100FY2:</label>
+                                <label for="top100fy2">Top100:</label>
                                 <input type="text" id="top100fy2" name="top100fy2" class="form-control"
                                     placeholder="Top100FY2">
                             </div>
@@ -838,8 +860,20 @@
                             <div class="form-group">
                                 <label for="especificacion_motivo_grave">Especificación Motivo Reclamación
                                     Grave:</label>
-                                <textarea id="especificacion_motivo_grave" name="especificacion_motivo_reclamacion_grave" class="form-control"
-                                    rows="3" placeholder="Especificación motivo grave"></textarea>
+                                    <select id="especificacion_motivo_grave" name="especificacion_motivo_reclamacion_grave" class="form-control">
+                                    <option value="Carton/Papel">Carton/Papel</option>
+                                    <option value="Colillas">Colillas</option>
+                                    <option value="Cristales">Cristales</option>
+                                    <option value="Elemento de goma/plastico">Elemento de goma/plastico</option>
+                                    <option value="Elemento de metalicos">Elemento de metalicos</option>
+                                    <option value="Elemento de madera">Elemento de madera</option>
+                                    <option value="Elemento organicos humanos (pelo, etc)">Elemento organicos humanos (pelo, etc)</option>
+                                    <option value="Elementos vegetales (hojas, tallos, etc)">Elementos vegetales (hojas, tallos, etc)</option>
+                                    <option value="Insectos/animales">Insectos/animales</option>
+                                    <option value="Intoxicacion">Intoxicacion</option>
+                                    <option value="Reaccion alergica">Reaccion alergica</option>
+                                    <option value="Vomitos y nauseas">Vomitos y nauseas</option>
+                                    </select>
                             </div>
                         </div>
                     </div>

@@ -219,6 +219,16 @@
                                     </select>
                                 </div>
                             </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="tipo_reclamacion_grave">Tipo Reclamacion Grave</label>
+                                    <select id="tipo_reclamacion_grave" name="tipo_reclamacion_grave" class="form-control">
+                                        <option value="">Seleccione tipo</option>
+                                        <option value="Presencia objetos extraños" {{ (isset($devolucion) && $devolucion->tipo_reclamacion_grave == 'Presencia objetos extraños') ? 'selected' : '' }}>Presencia objetos extraños</option>
+                                        <option value="Afeccion salud cliente" {{ (isset($devolucion) && $devolucion->tipo_reclamacion_grave == 'Afeccion salud cliente') ? 'selected' : '' }}>Afeccion salud cliente</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -228,7 +238,7 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="form-group">
-                                    <label for="top100fy2">Top100FY2:</label>
+                                    <label for="top100fy2">Top100:</label>
                                     <input type="text" id="top100fy2" name="top100fy2" class="form-control" placeholder="Top100FY2" value="{{ old('top100fy2', isset($devolucion) ? $devolucion->top100fy2 : '') }}">
                                 </div>
                             </div>
@@ -261,7 +271,21 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="especificacion_motivo_reclamacion_grave">Especificación Motivo Reclamación Grave:</label>
-                                    <textarea id="especificacion_motivo_reclamacion_grave" name="especificacion_motivo_reclamacion_grave" class="form-control" rows="3" placeholder="Especificación motivo grave">{{ old('especificacion_motivo_reclamacion_grave', isset($devolucion) ? $devolucion->especificacion_motivo_reclamacion_grave : '') }}</textarea>
+                                    <select id="especificacion_motivo_grave" name="especificacion_motivo_reclamacion_grave" class="form-control">
+                                        <option value="">Seleccione motivo grave</option>
+                                        <option value="Carton/Papel" {{ (isset($devolucion) && $devolucion->especificacion_motivo_reclamacion_grave == 'Carton/Papel') ? 'selected' : '' }}>Carton/Papel</option>
+                                        <option value="Colillas" {{ (isset($devolucion) && $devolucion->especificacion_motivo_reclamacion_grave == 'Colillas') ? 'selected' : '' }}>Colillas</option>
+                                        <option value="Cristales" {{ (isset($devolucion) && $devolucion->especificacion_motivo_reclamacion_grave == 'Cristales') ? 'selected' : '' }}>Cristales</option>
+                                        <option value="Elemento de goma/plastico" {{ (isset($devolucion) && $devolucion->especificacion_motivo_reclamacion_grave == 'Elemento de goma/plastico') ? 'selected' : '' }}>Elemento de goma/plastico</option>
+                                        <option value="Elemento de metalicos" {{ (isset($devolucion) && $devolucion->especificacion_motivo_reclamacion_grave == 'Elemento de metalicos') ? 'selected' : '' }}>Elemento de metalicos</option>
+                                        <option value="Elemento de madera" {{ (isset($devolucion) && $devolucion->especificacion_motivo_reclamacion_grave == 'Elemento de madera') ? 'selected' : '' }}>Elemento de madera</option>
+                                        <option value="Elemento organicos humanos (pelo, etc)" {{ (isset($devolucion) && $devolucion->especificacion_motivo_reclamacion_grave == 'Elemento organicos humanos (pelo, etc)') ? 'selected' : '' }}>Elemento organicos humanos (pelo, etc)</option>
+                                        <option value="Elementos vegetales (hojas, tallos, etc)" {{ (isset($devolucion) && $devolucion->especificacion_motivo_reclamacion_grave == 'Elementos vegetales (hojas, tallos, etc)') ? 'selected' : '' }}>Elementos vegetales (hojas, tallos, etc)</option>
+                                        <option value="Insectos/animales" {{ (isset($devolucion) && $devolucion->especificacion_motivo_reclamacion_grave == 'Insectos/animales') ? 'selected' : '' }}>Insectos/animales</option>
+                                        <option value="Intoxicacion" {{ (isset($devolucion) && $devolucion->especificacion_motivo_reclamacion_grave == 'Intoxicacion') ? 'selected' : '' }}>Intoxicacion</option>
+                                        <option value="Reaccion alergica" {{ (isset($devolucion) && $devolucion->especificacion_motivo_reclamacion_grave == 'Reaccion alergica') ? 'selected' : '' }}>Reaccion alergica</option>
+                                        <option value="Vomitos y nauseas" {{ (isset($devolucion) && $devolucion->especificacion_motivo_reclamacion_grave == 'Vomitos y nauseas') ? 'selected' : '' }}>Vomitos y nauseas</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
