@@ -29,6 +29,17 @@
         border-color: #adb5bd;
     }
     
+    /* Indicador de búsqueda activa */
+    .filter-input.searching {
+        border-color: #ffc107;
+        background-color: #fff3cd;
+    }
+    
+    .filter-input.has-value {
+        border-color: #28a745;
+        background-color: #d4edda;
+    }
+    
     /* Mejorar la apariencia del botón de limpiar filtros */
     #clearFilters {
         transition: all 0.3s ease;
@@ -36,6 +47,34 @@
     
     #clearFilters:hover {
         transform: translateY(-1px);
+    }
+    
+    /* Indicador de carga */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+    
+    .loading-spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #007bff;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
 </style>
 @endsection
@@ -122,11 +161,38 @@
     @endif
 
     @section('main_content')
+        <!-- Info de búsqueda activa -->
+        @if(request()->hasAny(['codigo_material', 'proveedor_id', 'nombre_proveedor', 'nombre_material', 'mes']))
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="fa fa-filter mr-2"></i>
+                <strong>Filtros activos:</strong>
+                @if(request('codigo_material'))
+                    <span class="badge badge-primary mr-1">Código: {{ request('codigo_material') }}</span>
+                @endif
+                @if(request('proveedor_id'))
+                    <span class="badge badge-primary mr-1">ID Proveedor: {{ request('proveedor_id') }}</span>
+                @endif
+                @if(request('nombre_proveedor'))
+                    <span class="badge badge-primary mr-1">Proveedor: {{ request('nombre_proveedor') }}</span>
+                @endif
+                @if(request('nombre_material'))
+                    <span class="badge badge-primary mr-1">Material: {{ request('nombre_material') }}</span>
+                @endif
+                @if(request('mes'))
+                    <span class="badge badge-primary mr-1">Mes: {{ request('mes') }}</span>
+                @endif
+                <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        @endif
+        
         <!-- Debug temporal - remover después -->
         <div class="alert alert-info">
             <strong>Debug:</strong> 
             Orden actual: {{ request('orden') ?? 'ninguno' }} | 
-            Filtro actual: {{ request('filtro') ?? 'ninguno' }}
+            Filtro actual: {{ request('filtro') ?? 'ninguno' }} |
+            Total registros: {{ $array_material_kilo->total() }}
         </div>
         
         <div class="col-12 bg-white">
@@ -165,7 +231,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($array_material_kilo as $material_kilo)   
+                    @forelse ($array_material_kilo as $material_kilo)   
                              
                     <tr class="material-row" data-id="{{ $material_kilo->id }}" style="cursor: pointer;">
                         <td class="text-center">{{ $material_kilo->codigo_material }}</td>
@@ -201,7 +267,26 @@
                                 </form>
                             </td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="12" class="text-center py-4">
+                                <div class="alert alert-warning mb-0">
+                                    <i class="fa fa-search fa-2x mb-2"></i>
+                                    <h5>No se encontraron resultados</h5>
+                                    <p class="mb-0">
+                                        @if(request()->hasAny(['codigo_material', 'proveedor_id', 'nombre_proveedor', 'nombre_material', 'mes']))
+                                            No hay materiales que coincidan con los filtros aplicados.
+                                            <br><a href="{{ route('material_kilo.index') }}" class="btn btn-primary mt-2">
+                                                <i class="fa fa-refresh mr-1"></i>Ver todos los registros
+                                            </a>
+                                        @else
+                                            No hay materiales registrados en el sistema.
+                                        @endif
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
             <div class="d-flex justify-content-center mt-4">

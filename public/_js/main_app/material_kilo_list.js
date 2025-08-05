@@ -3,86 +3,92 @@ $(document).ready(function () {
     console.log('URL de edición:', window.materialKiloEditUrl);
     console.log('URL de actualización:', window.materialKiloUpdateUrl);
     
-    var table = $('#table_material_kilo').DataTable({
-        paging: false,       // 🚫 Desactiva paginación de DataTables
-        info: false,         // 🚫 Desactiva resumen tipo "Mostrando X de Y"
-        ordering: true,      // ✅ Activa ordenamiento
-        searching: true,     // ✅ Activa búsqueda para filtros por columna
-        dom: 't',           // Solo muestra la tabla (sin buscador general)
-        orderCellsTop: true,
-        fixedHeader: true,
-        language: {
-            search: "Buscar:",
-            searchPlaceholder: "Buscar...",
-            emptyTable: "No hay datos disponibles",
-            zeroRecords: "No se encontraron registros que coincidan"
-        },
-        columnDefs: [
-            {
-                targets: 3, // Cantidad de registros (4ta columna, índice 3)
-                orderable: true,
-                searchable: false,
-                render: function (data, type, row) {
-                    if (type === 'sort' || type === 'type' || type === 'filter') {
-                        // Extrae solo el número antes de la palabra 'registro'
-                        var text = $('<div>').html(data).text();
-                        var match = text.match(/(\d+[\.,]?\d*)/);
-                        var num = match ? parseFloat(match[1].replace(',', '.')) : 0;
-                        return isNaN(num) ? 0 : num;
-                    }
-                    return data;
-                }
-            },
-            {
-                targets: 4, // Porcentaje (5ta columna, índice 4)
-                orderable: true,
-                searchable: false,
-                render: function (data, type, row) {
-                    if (type === 'sort' || type === 'type' || type === 'filter') {
-                        // Extrae solo el número antes del símbolo %
-                        var text = $('<div>').html(data).text();
-                        var match = text.match(/(\d+[\.,]?\d*)/);
-                        var num = match ? parseFloat(match[1].replace(',', '.')) : 0;
-                        return isNaN(num) ? 0 : num;
-                    }
-                    return data;
-                }
-            }
-        ]
-    });
-
-    // Aplica los filtros de las celdas del segundo thead (por columna)
+    // Variables para manejar timeouts de búsqueda
+    var searchTimeouts = {};
+    
+    // Configurar eventos de búsqueda en los inputs de filtro
     $('#table_material_kilo thead tr:eq(1) th').each(function (i) {
         var input = $(this).find('input');
         if (input.length) {
-            // Configurar evento con debounce para mejor rendimiento
-            let timeout;
-            input.on('keyup change clear', function () {
-                var that = this;
-                clearTimeout(timeout);
-                timeout = setTimeout(function() {
-                    if (table.column(i).search() !== that.value) {
-                        table
-                            .column(i)
-                            .search(that.value)
-                            .draw();
-                        
-                        // Actualizar estado de filtros
-                        updateFilterStatus();
-                    }
-                }, 300); // Esperar 300ms después de que el usuario deje de escribir
-            });
+            var columnName = getColumnName(i);
             
-            // Limpiar filtro al hacer click en el input vacío
-            input.on('click', function() {
-                if (this.value === '') {
-                    table.column(i).search('').draw();
-                    updateFilterStatus();
+            input.on('keyup change', function() {
+                var $this = $(this);
+                var searchValue = $this.val().trim();
+                
+                // Agregar clase visual mientras se está escribiendo
+                $this.addClass('searching');
+                
+                // Limpiar timeout anterior si existe
+                if (searchTimeouts[columnName]) {
+                    clearTimeout(searchTimeouts[columnName]);
                 }
+                
+                // Configurar nuevo timeout para evitar demasiadas peticiones
+                searchTimeouts[columnName] = setTimeout(function() {
+                    $this.removeClass('searching');
+                    
+                    if (searchValue) {
+                        $this.addClass('has-value');
+                    } else {
+                        $this.removeClass('has-value');
+                    }
+                    
+                    performServerSearch();
+                }, 500); // Esperar 500ms después de que el usuario deje de escribir
             });
         }
     });
-
+    
+    // Función para obtener el nombre de la columna según su índice
+    function getColumnName(columnIndex) {
+        var columnNames = {
+            0: 'codigo_material',
+            1: 'proveedor_id', 
+            2: 'nombre_proveedor',
+            3: 'nombre_material',
+            8: 'mes'
+        };
+        return columnNames[columnIndex] || null;
+    }
+    
+    // Función para realizar búsqueda en el servidor
+    function performServerSearch() {
+        // Mostrar indicador de carga
+        showLoadingOverlay();
+        
+        var params = new URLSearchParams(window.location.search);
+        
+        // Obtener valores de búsqueda de los inputs
+        var searches = {};
+        $('#table_material_kilo thead tr:eq(1) th input').each(function(i) {
+            var columnName = getColumnName(i);
+            var value = $(this).val().trim();
+            
+            if (columnName && value) {
+                searches[columnName] = value;
+                params.set(columnName, value);
+            } else if (columnName) {
+                params.delete(columnName);
+            }
+        });
+        
+        // Actualizar URL y recargar página con nuevos parámetros
+        var newUrl = window.location.pathname + '?' + params.toString();
+        window.location.href = newUrl;
+    }
+    
+    // Función para mostrar overlay de carga
+    function showLoadingOverlay() {
+        var overlay = '<div class="loading-overlay">' +
+                     '<div class="text-center">' +
+                     '<div class="loading-spinner"></div>' +
+                     '<p class="mt-2">Buscando...</p>' +
+                     '</div>' +
+                     '</div>';
+        $('body').append(overlay);
+    }
+    
     // Función para actualizar el estado de los filtros
     function updateFilterStatus() {
         var activeFilters = 0;
@@ -103,28 +109,40 @@ $(document).ready(function () {
             clearButton.html('<i class="fa fa-eraser mr-1"></i>Limpiar Filtros');
         }
     }
-
+    
+    // Función para inicializar filtros basado en URL params
+    function initializeFiltersFromUrl() {
+        var params = new URLSearchParams(window.location.search);
+        
+        $('#table_material_kilo thead tr:eq(1) th input').each(function(i) {
+            var columnName = getColumnName(i);
+            if (columnName && params.has(columnName)) {
+                $(this).val(params.get(columnName)).addClass('has-value');
+            }
+        });
+        
+        updateFilterStatus();
+    }
+    
     // Funcionalidad para limpiar todos los filtros
     $('#clearFilters').on('click', function() {
-        // Limpiar todos los inputs de filtro
-        $('#table_material_kilo thead tr:eq(1) th input').val('');
+        showLoadingOverlay();
         
-        // Limpiar todas las búsquedas por columna y redibujar
-        table.search('').columns().search('').draw();
+        // Crear URL solo con parámetros que no sean de búsqueda
+        var params = new URLSearchParams(window.location.search);
+        var searchParams = ['codigo_material', 'proveedor_id', 'nombre_proveedor', 'nombre_material', 'mes'];
         
-        // Actualizar estado
-        updateFilterStatus();
+        searchParams.forEach(function(param) {
+            params.delete(param);
+        });
         
-        // Mostrar notificación
-        var clearButton = $(this);
-        clearButton.addClass('btn-success').removeClass('btn-outline-secondary btn-warning');
-        var originalHtml = '<i class="fa fa-eraser mr-1"></i>Limpiar Filtros';
-        clearButton.html('<i class="fa fa-check mr-1"></i>Filtros Limpiados');
+        // Redirigir sin parámetros de búsqueda
+        var newUrl = window.location.pathname;
+        if (params.toString()) {
+            newUrl += '?' + params.toString();
+        }
         
-        setTimeout(() => {
-            clearButton.removeClass('btn-success').addClass('btn-outline-secondary');
-            clearButton.html(originalHtml);
-        }, 1500);
+        window.location.href = newUrl;
     });
 
     // Funcionalidad de click en las filas para editar material
@@ -228,4 +246,7 @@ $(document).ready(function () {
             }
         });
     });
+    
+    // Inicializar filtros al cargar la página
+    initializeFiltersFromUrl();
 });

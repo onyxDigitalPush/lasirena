@@ -21,6 +21,7 @@ class MaterialKiloController extends Controller
         $orden = request('orden');
         $filtro = request('filtro');
         Log::info('Parámetros recibidos:', ['orden' => $orden, 'filtro' => $filtro]);
+        
         $query = MaterialKilo::join('proveedores', 'material_kilos.proveedor_id', '=', 'proveedores.id_proveedor')
             ->join('materiales', 'material_kilos.codigo_material', '=', 'materiales.codigo')
             ->select(
@@ -37,6 +38,27 @@ class MaterialKiloController extends Controller
                 'material_kilos.mes',
                 'material_kilos.proveedor_id'
             );
+
+        // Aplicar filtros de búsqueda del servidor
+        if (request('codigo_material')) {
+            $query->where('material_kilos.codigo_material', 'LIKE', '%' . request('codigo_material') . '%');
+        }
+        
+        if (request('proveedor_id')) {
+            $query->where('material_kilos.proveedor_id', 'LIKE', '%' . request('proveedor_id') . '%');
+        }
+        
+        if (request('nombre_proveedor')) {
+            $query->where('proveedores.nombre_proveedor', 'LIKE', '%' . request('nombre_proveedor') . '%');
+        }
+        
+        if (request('nombre_material')) {
+            $query->where('materiales.descripcion', 'LIKE', '%' . request('nombre_material') . '%');
+        }
+        
+        if (request('mes')) {
+            $query->where('material_kilos.mes', 'LIKE', '%' . request('mes') . '%');
+        }
 
         // Aplicar filtros de factor de conversión
         $filtro = request('filtro');
@@ -68,8 +90,7 @@ class MaterialKiloController extends Controller
         }
 
         Log::info('SQL generado:', ['sql' => $query->toSql(), 'bindings' => $query->getBindings()]);
-        $array_material_kilo = $query->paginate(25);
-
+        
         $array_material_kilo = $query->paginate(25);
 
         // Mantener los parámetros de query en la paginación
