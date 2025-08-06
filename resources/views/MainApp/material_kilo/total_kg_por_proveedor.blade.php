@@ -21,7 +21,6 @@
             background-color: rgba(255, 255, 255, 0.1);
         }
 
-        /* Asegurar que el modal funcione correctamente */
         .modal-backdrop {
             z-index: 1040 !important;
             background-color: rgba(0, 0, 0, 0.5) !important;
@@ -31,34 +30,16 @@
             z-index: 1050 !important;
         }
 
-        .modal.fade.show {
-            display: block !important;
-        }
+        /* .modal-dialog {
+                margin: 30px auto !important;
+            } */
 
-        .modal-dialog {
-            margin: 30px auto !important;
-        }
+        /* .modal-content {
+                background-color: #fff !important;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+            } */
 
-        .modal-content {
-            background-color: #fff !important;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
-        }
-
-        /* Forzar visibilidad del modal */
-        #modalIncidencias.show {
-            display: block !important;
-            opacity: 1 !important;
-        }
-
-        /* Botón de cerrar */
-        .modal-header .close {
-            color: #000 !important;
-            opacity: 0.8 !important;
-        }
-
-        .modal-header .close:hover {
-            opacity: 1 !important;
-        }
+        /* Eliminar reglas que fuerzan display/z-index del modal para evitar conflictos con Bootstrap 5 */
     </style>
     <script>
         window.appBaseUrl = '{{ url('') }}';
@@ -181,6 +162,17 @@
                 </div>
             </div>
         </div>
+        <!-- Botón para subir Excel de reclamación de cliente -->
+        <div class="row mb-2">
+            <div class="col-12 d-flex justify-content-end">
+                <button type="button" id="botonExportar" class="btn btn-info">
+                    <i class="fa fa-upload mr-1"></i>Subir Excel de Reclamación de Cliente
+                </button>
+            </div>
+        </div>
+
+
+
         <!-- Resumen total -->
         <div class="row mb-4">
             <div class="col-md-6">
@@ -305,7 +297,40 @@
         </table>
     </div>
 @endsection
-
+<!-- Modal para subir Excel de Reclamación de Cliente -->
+<div class="modal fade" id="modalSubirExcel" tabindex="-1" role="dialog" aria-labelledby="modalSubirExcelLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="modalSubirExcelLabel">
+                    <i class="fa fa-upload mr-2"></i>Subir Excel de Reclamación de Cliente
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form method="POST" action="{{ route('material_kilo.guardarExcel') }}" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="archivo_excel">Selecciona el archivo Excel (.xlsx):</label>
+                        <input type="file" class="form-control" id="archivo_excel" name="archivo_excel"
+                            accept=".xlsx" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fa fa-times mr-1"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fa fa-upload mr-1"></i>Subir
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 <!-- Modal de Incidencias - Movido fuera del contenedor principal -->
 <div class="modal fade" id="modalIncidencias" tabindex="-1" role="dialog" aria-labelledby="modalIncidenciasLabel"
     aria-hidden="true">
@@ -711,9 +736,8 @@
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label for="codigo_proveedor_devolucion">Código Proveedor:</label>
-                                <input type="text" id="codigo_proveedor_devolucion"
-                                    name="codigo_proveedor" class="form-control"
-                                    placeholder="Código del proveedor">
+                                <input type="text" id="codigo_proveedor_devolucion" name="codigo_proveedor"
+                                    class="form-control" placeholder="Código del proveedor">
                             </div>
                         </div>
                     </div>
@@ -819,7 +843,8 @@
                         <div class="col-md-4">
                             <div class="form-group d-none">
                                 <label for="tipo_reclamacion_grave">Tipo de reclamacion grave:</label>
-                                <select id="tipo_reclamacion_grave" name="tipo_reclamacion_grave" class="form-control">
+                                <select id="tipo_reclamacion_grave" name="tipo_reclamacion_grave"
+                                    class="form-control">
                                     <option value="">Seleccione tipo grave</option>
                                     <option value="Presencia objetos extraños">Presencia objetos extraños</option>
                                     <option value="Afeccion salud cliente">Afeccion salud cliente</option>
@@ -860,20 +885,23 @@
                             <div class="form-group">
                                 <label for="especificacion_motivo_grave">Especificación Motivo Reclamación
                                     Grave:</label>
-                                    <select id="especificacion_motivo_grave" name="especificacion_motivo_reclamacion_grave" class="form-control">
+                                <select id="especificacion_motivo_grave"
+                                    name="especificacion_motivo_reclamacion_grave" class="form-control">
                                     <option value="Carton/Papel">Carton/Papel</option>
                                     <option value="Colillas">Colillas</option>
                                     <option value="Cristales">Cristales</option>
                                     <option value="Elemento de goma/plastico">Elemento de goma/plastico</option>
                                     <option value="Elemento de metalicos">Elemento de metalicos</option>
                                     <option value="Elemento de madera">Elemento de madera</option>
-                                    <option value="Elemento organicos humanos (pelo, etc)">Elemento organicos humanos (pelo, etc)</option>
-                                    <option value="Elementos vegetales (hojas, tallos, etc)">Elementos vegetales (hojas, tallos, etc)</option>
+                                    <option value="Elemento organicos humanos (pelo, etc)">Elemento organicos humanos
+                                        (pelo, etc)</option>
+                                    <option value="Elementos vegetales (hojas, tallos, etc)">Elementos vegetales
+                                        (hojas, tallos, etc)</option>
                                     <option value="Insectos/animales">Insectos/animales</option>
                                     <option value="Intoxicacion">Intoxicacion</option>
                                     <option value="Reaccion alergica">Reaccion alergica</option>
                                     <option value="Vomitos y nauseas">Vomitos y nauseas</option>
-                                    </select>
+                                </select>
                             </div>
                         </div>
                     </div>

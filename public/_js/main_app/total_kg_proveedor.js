@@ -103,12 +103,45 @@ document  .getElementById("codigo_proveedor_devolucion")
 $(document).ready(function () {
   console.log("jQuery y DataTables cargados correctamente");
 
-  // Verificar que Bootstrap esté cargado
-  if (typeof $.fn.modal === "undefined") {
-    console.error("Bootstrap modal no está cargado");
-  } else {
-    console.log("Bootstrap modal disponible");
-  }
+  // Abrir modal de subir Excel de reclamación de cliente igual que los otros modales
+  $(document).on("click", "#abrirModalSubirExcel", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    console.log("Click en botón subir Excel detectado");
+
+    // Limpiar cualquier modal backdrop existente
+    $(".modal-backdrop").remove();
+    $("body").removeClass("modal-open");
+
+    try {
+      // Usar Bootstrap 4 modal
+      $("#modalSubirExcel").modal({
+        backdrop: true,
+        keyboard: true,
+        focus: true,
+        show: true,
+      });
+      console.log("Modal Bootstrap 4 ejecutado");
+    } catch (error) {
+      console.error("Error con Bootstrap modal, usando fallback:", error);
+
+      // Fallback manual
+      $("#modalSubirExcel").show().addClass("show").css({
+        display: "block",
+        "padding-right": "15px",
+      });
+
+      $("body").addClass("modal-open").css("padding-right", "15px");
+
+      // Crear backdrop manualmente
+      if ($(".modal-backdrop").length === 0) {
+        $('<div class="modal-backdrop fade show"></div>').appendTo("body");
+      }
+
+      console.log("Fallback manual ejecutado");
+    }
+  });
 
   var table = $("#table_total_kg_proveedor").DataTable({
     columnDefs: [
@@ -773,6 +806,49 @@ $(document).ready(function () {
     }
   });
 
+
+  //modal exportar excel
+$("#botonExportar").on("click", function (e) {
+  e.preventDefault();
+  $("#modalSubirExcel").modal("show");
+});
+
+  // Gestión de devoluciones
+  $("#gestionarDevoluciones").on("click", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    console.log("Abriendo modal de devoluciones...");
+
+    // Limpiar cualquier modal backdrop existente
+    $(".modal-backdrop").remove();
+    $("body").removeClass("modal-open");
+
+    try {
+      $("#modalDevoluciones").modal({
+        backdrop: true,
+        keyboard: true,
+        focus: true,
+        show: true,
+      });
+      console.log("Modal devoluciones ejecutado");
+    } catch (error) {
+      console.error("Error con Bootstrap modal, usando fallback:", error);
+
+      // Fallback manual
+      $("#modalDevoluciones").show().addClass("show").css({
+        display: "block",
+        "padding-right": "15px",
+      });
+
+      $("body").addClass("modal-open").css("padding-right", "15px");
+
+      if ($(".modal-backdrop").length === 0) {
+        $('<div class="modal-backdrop fade show"></div>').appendTo("body");
+      }
+    }
+  });
+
   // Autocompletado y auto-llenado para código de producto en devoluciones
   $("#codigo_producto").on("input", function () {
     var term = $(this).val();
@@ -816,6 +892,7 @@ $(document).ready(function () {
           } else {
             // Limpiar el campo si no se encuentra el producto
             $("#descripcion_producto").val("");
+  
             console.log("Producto no encontrado para código:", term);
           }
         },
