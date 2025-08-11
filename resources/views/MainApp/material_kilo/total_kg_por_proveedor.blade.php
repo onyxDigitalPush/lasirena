@@ -31,13 +31,13 @@
         }
 
         /* .modal-dialog {
-                margin: 30px auto !important;
-            } */
+                    margin: 30px auto !important;
+                } */
 
         /* .modal-content {
-                background-color: #fff !important;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
-            } */
+                    background-color: #fff !important;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+                } */
 
         /* Eliminar reglas que fuerzan display/z-index del modal para evitar conflictos con Bootstrap 5 */
     </style>
@@ -82,7 +82,7 @@
 @section('main_content')
     @if (session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
+            <strong><i class="fa fa-check-circle mr-1"></i>Éxito:</strong> {{ session('success') }}
             <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -91,7 +91,7 @@
 
     @if (session('error'))
         <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
-            {{ session('error') }}
+            <strong><i class="fa fa-exclamation-triangle mr-1"></i>Error:</strong> {{ session('error') }}
             <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -297,6 +297,356 @@
         </table>
     </div>
 @endsection
+<!-- Modal de Devoluciones -->
+<div class="modal fade" id="modalDevoluciones" tabindex="-1" role="dialog"
+    aria-labelledby="modalDevolucionesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="modalDevolucionesLabel">
+                    <i class="fa fa-undo mr-2"></i>Gestión de Reclamaciones de Clientes
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="formDevolucion">
+                    @csrf
+                    <div class="row">
+                        <!-- Código del producto -->
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="codigo_producto">Código del Producto:</label>
+                                <input type="text" id="codigo_producto" name="codigo_producto"
+                                    class="form-control" placeholder="Código del producto" required>
+                            </div>
+                        </div>
+
+                        <!-- Descripción del producto -->
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="descripcion_producto">Descripción del Producto:</label>
+                                <input type="text" id="descripcion_producto" name="descripcion_producto"
+                                    class="form-control" placeholder="Descripción del producto">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="codigo_proveedor_devolucion">Código Proveedor:</label>
+                                <input type="text" id="codigo_proveedor_devolucion" name="codigo_proveedor"
+                                    class="form-control" placeholder="Código del proveedor">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+
+                        <!-- Nombre proveedor con select -->
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="proveedor_devolucion">Proveedor:</label>
+                                <select id="proveedor_devolucion" name="id_proveedor" class="form-control" required>
+                                    <option value="">Seleccione un proveedor</option>
+                                    @foreach ($proveedores_alfabetico as $proveedor)
+                                        <option value="{{ $proveedor->id_proveedor }}">
+                                            {{ $proveedor->nombre_proveedor }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="fecha_inicio">Fecha Inicio:</label>
+                                <input type="date" id="fecha_inicio" name="fecha_inicio" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="fecha_fin">Fecha Fin:</label>
+                                <input type="date" id="fecha_fin" name="fecha_fin" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="np">NP:</label>
+                                <input type="text" id="np" name="np" class="form-control"
+                                    placeholder="NP">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="fecha_reclamacion">Fecha Reclamación:</label>
+                                <input type="date" id="fecha_reclamacion" name="fecha_reclamacion"
+                                    class="form-control">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label for="año_devolucion">Año:</label>
+                                <select id="año_devolucion" name="año" class="form-control" required>
+                                    @for ($year = \Carbon\Carbon::now()->year; $year >= 2020; $year--)
+                                        <option value="{{ $year }}" {{ $year == $año ? 'selected' : '' }}>
+                                            {{ $year }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label for="mes_devolucion">Mes:</label>
+                                <select id="mes_devolucion" name="mes" class="form-control" required>
+                                    <option value="1" {{ $mes == 1 ? 'selected' : '' }}>Enero</option>
+                                    <option value="2" {{ $mes == 2 ? 'selected' : '' }}>Febrero</option>
+                                    <option value="3" {{ $mes == 3 ? 'selected' : '' }}>Marzo</option>
+                                    <option value="4" {{ $mes == 4 ? 'selected' : '' }}>Abril</option>
+                                    <option value="5" {{ $mes == 5 ? 'selected' : '' }}>Mayo</option>
+                                    <option value="6" {{ $mes == 6 ? 'selected' : '' }}>Junio</option>
+                                    <option value="7" {{ $mes == 7 ? 'selected' : '' }}>Julio</option>
+                                    <option value="8" {{ $mes == 8 ? 'selected' : '' }}>Agosto</option>
+                                    <option value="9" {{ $mes == 9 ? 'selected' : '' }}>Septiembre</option>
+                                    <option value="10" {{ $mes == 10 ? 'selected' : '' }}>Octubre</option>
+                                    <option value="11" {{ $mes == 11 ? 'selected' : '' }}>Noviembre</option>
+                                    <option value="12" {{ $mes == 12 ? 'selected' : '' }}>Diciembre</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="clasificacion_incidencia_dev">Clasificación de Incidencia:</label>
+                                <select id="clasificacion_incidencia_dev" name="clasificacion_incidencia"
+                                    class="form-control">
+                                    <option value="">Seleccione una clasificación</option>
+                                    <option value="RG1">RG - Reclamación Grave</option>
+                                    <option value="RL1">RL - Reclamación Leve</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="tipo_reclamacion">Tipo Reclamación:</label>
+                                <select id="tipo_reclamacion" name="tipo_reclamacion" class="form-control">
+                                    <option value="">Seleccione tipo</option>
+                                    <option value="Leve">Leve</option>
+                                    <option value="Grave">Grave</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group d-none">
+                                <label for="tipo_reclamacion_grave">Tipo de reclamacion grave:</label>
+                                <select id="tipo_reclamacion_grave" name="tipo_reclamacion_grave"
+                                    class="form-control">
+                                    <option value="">Seleccione tipo grave</option>
+                                    <option value="Presencia objetos extraños">Presencia objetos extraños</option>
+                                    <option value="Afeccion salud cliente">Afeccion salud cliente</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label for="top100fy2">Top100:</label>
+                                <input type="text" id="top100fy2" name="top100fy2" class="form-control"
+                                    placeholder="Top100FY2">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label for="descripcion_motivo">Descripción Motivo:</label>
+                                <textarea id="descripcion_motivo" name="descripcion_motivo" class="form-control" rows="3"
+                                    placeholder="Descripción del motivo"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="especificacion_motivo_leve">Especificación Motivo Reclamación Leve:</label>
+                                <textarea id="especificacion_motivo_leve" name="especificacion_motivo_reclamacion_leve" class="form-control"
+                                    rows="3" placeholder="Especificación motivo leve"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="especificacion_motivo_grave">Especificación Motivo Reclamación
+                                    Grave:</label>
+                                <select id="especificacion_motivo_grave"
+                                    name="especificacion_motivo_reclamacion_grave" class="form-control">
+                                    <option value="Carton/Papel">Carton/Papel</option>
+                                    <option value="Colillas">Colillas</option>
+                                    <option value="Cristales">Cristales</option>
+                                    <option value="Elemento de goma/plastico">Elemento de goma/plastico</option>
+                                    <option value="Elemento de metalicos">Elemento de metalicos</option>
+                                    <option value="Elemento de madera">Elemento de madera</option>
+                                    <option value="Elemento organicos humanos (pelo, etc)">Elemento organicos humanos
+                                        (pelo, etc)</option>
+                                    <option value="Elementos vegetales (hojas, tallos, etc)">Elementos vegetales
+                                        (hojas, tallos, etc)</option>
+                                    <option value="Insectos/animales">Insectos/animales</option>
+                                    <option value="Intoxicacion">Intoxicacion</option>
+                                    <option value="Reaccion alergica">Reaccion alergica</option>
+                                    <option value="Vomitos y nauseas">Vomitos y nauseas</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="recuperamos_objeto_extraño">¿Recuperamos Objeto Extraño?:</label>
+                                <select id="recuperamos_objeto_extraño" name="recuperamos_objeto_extraño"
+                                    class="form-control">
+                                    <option value="">Seleccione</option>
+                                    <option value="Si">Sí</option>
+                                    <option value="No">No</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="nombre_tienda">Nombre Tienda:</label>
+                                <input type="text" id="nombre_tienda" name="nombre_tienda" class="form-control"
+                                    placeholder="Nombre de la tienda">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="no_queja">No Queja:</label>
+                                <input type="text" id="no_queja" name="no_queja" class="form-control"
+                                    placeholder="Número de queja">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="origen_dev">Origen:</label>
+                                <input type="text" id="origen_dev" name="origen" class="form-control"
+                                    placeholder="Origen">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label for="descripcion_queja">Descripción Queja:</label>
+                                <textarea id="descripcion_queja" name="descripcion_queja" class="form-control" rows="3"
+                                    placeholder="Descripción de la queja"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="lote_sirena_dev">Lote Sirena:</label>
+                                <input type="text" id="lote_sirena_dev" name="lote_sirena" class="form-control"
+                                    placeholder="Lote Sirena">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="lote_proveedor_dev">Lote Proveedor:</label>
+                                <input type="text" id="lote_proveedor_dev" name="lote_proveedor"
+                                    class="form-control" placeholder="Lote Proveedor">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="informe_a_proveedor_dev">¿Informe a Proveedor?:</label>
+                                <select id="informe_a_proveedor_dev" name="informe_a_proveedor" class="form-control">
+                                    <option value="">Seleccione</option>
+                                    <option value="Si">Sí</option>
+                                    <option value="No">No</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label for="informe_dev">Informe:</label>
+                                <textarea id="informe_dev" name="informe" class="form-control" rows="3" placeholder="Informe"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="fecha_envio_proveedor_dev">Fecha Envío a Proveedor:</label>
+                                <input type="date" id="fecha_envio_proveedor_dev" name="fecha_envio_proveedor"
+                                    class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="fecha_respuesta_proveedor_dev">Fecha Respuesta Proveedor:</label>
+                                <input type="date" id="fecha_respuesta_proveedor_dev"
+                                    name="fecha_respuesta_proveedor" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="fecha_reclamacion_respuesta">Fecha Reclamación Respuesta:</label>
+                                <input type="date" id="fecha_reclamacion_respuesta"
+                                    name="fecha_reclamacion_respuesta" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="abierto">Abierto:</label>
+                                <select id="abierto" name="abierto" class="form-control">
+                                    <option value="Si" selected>Sí</option>
+                                    <option value="No">No</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="informe_respuesta_dev">Informe Respuesta:</label>
+                                <textarea id="informe_respuesta_dev" name="informe_respuesta" class="form-control" rows="3"
+                                    placeholder="Informe de respuesta"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="comentarios_dev">Comentarios:</label>
+                                <textarea id="comentarios_dev" name="comentarios" class="form-control" rows="3"
+                                    placeholder="Comentarios adicionales"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fa fa-times mr-1"></i>Cancelar
+                </button>
+                <button type="button" id="guardarDevolucion" class="btn btn-info">
+                    <i class="fa fa-save mr-1"></i>Guardar Devolución
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- Modal para subir Excel de Reclamación de Cliente -->
 <div class="modal fade" id="modalSubirExcel" tabindex="-1" role="dialog" aria-labelledby="modalSubirExcelLabel"
     aria-hidden="true">
@@ -699,356 +1049,7 @@
 </div>
 </div>
 
-<!-- Modal de Devoluciones -->
-<div class="modal fade" id="modalDevoluciones" tabindex="-1" role="dialog"
-    aria-labelledby="modalDevolucionesLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title" id="modalDevolucionesLabel">
-                    <i class="fa fa-undo mr-2"></i>Gestión de Reclamaciones de Clientes
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="formDevolucion">
-                    @csrf
-                    <div class="row">
-                        <!-- Código del producto -->
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="codigo_producto">Código del Producto:</label>
-                                <input type="text" id="codigo_producto" name="codigo_producto"
-                                    class="form-control" placeholder="Código del producto" required>
-                            </div>
-                        </div>
 
-                        <!-- Descripción del producto -->
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="descripcion_producto">Descripción del Producto:</label>
-                                <input type="text" id="descripcion_producto" name="descripcion_producto"
-                                    class="form-control" placeholder="Descripción del producto">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="codigo_proveedor_devolucion">Código Proveedor:</label>
-                                <input type="text" id="codigo_proveedor_devolucion" name="codigo_proveedor"
-                                    class="form-control" placeholder="Código del proveedor">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-
-                        <!-- Nombre proveedor con select -->
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="proveedor_devolucion">Proveedor:</label>
-                                <select id="proveedor_devolucion" name="id_proveedor" class="form-control" required>
-                                    <option value="">Seleccione un proveedor</option>
-                                    @foreach ($proveedores_alfabetico as $proveedor)
-                                        <option value="{{ $proveedor->id_proveedor }}">
-                                            {{ $proveedor->nombre_proveedor }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="fecha_inicio">Fecha Inicio:</label>
-                                <input type="date" id="fecha_inicio" name="fecha_inicio" class="form-control">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="fecha_fin">Fecha Fin:</label>
-                                <input type="date" id="fecha_fin" name="fecha_fin" class="form-control">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="np">NP:</label>
-                                <input type="text" id="np" name="np" class="form-control"
-                                    placeholder="NP">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="fecha_reclamacion">Fecha Reclamación:</label>
-                                <input type="date" id="fecha_reclamacion" name="fecha_reclamacion"
-                                    class="form-control">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label for="año_devolucion">Año:</label>
-                                <select id="año_devolucion" name="año" class="form-control" required>
-                                    @for ($year = \Carbon\Carbon::now()->year; $year >= 2020; $year--)
-                                        <option value="{{ $year }}" {{ $year == $año ? 'selected' : '' }}>
-                                            {{ $year }}</option>
-                                    @endfor
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label for="mes_devolucion">Mes:</label>
-                                <select id="mes_devolucion" name="mes" class="form-control" required>
-                                    <option value="1" {{ $mes == 1 ? 'selected' : '' }}>Enero</option>
-                                    <option value="2" {{ $mes == 2 ? 'selected' : '' }}>Febrero</option>
-                                    <option value="3" {{ $mes == 3 ? 'selected' : '' }}>Marzo</option>
-                                    <option value="4" {{ $mes == 4 ? 'selected' : '' }}>Abril</option>
-                                    <option value="5" {{ $mes == 5 ? 'selected' : '' }}>Mayo</option>
-                                    <option value="6" {{ $mes == 6 ? 'selected' : '' }}>Junio</option>
-                                    <option value="7" {{ $mes == 7 ? 'selected' : '' }}>Julio</option>
-                                    <option value="8" {{ $mes == 8 ? 'selected' : '' }}>Agosto</option>
-                                    <option value="9" {{ $mes == 9 ? 'selected' : '' }}>Septiembre</option>
-                                    <option value="10" {{ $mes == 10 ? 'selected' : '' }}>Octubre</option>
-                                    <option value="11" {{ $mes == 11 ? 'selected' : '' }}>Noviembre</option>
-                                    <option value="12" {{ $mes == 12 ? 'selected' : '' }}>Diciembre</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="clasificacion_incidencia_dev">Clasificación de Incidencia:</label>
-                                <select id="clasificacion_incidencia_dev" name="clasificacion_incidencia"
-                                    class="form-control">
-                                    <option value="">Seleccione una clasificación</option>
-                                    <option value="RG1">RG - Reclamación Grave</option>
-                                    <option value="RL1">RL - Reclamación Leve</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="tipo_reclamacion">Tipo Reclamación:</label>
-                                <select id="tipo_reclamacion" name="tipo_reclamacion" class="form-control">
-                                    <option value="">Seleccione tipo</option>
-                                    <option value="Leve">Leve</option>
-                                    <option value="Grave">Grave</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group d-none">
-                                <label for="tipo_reclamacion_grave">Tipo de reclamacion grave:</label>
-                                <select id="tipo_reclamacion_grave" name="tipo_reclamacion_grave"
-                                    class="form-control">
-                                    <option value="">Seleccione tipo grave</option>
-                                    <option value="Presencia objetos extraños">Presencia objetos extraños</option>
-                                    <option value="Afeccion salud cliente">Afeccion salud cliente</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="form-group">
-                                <label for="top100fy2">Top100:</label>
-                                <input type="text" id="top100fy2" name="top100fy2" class="form-control"
-                                    placeholder="Top100FY2">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="form-group">
-                                <label for="descripcion_motivo">Descripción Motivo:</label>
-                                <textarea id="descripcion_motivo" name="descripcion_motivo" class="form-control" rows="3"
-                                    placeholder="Descripción del motivo"></textarea>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="especificacion_motivo_leve">Especificación Motivo Reclamación Leve:</label>
-                                <textarea id="especificacion_motivo_leve" name="especificacion_motivo_reclamacion_leve" class="form-control"
-                                    rows="3" placeholder="Especificación motivo leve"></textarea>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="especificacion_motivo_grave">Especificación Motivo Reclamación
-                                    Grave:</label>
-                                <select id="especificacion_motivo_grave"
-                                    name="especificacion_motivo_reclamacion_grave" class="form-control">
-                                    <option value="Carton/Papel">Carton/Papel</option>
-                                    <option value="Colillas">Colillas</option>
-                                    <option value="Cristales">Cristales</option>
-                                    <option value="Elemento de goma/plastico">Elemento de goma/plastico</option>
-                                    <option value="Elemento de metalicos">Elemento de metalicos</option>
-                                    <option value="Elemento de madera">Elemento de madera</option>
-                                    <option value="Elemento organicos humanos (pelo, etc)">Elemento organicos humanos
-                                        (pelo, etc)</option>
-                                    <option value="Elementos vegetales (hojas, tallos, etc)">Elementos vegetales
-                                        (hojas, tallos, etc)</option>
-                                    <option value="Insectos/animales">Insectos/animales</option>
-                                    <option value="Intoxicacion">Intoxicacion</option>
-                                    <option value="Reaccion alergica">Reaccion alergica</option>
-                                    <option value="Vomitos y nauseas">Vomitos y nauseas</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="recuperamos_objeto_extraño">¿Recuperamos Objeto Extraño?:</label>
-                                <select id="recuperamos_objeto_extraño" name="recuperamos_objeto_extraño"
-                                    class="form-control">
-                                    <option value="">Seleccione</option>
-                                    <option value="Si">Sí</option>
-                                    <option value="No">No</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="nombre_tienda">Nombre Tienda:</label>
-                                <input type="text" id="nombre_tienda" name="nombre_tienda" class="form-control"
-                                    placeholder="Nombre de la tienda">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="no_queja">No Queja:</label>
-                                <input type="text" id="no_queja" name="no_queja" class="form-control"
-                                    placeholder="Número de queja">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="origen_dev">Origen:</label>
-                                <input type="text" id="origen_dev" name="origen" class="form-control"
-                                    placeholder="Origen">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="form-group">
-                                <label for="descripcion_queja">Descripción Queja:</label>
-                                <textarea id="descripcion_queja" name="descripcion_queja" class="form-control" rows="3"
-                                    placeholder="Descripción de la queja"></textarea>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="lote_sirena_dev">Lote Sirena:</label>
-                                <input type="text" id="lote_sirena_dev" name="lote_sirena" class="form-control"
-                                    placeholder="Lote Sirena">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="lote_proveedor_dev">Lote Proveedor:</label>
-                                <input type="text" id="lote_proveedor_dev" name="lote_proveedor"
-                                    class="form-control" placeholder="Lote Proveedor">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="informe_a_proveedor_dev">¿Informe a Proveedor?:</label>
-                                <select id="informe_a_proveedor_dev" name="informe_a_proveedor" class="form-control">
-                                    <option value="">Seleccione</option>
-                                    <option value="Si">Sí</option>
-                                    <option value="No">No</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="form-group">
-                                <label for="informe_dev">Informe:</label>
-                                <textarea id="informe_dev" name="informe" class="form-control" rows="3" placeholder="Informe"></textarea>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="fecha_envio_proveedor_dev">Fecha Envío a Proveedor:</label>
-                                <input type="date" id="fecha_envio_proveedor_dev" name="fecha_envio_proveedor"
-                                    class="form-control">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="fecha_respuesta_proveedor_dev">Fecha Respuesta Proveedor:</label>
-                                <input type="date" id="fecha_respuesta_proveedor_dev"
-                                    name="fecha_respuesta_proveedor" class="form-control">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="fecha_reclamacion_respuesta">Fecha Reclamación Respuesta:</label>
-                                <input type="date" id="fecha_reclamacion_respuesta"
-                                    name="fecha_reclamacion_respuesta" class="form-control">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="abierto">Abierto:</label>
-                                <select id="abierto" name="abierto" class="form-control">
-                                    <option value="Si" selected>Sí</option>
-                                    <option value="No">No</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="informe_respuesta_dev">Informe Respuesta:</label>
-                                <textarea id="informe_respuesta_dev" name="informe_respuesta" class="form-control" rows="3"
-                                    placeholder="Informe de respuesta"></textarea>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="comentarios_dev">Comentarios:</label>
-                                <textarea id="comentarios_dev" name="comentarios" class="form-control" rows="3"
-                                    placeholder="Comentarios adicionales"></textarea>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                    <i class="fa fa-times mr-1"></i>Cancelar
-                </button>
-                <button type="button" id="guardarDevolucion" class="btn btn-info">
-                    <i class="fa fa-save mr-1"></i>Guardar Devolución
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 
 @section('custom_footer')
     <script type="text/javascript"

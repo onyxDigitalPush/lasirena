@@ -1,5 +1,6 @@
 //fecha en los inputs cuando se digita la fecha incidencia
-document  .getElementById("fecha_incidencia")
+document
+  .getElementById("fecha_incidencia")
   .addEventListener("change", function () {
     const fecha = this.value.split("-"); // "2025-01-01" → ["2025", "01", "01"]
 
@@ -11,8 +12,9 @@ document  .getElementById("fecha_incidencia")
     document.getElementById("mes_incidencia").value = mes;
   });
 
-  //fecha devolucion reclamaciones clientes
-  document  .getElementById("fecha_reclamacion")
+//fecha devolucion reclamaciones clientes
+document
+  .getElementById("fecha_reclamacion")
   .addEventListener("change", function () {
     var fecha_dev = this.value.split("-"); // "2025-01-01" → ["2025", "01", "01"]
 
@@ -25,19 +27,24 @@ document  .getElementById("fecha_incidencia")
   });
 
 // Mostrar/ocultar tipo_reclamacion_grave según selección en tipo_reclamacion
-document.getElementById("tipo_reclamacion").addEventListener("change", function () {
-  var valor = this.value;
-  var formGroup = document.getElementById("tipo_reclamacion_grave").closest(".form-group");
-  if (valor === "Grave") {
-    formGroup.classList.remove("d-none");
-  } else {
-    formGroup.classList.add("d-none");
-    document.getElementById("tipo_reclamacion_grave").value = "";
-  }
-});
+document
+  .getElementById("tipo_reclamacion")
+  .addEventListener("change", function () {
+    var valor = this.value;
+    var formGroup = document
+      .getElementById("tipo_reclamacion_grave")
+      .closest(".form-group");
+    if (valor === "Grave") {
+      formGroup.classList.remove("d-none");
+    } else {
+      formGroup.classList.add("d-none");
+      document.getElementById("tipo_reclamacion_grave").value = "";
+    }
+  });
 
 //codigo de proveedor
-document  .getElementById("codigo_proveedor_incidencia")
+document
+  .getElementById("codigo_proveedor_incidencia")
   .addEventListener("blur", function () {
     const codigoProveedor = this.value;
 
@@ -67,9 +74,9 @@ document  .getElementById("codigo_proveedor_incidencia")
       });
   });
 
-
-  //codigo de proveedor devoluciones reclamaciones cliente
-document  .getElementById("codigo_proveedor_devolucion")
+//codigo de proveedor devoluciones reclamaciones cliente
+document
+  .getElementById("codigo_proveedor_devolucion")
   .addEventListener("blur", function () {
     const codigoProveedor = this.value;
 
@@ -98,7 +105,6 @@ document  .getElementById("codigo_proveedor_devolucion")
         alert("Error buscando proveedor.");
       });
   });
-
 
 $(document).ready(function () {
   console.log("jQuery y DataTables cargados correctamente");
@@ -771,82 +777,47 @@ $(document).ready(function () {
   });
 
   // Gestión de devoluciones
-  $("#gestionarDevoluciones").on("click", function (e) {
-    e.preventDefault();
-    e.stopPropagation();
+  // $("#gestionarDevoluciones").on("click", function (e) {
+  //   e.preventDefault();
 
-    console.log("Abriendo modal de devoluciones...");
+  //   $(".modal-backdrop").remove();
+  //   $("body").removeClass("modal-open");
 
-    // Limpiar cualquier modal backdrop existente
-    $(".modal-backdrop").remove();
-    $("body").removeClass("modal-open");
+  //   try {
+  //     $("#modalDevoluciones").modal({
+  //       backdrop: true,
+  //       keyboard: true,
+  //       focus: true,
+  //       show: true,
+  //     });
+  //     console.log("Modal devoluciones ejecutado");
+  //   } catch (error) {
+  //     console.error("Error con Bootstrap modal, usando fallback:", error);
 
-    try {
-      $("#modalDevoluciones").modal({
-        backdrop: true,
-        keyboard: true,
-        focus: true,
-        show: true,
-      });
-      console.log("Modal devoluciones ejecutado");
-    } catch (error) {
-      console.error("Error con Bootstrap modal, usando fallback:", error);
+  //     // Fallback manual
+  //     $("#modalDevoluciones").show().addClass("show").css({
+  //       display: "block",
+  //       "padding-right": "15px",
+  //     });
 
-      // Fallback manual
-      $("#modalDevoluciones").show().addClass("show").css({
-        display: "block",
-        "padding-right": "15px",
-      });
+  //     $("body").addClass("modal-open").css("padding-right", "15px");
 
-      $("body").addClass("modal-open").css("padding-right", "15px");
-
-      if ($(".modal-backdrop").length === 0) {
-        $('<div class="modal-backdrop fade show"></div>').appendTo("body");
-      }
-    }
-  });
-
+  //     if ($(".modal-backdrop").length === 0) {
+  //       $('<div class="modal-backdrop fade show"></div>').appendTo("body");
+  //     }
+  //   }
+  // });
 
   //modal exportar excel
-$("#botonExportar").on("click", function (e) {
-  e.preventDefault();
-  $("#modalSubirExcel").modal("show");
-});
+  $("#botonExportar").on("click", function (e) {
+    e.preventDefault();
+    $("#modalSubirExcel").modal("show");
+  });
 
   // Gestión de devoluciones
   $("#gestionarDevoluciones").on("click", function (e) {
     e.preventDefault();
-    e.stopPropagation();
-
-    console.log("Abriendo modal de devoluciones...");
-
-    // Limpiar cualquier modal backdrop existente
-    $(".modal-backdrop").remove();
-    $("body").removeClass("modal-open");
-
-    try {
-      $("#modalDevoluciones").modal({
-        backdrop: true,
-        keyboard: true,
-        focus: true,
-        show: true,
-      });
-      console.log("Modal devoluciones ejecutado");
-    } catch (error) {
-      console.error("Error con Bootstrap modal, usando fallback:", error);
-
-      // Fallback manual
-      $("#modalDevoluciones").show().addClass("show").css({
-        display: "block",
-        "padding-right": "15px",
-      });
-
-      $("body").addClass("modal-open").css("padding-right", "15px");
-
-      if ($(".modal-backdrop").length === 0) {
-        $('<div class="modal-backdrop fade show"></div>').appendTo("body");
-      }
-    }
+    $("#modalDevoluciones").modal("show");
   });
 
   // Autocompletado y auto-llenado para código de producto en devoluciones
@@ -886,18 +857,28 @@ $("#botonExportar").on("click", function (e) {
         url: window.buscarProductoPorCodigoUrl,
         data: { codigo: term },
         success: function (response) {
-          if (response.success && response.producto && response.producto.descripcion) {
+          if (
+            response.success &&
+            response.producto &&
+            response.producto.descripcion
+          ) {
             $("#descripcion_producto").val(response.producto.descripcion);
-            console.log("Producto encontrado para devolución:", response.producto.descripcion);
+            console.log(
+              "Producto encontrado para devolución:",
+              response.producto.descripcion
+            );
           } else {
             // Limpiar el campo si no se encuentra el producto
             $("#descripcion_producto").val("");
-  
+
             console.log("Producto no encontrado para código:", term);
           }
         },
         error: function (xhr) {
-          console.error("Error al buscar producto para devolución:", xhr.responseText);
+          console.error(
+            "Error al buscar producto para devolución:",
+            xhr.responseText
+          );
           $("#descripcion_producto").val("");
         },
       });

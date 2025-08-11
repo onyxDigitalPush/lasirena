@@ -300,6 +300,144 @@ class MaterialKiloController extends Controller
             ], 500);
         }
     }
+    public function guardarExcel(Request $request)
+    {
+        // Validar que se haya subido un archivo
+        $request->validate([
+            'archivo_excel' => 'required|file|mimes:xlsx,csv',
+        ]);
+
+        try {
+            $archivo = $request->file('archivo_excel');
+            // Ahora leerá tanto los datos como la info de fechas de la cabecera
+            $resultado = $this->leerArchivoExcelOCsvMaterialKilo($archivo);
+            $datos = $resultado['datos'];
+            $fecha_inicio = $resultado['fecha_inicio'];
+            $fecha_fin = $resultado['fecha_fin'];
+            $año = $resultado['año'];
+            $mes = $resultado['mes'];
+
+            $now = now();
+            $insertados = [];
+            foreach ($datos as $idx => $item) {
+                // Buscar nombre del proveedor
+                $proveedor = DB::table('proveedores')->where('id_proveedor', $item['Código Proveedor'])->first();
+                $nombre_proveedor = $proveedor ? $proveedor->nombre_proveedor : null;
+
+                $insert = [
+                    'codigo_producto' => $item['Código Producto'],
+                    'codigo_proveedor' => $item['Código Proveedor'],
+                    'nombre_proveedor' => $nombre_proveedor,
+                    'descripcion_producto' => $item['Descripcion Producto'],
+                    'descripcion_queja' => $item['Descripcion Queja'],
+                    'fecha_reclamacion' => $now,
+                    'fecha_inicio' => $fecha_inicio,
+                    'fecha_fin' => $fecha_fin,
+                    'clasificacion_incidencia' => 'RL1',
+                    'nombre_tienda' => $item['Nombre Tienda'],
+                    'origen' => $item['origen'],
+                    'lote_sirena' => $item['La Sirena Lot'],
+                    'lote_proveedor' => $item['provider Lot'],
+                    'abierto' => 'Si',
+                    'año' => $año,
+                    'mes' => $mes,
+                    'top100fy2' => ($idx < 100 ? 'Si' : null),
+                ];
+                DB::table('devoluciones_proveedores')->insert($insert);
+                $insertados[] = $insert;
+            }
+            return redirect()->back()->with('success', 'Devoluciones insertadas correctamente');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error al procesar el archivo: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Lee un archivo Excel o CSV y retorna los datos desde la fila 2,
+     * mapeando columnas específicas para MaterialKilo.
+     * @param \Illuminate\Http\UploadedFile|string $archivo
+     * @return array
+     * @throws \Exception
+     */
+    private function leerArchivoExcelOCsvMaterialKilo($archivo)
+    {
+        // Aumentar límites de memoria y tiempo de ejecución
+        ini_set('memory_limit', '512M');
+        ini_set('max_execution_time', 300);
+
+        // Usar PhpSpreadsheet
+        $extension = strtolower($archivo->getClientOriginalExtension());
+        if ($extension === 'csv') {
+            $reader = new \PhpOffice\PhpSpreadsheet\Reader\Csv();
+            $reader->setDelimiter(",");
+        } else {
+            $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+        }
+        $spreadsheet = $reader->load($archivo->getPathname());
+        $sheet = $spreadsheet->getActiveSheet();
+        $rows = $sheet->toArray(null, true, true, true);
+
+        // Leer la primera fila para extraer fechas
+        $primera_fila = $rows[1] ?? [];
+        $texto_cabecera = '';
+        // Concatenar columnas A-J para buscar el texto
+        foreach (range('A', 'J') as $col) {
+            $texto_cabecera .= (isset($primera_fila[$col]) ? $primera_fila[$col] : '') . ' ';
+        }
+        $texto_cabecera = trim($texto_cabecera);
+
+        // Regex para extraer: del 25 al 31 de julio de 2025
+        $regex = '/del\s+(\d{1,2})\s+al\s+(\d{1,2})\s+de\s+([a-zA-Záéíóúñ]+)\s+de\s+(\d{4})/u';
+        $fecha_inicio = null;
+        $fecha_fin = null;
+        $mes = null;
+        $año = null;
+        if (preg_match($regex, $texto_cabecera, $matches)) {
+            $dia_inicio = $matches[1];
+            $dia_fin = $matches[2];
+            $mes_nombre = strtolower($matches[3]);
+            $año = (int)$matches[4];
+            // Mapear nombre de mes a número
+            $meses = [
+                'enero' => 1, 'febrero' => 2, 'marzo' => 3, 'abril' => 4, 'mayo' => 5, 'junio' => 6,
+                'julio' => 7, 'agosto' => 8, 'septiembre' => 9, 'setiembre' => 9, 'octubre' => 10,
+                'noviembre' => 11, 'diciembre' => 12
+            ];
+            $mes = $meses[$mes_nombre] ?? null;
+            if ($mes && $año) {
+                $fecha_inicio = sprintf('%04d-%02d-%02d', $año, $mes, $dia_inicio);
+                $fecha_fin = sprintf('%04d-%02d-%02d', $año, $mes, $dia_fin);
+            }
+        }
+
+        $datos = [];
+        // Comenzar desde la fila 3 (índice 3, ya que $rows es 1-indexado)
+        foreach ($rows as $i => $row) {
+            if ($i < 3) continue; // Saltar encabezado y fila de títulos
+
+            $datos[] = [
+                'Código Producto' => $row['A'] ?? null,
+                'Descripcion Producto' => $row['B'] ?? null,
+                'Descripcion Motivo' => $row['C'] ?? null,
+                'Descripcion Queja' => $row['D'] ?? null,
+                'Código Proveedor' => $row['E'] ?? null,
+                'Nombre Proveedor' => $row['F'] ?? null,
+                'Codigo Tienda' => $row['G'] ?? null,
+                'Nombre Tienda' => $row['H'] ?? null,
+                'Identificadoractividad' => $row['I'] ?? null,
+                'origen' => $row['J'] ?? null,
+                'La Sirena Lot' => $row['K'] ?? null,
+                'provider Lot' => $row['L'] ?? null,
+            ];
+        }
+        return [
+            'datos' => $datos,
+            'fecha_inicio' => $fecha_inicio,
+            'fecha_fin' => $fecha_fin,
+            'año' => $año,
+            'mes' => $mes,
+        ];
+    }
     public function evaluacionContinuaProveedores(Request $request)
     {
         $mes = $request->get('mes');
@@ -1358,7 +1496,7 @@ class MaterialKiloController extends Controller
     public function buscarProductoPorCodigo(Request $request)
     {
         $codigo = $request->get('codigo');
-        $producto = \DB::table('materiales')->where('codigo', $codigo)->first();
+        $producto = DB::table('materiales')->where('codigo', $codigo)->first();
         if ($producto) {
             return response()->json(['success' => true, 'producto' => $producto]);
         } else {
@@ -1372,7 +1510,7 @@ class MaterialKiloController extends Controller
     public function buscarCodigosProductos(Request $request)
     {
         $term = $request->get('term');
-        $productos = \DB::table('materiales')
+        $productos = DB::table('materiales')
             ->where('codigo', 'like', "%{$term}%")
             ->orWhere('descripcion', 'like', "%{$term}%")
             ->limit(20)

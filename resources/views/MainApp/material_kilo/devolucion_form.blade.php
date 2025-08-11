@@ -203,8 +203,8 @@
                                     <label for="clasificacion_incidencia_dev">Clasificación de Incidencia:</label>
                                     <select id="clasificacion_incidencia_dev" name="clasificacion_incidencia" class="form-control">
                                         <option value="">Seleccione una clasificación</option>
-                                        <option value="RG1" {{ (isset($devolucion) && $devolucion->clasificacion_incidencia == 'RG1') ? 'selected' : '' }}>RG - Reclamación General</option>
-                                        <option value="RL1" {{ (isset($devolucion) && $devolucion->clasificacion_incidencia == 'RL1') ? 'selected' : '' }}>RL - Reclamación Legal</option>
+                                        <option value="RG1" {{ (isset($devolucion) && $devolucion->clasificacion_incidencia == 'RG1') ? 'selected' : '' }}>RG - Reclamación Grave</option>
+                                        <option value="RL1" {{ (isset($devolucion) && $devolucion->clasificacion_incidencia == 'RL1') ? 'selected' : '' }}>RL - Reclamación Leve</option>
                                     </select>
                                 </div>
                             </div>
