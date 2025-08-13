@@ -64,9 +64,17 @@
                     <li class="active">
                         <a href="{{ route('proveedores.index') }}" title="Control Proveedores" class="active">
                             <i class="metismenu-icon fa fa-users"></i>
+                            Proveedores
                         </a>
                     </li>
-                @endif                @if (Auth::user()->type_user == '1' || Auth::user()->type_user == '2')
+                @endif
+                @if (Auth::user()->type_user == '1' || Auth::user()->type_user == '2')
+                    <li class="active">
+                        <a href="{{ route('tiendas.index') }}" title="Control Tiendas" class="active">
+                            <i class="metismenu-icon fa fa-building"></i>
+                            Tiendas
+                        </a>
+                    </li>
                     <li class="active">
                         <a href="{{ route('material_kilo.index') }}" title="Lista Material Kilos" class="active">
                             <i class="metismenu-icon fa fa-truck"></i>
@@ -95,6 +103,14 @@
                         <a href="{{ route('material_kilo.historial_incidencias_devoluciones') }}" title="Historial Incidencias y Devoluciones" class="active">
                             <i class="metismenu-icon fa fa-exclamation-triangle"></i>
                             Historial Incidencias
+                        </a>
+                    </li>
+                @endif
+                @if (Auth::user()->type_user == '1' || Auth::user()->type_user == '2')
+                    <li class="active">
+                        <a href="{{ route('evaluacion_analisis.historial_evaluaciones') }}" title="Historial evaluaciones" class="active">
+                            <i class="metismenu-icon fa fa-undo"></i>
+                            Evaluación de análisis externos producto
                         </a>
                     </li>
                 @endif

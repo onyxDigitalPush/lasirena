@@ -1,4 +1,9 @@
+use App\Http\Controllers\MainApp\TiendasController;
+
+// ...existing code...
+
 <?php
+use App\Http\Controllers\MainApp\TiendasController;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
@@ -169,6 +174,17 @@ Route::group(['middleware' => ['auth']], function () {
     Route::post('/proveedores/delete', 'MainApp\ProveedorController@destroy')->name('proveedores.delete');
     Route::post('/proveedores/store', 'MainApp\ProveedorController@store')->name('proveedores.store');
 
+    //CRUD Tiendas
+    Route::get('/tiendas', [TiendasController::class, 'index'])->name('tiendas.index');
+    Route::post('/tiendas/store', [TiendasController::class, 'store'])->name('tiendas.store');
+    Route::get('/tiendas/{id}/edit', [TiendasController::class, 'edit'])->name('tiendas.edit');
+    Route::post('/tiendas/update', [TiendasController::class, 'update'])->name('tiendas.update');
+    Route::post('/tiendas/delete', [TiendasController::class, 'delete'])->name('tiendas.delete');
+    // Importar tiendas
+    Route::post('/tiendas/importar', [TiendasController::class, 'importar'])->name('tiendas.importar');
+    // Buscar tiendas (AJAX)
+    Route::get('/tiendas/buscar', [TiendasController::class, 'buscar'])->name('tiendas.buscar');
+
     //Materiales
     Route::get('/material/{id}/list', 'MainApp\MaterialController@list')->name('materiales.list');
     Route::post('/material/store', 'MainApp\MaterialController@store')->name('materiales.store');
@@ -219,6 +235,12 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/material_kilo/obtener-devoluciones', 'MaterialKiloController@obtenerDevoluciones')->name('material_kilo.obtener_devoluciones');
         Route::get('/material_kilo/obtener-devolucion/{id}', 'MaterialKiloController@obtenerDevolucion')->name('material_kilo.obtener_devolucion');
 
+        //Rutas para evaluacion analisis producto 
+        Route::get('/evaluacion_analisis/historial', 'EvaluacionAnalisisController@historialEvaluaciones')->name('evaluacion_analisis.historial_evaluaciones');
+
+
+
+        
         // Páginas completas para editar devoluciones
         Route::get('/material_kilo/devolucion/crear', 'MaterialKiloController@crearDevolucion')->name('material_kilo.crear_devolucion');
         Route::get('/material_kilo/devolucion/editar/{id}', 'MaterialKiloController@editarDevolucion')->name('material_kilo.editar_devolucion');
