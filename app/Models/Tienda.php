@@ -17,4 +17,10 @@ class Tienda extends Model
         'email_responsable',
         'telefono',
     ];
+
+    public function analiticas()
+    {
+        return $this->hasMany(\App\Models\Analitica::class, 'num_tienda', 'num_tienda');
+    }
+    
 }

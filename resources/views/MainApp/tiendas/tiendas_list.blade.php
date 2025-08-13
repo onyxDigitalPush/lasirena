@@ -170,59 +170,7 @@
         </table>
     </div>
 @endsection
-<!-- Modal Importar Archivo -->
-<div class="modal fade" id="importarArchivoModal" tabindex="-1" role="dialog" aria-labelledby="importarArchivoModalLabel">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <form method="POST" action="{{ route('tiendas.importar') }}" enctype="multipart/form-data" id="importForm">
-                @csrf
-                <div class="modal-header">
-                    <h4 class="modal-title" id="importarArchivoModalLabel">
-                        <i class="fa fa-upload mr-2"></i>Importar Archivo CSV/XLSX
-                    </h4>
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div id="formContent">
-                        <div class="form-group">
-                            <label for="archivo">Seleccionar Archivo</label>
-                            <div class="custom-file">
-                                <input type="file" class="custom-file-input" id="archivo" name="archivo" accept=".csv,.txt,.xlsx" required>
-                                <label class="custom-file-label" for="archivo">Elegir archivo...</label>
-                            </div>
-                            <small class="form-text text-muted">
-                                <i class="fa fa-info-circle"></i>
-                                Formatos soportados: CSV, TXT, XLSX
-                                <br>
-                                • Para CSV: Las cabeceras deben estar en la fila 1
-                                <br>
-                                • Para XLSX: Las cabeceras deben estar en la fila 1
-                            </small>
-                        </div>
-                    </div>
-                    <div id="loadingContent" style="display: none;">
-                        <div class="text-center py-4">
-                            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-                                <span class="sr-only">Cargando...</span>
-                            </div>
-                            <h5 class="mt-3">Procesando archivo...</h5>
-                            <p class="text-muted">Por favor espere, esto puede tomar varios minutos dependiendo del tamaño del archivo.</p>
-                            <div class="progress mt-3">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer" id="modalFooter">
-                    <button type="submit" class="btn btn-success" id="submitBtn">
-                        <i class="fa fa-upload mr-2"></i>Importar Archivo
-                    </button>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cancelBtn">Cancelar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+
 <!-- Modal Crear Tienda -->
 <div class="modal fade" id="createTiendaModal" tabindex="-1" role="dialog" aria-labelledby="createTiendaModalLabel">
     <div class="modal-dialog" role="document">

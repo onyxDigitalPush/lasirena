@@ -1,6 +1,3 @@
-use App\Http\Controllers\MainApp\TiendasController;
-
-// ...existing code...
 
 <?php
 use App\Http\Controllers\MainApp\TiendasController;
@@ -237,7 +234,7 @@ Route::group(['middleware' => ['auth']], function () {
 
         //Rutas para evaluacion analisis producto 
         Route::get('/evaluacion_analisis/historial', 'EvaluacionAnalisisController@historialEvaluaciones')->name('evaluacion_analisis.historial_evaluaciones');
-
+        Route::post('/evaluacion_analisis/guardar-analitica', 'EvaluacionAnalisisController@guardarAnalitica')->name('evaluacion_analisis.guardar_analitica');
 
 
         
