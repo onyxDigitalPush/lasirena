@@ -235,6 +235,10 @@ Route::group(['middleware' => ['auth']], function () {
         //Rutas para evaluacion analisis producto 
         Route::get('/evaluacion_analisis/historial', 'EvaluacionAnalisisController@historialEvaluaciones')->name('evaluacion_analisis.historial_evaluaciones');
         Route::post('/evaluacion_analisis/guardar-analitica', 'EvaluacionAnalisisController@guardarAnalitica')->name('evaluacion_analisis.guardar_analitica');
+    Route::get('/evaluacion_analisis/list', 'EvaluacionAnalisisController@evaluacionList')->name('evaluacion_analisis.list');
+    // Tendencias superficie
+    Route::get('/evaluacion_analisis/tendencias-superficie', 'EvaluacionAnalisisController@tendenciasSuperficieList')->name('evaluacion_analisis.tendencias_superficie.list');
+    Route::post('/evaluacion_analisis/tendencias-superficie/guardar', 'EvaluacionAnalisisController@guardarTendenciaSuperficie')->name('evaluacion_analisis.tendencias_superficie.guardar');
 
 
         

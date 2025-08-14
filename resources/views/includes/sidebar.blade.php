@@ -115,6 +115,15 @@
                     </li>
                 @endif
 
+                @if (Auth::user()->type_user == '1' || Auth::user()->type_user == '2')
+                    <li class="active">
+                        <a href="{{ route('evaluacion_analisis.list') }}" title="Listado Evaluaciones" class="active">
+                            <i class="metismenu-icon fa fa-flask"></i>
+                            Listado Evaluaciones
+                        </a>
+                    </li>
+                @endif
+
             </ul>
         </div>
     </div>

@@ -37,6 +37,15 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label for="proveedor_id">Proveedor Relacionado</label>
+                        <select class="form-control" name="proveedor_id">
+                            <option value="">-- Seleccionar proveedor --</option>
+                            @foreach($proveedores as $prov)
+                                <option value="{{ $prov->id_proveedor }}">{{ $prov->nombre_proveedor }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="tipo_analitica">Tipo Analítica</label>
                         <select class="form-control" name="tipo_analitica" required>
                             <option value="Resultados agua">Resultados agua</option>
