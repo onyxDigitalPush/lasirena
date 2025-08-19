@@ -4,10 +4,13 @@ namespace App\Http\Controllers\MainApp;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\Tienda;
 use App\Models\Analitica;
 use App\Models\MainApp\Proveedor;
 use App\Models\TendenciaSuperficie;
+use App\Models\TendenciaMicro;
+use App\Models\MainApp\Product;
 use Carbon\Carbon;
 
 class EvaluacionAnalisisController extends Controller
@@ -70,18 +73,152 @@ class EvaluacionAnalisisController extends Controller
 
     public function evaluacionList(Request $request)
     {
-        // Listar analíticas con nombre de tienda (join) y proveedor
-        $analiticas = Analitica::leftJoin('tiendas', 'analiticas.num_tienda', '=', 'tiendas.num_tienda')
+        // Construir query base
+        $query = Analitica::leftJoin('tiendas', 'analiticas.num_tienda', '=', 'tiendas.num_tienda')
             ->select('analiticas.*', 'tiendas.nombre_tienda as tienda_nombre')
-            ->with('proveedor')
-            ->orderByDesc('fecha_real_analitica')
-            ->paginate(20);
+            ->with('proveedor');
+
+        // Aplicar filtros si existen
+        if ($request->filled('num_tienda')) {
+            $query->where('analiticas.num_tienda', 'like', '%' . $request->num_tienda . '%');
+        }
+
+        if ($request->filled('nombre_tienda')) {
+            $query->where('tiendas.nombre_tienda', 'like', '%' . $request->nombre_tienda . '%');
+        }
+
+        if ($request->filled('tipo_analitica')) {
+            $query->where('analiticas.tipo_analitica', 'like', '%' . $request->tipo_analitica . '%');
+        }
+
+        // Ordenar y paginar
+        $analiticas = $query->orderByDesc('fecha_real_analitica')
+            ->paginate(25)
+            ->appends($request->query());
 
         $proveedores = Proveedor::select('id_proveedor', 'nombre_proveedor')
             ->orderBy('nombre_proveedor')
             ->get();
 
         return view('MainApp/evaluacion_analisis.evaluacion_list', compact('analiticas', 'proveedores'));
+    }
+
+    // Vista de gestión completa con estado de vencimiento
+    public function gestionAnalisis(Request $request)
+    {
+        // Construir query base - unión de todas las analíticas
+        $analiticasQuery = Analitica::leftJoin('tiendas', 'analiticas.num_tienda', '=', 'tiendas.num_tienda')
+            ->select(
+                'analiticas.id',
+                'analiticas.num_tienda',
+                'tiendas.nombre_tienda as tienda_nombre',
+                'analiticas.tipo_analitica',
+                'analiticas.fecha_real_analitica',
+                'analiticas.periodicidad',
+                'analiticas.proveedor_id',
+                DB::raw("'analitica' as tabla_origen")
+            )
+            ->with('proveedor');
+
+        $superficieQuery = TendenciaSuperficie::leftJoin('tiendas', 'tendencias_superficie.tienda_id', '=', 'tiendas.id')
+            ->select(
+                'tendencias_superficie.id',
+                'tiendas.num_tienda',
+                'tiendas.nombre_tienda as tienda_nombre',
+                DB::raw("'Tendencias superficie' as tipo_analitica"),
+                'tendencias_superficie.fecha_muestra as fecha_real_analitica',
+                DB::raw("'3 meses' as periodicidad"),
+                'tendencias_superficie.proveedor_id',
+                DB::raw("'superficie' as tabla_origen")
+            );
+
+        $microQuery = TendenciaMicro::leftJoin('tiendas', 'tendencias_micro.tienda_id', '=', 'tiendas.id')
+            ->select(
+                'tendencias_micro.id',
+                'tiendas.num_tienda',
+                'tiendas.nombre_tienda as tienda_nombre',
+                DB::raw("'Tendencias micro' as tipo_analitica"),
+                'tendencias_micro.fecha_toma_muestras as fecha_real_analitica',
+                DB::raw("'1 mes' as periodicidad"),
+                'tendencias_micro.proveedor_id',
+                DB::raw("'micro' as tabla_origen")
+            );
+
+        // Aplicar filtros
+        if ($request->filled('num_tienda')) {
+            $analiticasQuery->where('analiticas.num_tienda', 'like', '%' . $request->num_tienda . '%');
+            $superficieQuery->where('tiendas.num_tienda', 'like', '%' . $request->num_tienda . '%');
+            $microQuery->where('tiendas.num_tienda', 'like', '%' . $request->num_tienda . '%');
+        }
+
+        if ($request->filled('nombre_tienda')) {
+            $analiticasQuery->where('tiendas.nombre_tienda', 'like', '%' . $request->nombre_tienda . '%');
+            $superficieQuery->where('tiendas.nombre_tienda', 'like', '%' . $request->nombre_tienda . '%');
+            $microQuery->where('tiendas.nombre_tienda', 'like', '%' . $request->nombre_tienda . '%');
+        }
+
+        if ($request->filled('tipo_analitica')) {
+            if ($request->tipo_analitica == 'Resultados agua') {
+                $superficieQuery = $superficieQuery->whereRaw('1=0'); // Excluir
+                $microQuery = $microQuery->whereRaw('1=0'); // Excluir
+            } elseif ($request->tipo_analitica == 'Tendencias superficie') {
+                $analiticasQuery = $analiticasQuery->whereRaw('1=0'); // Excluir
+                $microQuery = $microQuery->whereRaw('1=0'); // Excluir
+            } elseif ($request->tipo_analitica == 'Tendencias micro') {
+                $analiticasQuery = $analiticasQuery->whereRaw('1=0'); // Excluir
+                $superficieQuery = $superficieQuery->whereRaw('1=0'); // Excluir
+            }
+        }
+
+        // Unir todas las consultas
+        $unionQuery = $analiticasQuery->union($superficieQuery)->union($microQuery);
+
+        // Ejecutar y paginar
+        $resultados = DB::table(DB::raw("({$unionQuery->toSql()}) as combined"))
+            ->mergeBindings($unionQuery->getQuery())
+            ->orderByDesc('fecha_real_analitica')
+            ->paginate(25)
+            ->appends($request->query());
+
+        // Calcular estado de vencimiento para cada resultado
+        $hoy = now();
+        foreach ($resultados as $resultado) {
+            if ($resultado->fecha_real_analitica) {
+                $fecha = Carbon::parse($resultado->fecha_real_analitica);
+                $periodo = $resultado->periodicidad;
+                
+                switch ($periodo) {
+                    case '1 mes':
+                        $fechaLimite = $fecha->copy()->addMonth();
+                        break;
+                    case '3 meses':
+                        $fechaLimite = $fecha->copy()->addMonths(3);
+                        break;
+                    case '6 meses':
+                        $fechaLimite = $fecha->copy()->addMonths(6);
+                        break;
+                    case 'anual':
+                        $fechaLimite = $fecha->copy()->addYear();
+                        break;
+                    default:
+                        $fechaLimite = $fecha;
+                }
+                
+                $resultado->vencido = $hoy->greaterThan($fechaLimite);
+                $resultado->fecha_limite = $fechaLimite->format('Y-m-d');
+                $resultado->dias_restantes = $hoy->diffInDays($fechaLimite, false);
+            } else {
+                $resultado->vencido = true;
+                $resultado->fecha_limite = null;
+                $resultado->dias_restantes = null;
+            }
+        }
+
+        $proveedores = Proveedor::select('id_proveedor', 'nombre_proveedor')
+            ->orderBy('nombre_proveedor')
+            ->get();
+
+        return view('MainApp/evaluacion_analisis.gestion_analisis', compact('resultados', 'proveedores'));
     }
 
     /**
@@ -156,5 +293,173 @@ class EvaluacionAnalisisController extends Controller
         TendenciaSuperficie::create($data);
 
         return redirect()->back()->with('success', 'Tendencia superficie guardada correctamente.');
+    }
+
+    // Listar tendencias micro
+    public function tendenciasMicroList()
+    {
+        $tendencias = TendenciaMicro::with(['tienda', 'proveedor'])
+            ->orderByDesc('created_at')
+            ->paginate(10);
+
+        return view('MainApp.evaluacion_analisis.tendencias_micro_list', compact('tendencias'));
+    }
+
+    // Guardar tendencia micro
+    public function guardarTendenciaMicro(Request $request)
+    {
+        $request->validate([
+            'fecha_toma_muestras' => 'required|date',
+            'codigo_producto' => 'nullable|string',
+            'codigo_proveedor' => 'nullable|string',
+        ]);
+
+        $data = $request->all();
+
+        // Si no se envía tienda_id pero sí num_tienda, buscar el id correspondiente
+        if (empty($data['tienda_id']) && !empty($data['num_tienda'])) {
+            $ti = Tienda::where('num_tienda', $data['num_tienda'])->first();
+            if ($ti) {
+                $data['tienda_id'] = $ti->id;
+            }
+        }
+
+        // Eliminar num_tienda si existe para evitar columnas inesperadas
+        if (isset($data['num_tienda'])) unset($data['num_tienda']);
+
+        TendenciaMicro::create($data);
+
+        return redirect()->back()->with('success', 'Tendencia micro guardada correctamente.');
+    }
+
+    // Buscar producto por código
+    public function buscarProducto(Request $request)
+    {
+        $codigo = $request->input('codigo');
+        $producto = Product::where('product_cod', $codigo)->first();
+        
+        if ($producto) {
+            return response()->json([
+                'success' => true,
+                'producto' => [
+                    'codigo' => $producto->product_cod,
+                    'descripcion' => $producto->product_description
+                ]
+            ]);
+        }
+        
+        return response()->json(['success' => false]);
+    }
+
+    // Buscar proveedor por código
+    public function buscarProveedor(Request $request)
+    {
+        $codigo = $request->input('codigo');
+        $proveedor = Proveedor::where('id_proveedor', $codigo)->first();
+        
+        if ($proveedor) {
+            return response()->json([
+                'success' => true,
+                'proveedor' => [
+                    'codigo' => $proveedor->id_proveedor,
+                    'nombre' => $proveedor->nombre_proveedor
+                ]
+            ]);
+        }
+        
+        return response()->json(['success' => false]);
+    }
+
+    // Obtener datos específicos para edición
+    public function obtenerDatosAnalisis(Request $request)
+    {
+        $tipo = $request->tipo;
+        $id = $request->id;
+        
+        switch ($tipo) {
+            case 'analitica':
+                $datos = Analitica::with('proveedor')->find($id);
+                break;
+            case 'superficie':
+                $datos = TendenciaSuperficie::with(['tienda', 'proveedor'])->find($id);
+                break;
+            case 'micro':
+                $datos = TendenciaMicro::with(['tienda', 'proveedor'])->find($id);
+                break;
+            default:
+                return response()->json(['success' => false]);
+        }
+        
+        if ($datos) {
+            return response()->json(['success' => true, 'datos' => $datos]);
+        }
+        
+        return response()->json(['success' => false]);
+    }
+
+    // Actualizar analítica
+    public function actualizarAnalisis(Request $request)
+    {
+        $tipo = $request->tipo;
+        $id = $request->id;
+        
+        switch ($tipo) {
+            case 'analitica':
+                $modelo = Analitica::find($id);
+                if ($modelo) {
+                    $modelo->update($request->except(['tipo', 'id']));
+                    return redirect()->back()->with('success', 'Analítica actualizada correctamente.');
+                }
+                break;
+            case 'superficie':
+                $modelo = TendenciaSuperficie::find($id);
+                if ($modelo) {
+                    $modelo->update($request->except(['tipo', 'id']));
+                    return redirect()->back()->with('success', 'Tendencia superficie actualizada correctamente.');
+                }
+                break;
+            case 'micro':
+                $modelo = TendenciaMicro::find($id);
+                if ($modelo) {
+                    $modelo->update($request->except(['tipo', 'id']));
+                    return redirect()->back()->with('success', 'Tendencia micro actualizada correctamente.');
+                }
+                break;
+        }
+        
+        return redirect()->back()->with('error', 'No se pudo actualizar el registro.');
+    }
+
+    // Eliminar analítica
+    public function eliminarAnalisis(Request $request)
+    {
+        $tipo = $request->tipo;
+        $id = $request->id;
+        
+        switch ($tipo) {
+            case 'analitica':
+                $modelo = Analitica::find($id);
+                if ($modelo) {
+                    $modelo->delete();
+                    return redirect()->back()->with('success', 'Analítica eliminada correctamente.');
+                }
+                break;
+            case 'superficie':
+                $modelo = TendenciaSuperficie::find($id);
+                if ($modelo) {
+                    $modelo->delete();
+                    return redirect()->back()->with('success', 'Tendencia superficie eliminada correctamente.');
+                }
+                break;
+            case 'micro':
+                $modelo = TendenciaMicro::find($id);
+                if ($modelo) {
+                    $modelo->delete();
+                    return redirect()->back()->with('success', 'Tendencia micro eliminada correctamente.');
+                }
+                break;
+        }
+        
+        return redirect()->back()->with('error', 'No se pudo eliminar el registro.');
     }
 }

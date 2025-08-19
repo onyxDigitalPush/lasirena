@@ -239,6 +239,20 @@ Route::group(['middleware' => ['auth']], function () {
     // Tendencias superficie
     Route::get('/evaluacion_analisis/tendencias-superficie', 'EvaluacionAnalisisController@tendenciasSuperficieList')->name('evaluacion_analisis.tendencias_superficie.list');
     Route::post('/evaluacion_analisis/tendencias-superficie/guardar', 'EvaluacionAnalisisController@guardarTendenciaSuperficie')->name('evaluacion_analisis.tendencias_superficie.guardar');
+    
+    // Tendencias micro
+    Route::get('/evaluacion_analisis/tendencias-micro', 'EvaluacionAnalisisController@tendenciasMicroList')->name('evaluacion_analisis.tendencias_micro.list');
+    Route::post('/evaluacion_analisis/tendencias-micro/guardar', 'EvaluacionAnalisisController@guardarTendenciaMicro')->name('evaluacion_analisis.tendencias_micro.guardar');
+    
+    // AJAX para lookups
+    Route::get('/evaluacion_analisis/buscar-producto', 'EvaluacionAnalisisController@buscarProducto')->name('evaluacion_analisis.buscar_producto');
+    Route::get('/evaluacion_analisis/buscar-proveedor', 'EvaluacionAnalisisController@buscarProveedor')->name('evaluacion_analisis.buscar_proveedor');
+    
+    // Gestión completa de análisis
+    Route::get('/evaluacion_analisis/gestion', 'EvaluacionAnalisisController@gestionAnalisis')->name('evaluacion_analisis.gestion');
+    Route::get('/evaluacion_analisis/obtener-datos', 'EvaluacionAnalisisController@obtenerDatosAnalisis')->name('evaluacion_analisis.obtener_datos');
+    Route::post('/evaluacion_analisis/actualizar', 'EvaluacionAnalisisController@actualizarAnalisis')->name('evaluacion_analisis.actualizar');
+    Route::delete('/evaluacion_analisis/eliminar', 'EvaluacionAnalisisController@eliminarAnalisis')->name('evaluacion_analisis.eliminar');
 
 
         

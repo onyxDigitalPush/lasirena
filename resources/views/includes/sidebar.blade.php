@@ -124,6 +124,15 @@
                     </li>
                 @endif
 
+                @if (Auth::user()->type_user == '1' || Auth::user()->type_user == '2')
+                    <li class="active">
+                        <a href="{{ route('evaluacion_analisis.gestion') }}" title="Gestión de Análisis" class="active">
+                            <i class="metismenu-icon fa fa-chart-bar"></i>
+                            Gestión de Análisis
+                        </a>
+                    </li>
+                @endif
+
             </ul>
         </div>
     </div>

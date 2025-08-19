@@ -6,7 +6,7 @@
         aria-labelledby="{{ $modalId }}Label">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
-                <form method="POST" action="{{ route('evaluacion_analisis.guardar_analitica') }}">
+                <form method="POST" action="@if($tipo === 'Tendencias superficie') {{ route('evaluacion_analisis.tendencias_superficie.guardar') }} @elseif($tipo === 'Tendencias micro') {{ route('evaluacion_analisis.tendencias_micro.guardar') }} @else {{ route('evaluacion_analisis.guardar_analitica') }} @endif">
                     @csrf
                     <input type="hidden" name="num_tienda" class="num_tienda_input">
                     <div class="modal-header bg-primary text-white">
@@ -259,8 +259,198 @@
                             <button type="submit" class="btn btn-primary">Guardar Analítica</button>
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                         </div>
+                    @elseif ($tipo === 'Tendencias micro')
+                        <div class="modal-body">
+                            <!-- Mostrar errores de validación -->
+                            @if ($errors->any())
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <ul class="mb-0">
+                                        @foreach ($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            @endif
+
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label>Tienda (num)</label>
+                                                <input type="text" name="num_tienda" class="form-control num_tienda_input" readonly>
+                                                <input type="hidden" name="tienda_id" class="tienda_id_input">
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label>Fecha toma muestras</label>
+                                                <input type="date" name="fecha_toma_muestras" class="form-control fecha_muestra_input" required>
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label>Año</label>
+                                                <input type="text" name="anio" class="form-control anio_input" readonly>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label>Mes</label>
+                                                <input type="text" name="mes" class="form-control mes_input" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label>Semana</label>
+                                                <input type="text" name="semana" class="form-control semana_input" readonly>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label>Código</label>
+                                                <input type="text" name="codigo" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label>Nombre</label>
+                                                <input type="text" name="nombre" class="form-control">
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label>Provincia</label>
+                                                <input type="text" name="provincia" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label>Número de muestra</label>
+                                                <input type="number" name="numero_muestra" class="form-control">
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label>Número factura</label>
+                                                <input type="text" name="numero_factura" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label>Código producto</label>
+                                                <input type="text" name="codigo_producto" class="form-control codigo_producto_input">
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label>Nombre producto</label>
+                                                <input type="text" name="nombre_producto" class="form-control nombre_producto_input" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label>Código proveedor</label>
+                                                <input type="text" name="codigo_proveedor" class="form-control codigo_proveedor_input">
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label>Nombre proveedor</label>
+                                                <input type="text" name="nombre_proveedor" class="form-control nombre_proveedor_input" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label>TE proveedor</label>
+                                                <input type="text" name="te_proveedor" class="form-control">
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label>Lote</label>
+                                                <input type="text" name="lote" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label>Tipo</label>
+                                                <input type="text" name="tipo" class="form-control">
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label>Referencia</label>
+                                                <input type="text" name="referencia" class="form-control">
+                                            </div>
+                                        </div>
+                                        <hr>
+                                        <h6 class="mb-2">Resultados microbiológicos</h6>
+                                        <div class="form-row align-items-end">
+                                            <div class="form-group col-md-6">
+                                                <label>Aerobiotico (valor)</label>
+                                                <input type="text" name="aerobiotico_valor" class="form-control">
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label>Resultado</label>
+                                                <select name="aerobiotico_resultado" class="form-control">
+                                                    <option value="">-- Seleccionar --</option>
+                                                    <option value="correcto">Correcto</option>
+                                                    <option value="incorrecto">Incorrecto</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-row align-items-end">
+                                            <div class="form-group col-md-6">
+                                                <label>Entero (valor)</label>
+                                                <input type="text" name="entero_valor" class="form-control">
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label>Resultado</label>
+                                                <select name="entero_resultado" class="form-control">
+                                                    <option value="">-- Seleccionar --</option>
+                                                    <option value="correcto">Correcto</option>
+                                                    <option value="incorrecto">Incorrecto</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-row align-items-end">
+                                            <div class="form-group col-md-6">
+                                                <label>E.coli (valor)</label>
+                                                <input type="text" name="ecoli_valor" class="form-control">
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label>Resultado</label>
+                                                <select name="ecoli_resultado" class="form-control">
+                                                    <option value="">-- Seleccionar --</option>
+                                                    <option value="correcto">Correcto</option>
+                                                    <option value="incorrecto">Incorrecto</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-row align-items-end">
+                                            <div class="form-group col-md-6">
+                                                <label>S (valor)</label>
+                                                <input type="text" name="s_valor" class="form-control">
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label>Resultado</label>
+                                                <select name="s_resultado" class="form-control">
+                                                    <option value="">-- Seleccionar --</option>
+                                                    <option value="correcto">Correcto</option>
+                                                    <option value="incorrecto">Incorrecto</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-row align-items-end">
+                                            <div class="form-group col-md-6">
+                                                <label>Salmonella (valor)</label>
+                                                <input type="text" name="salmonella_valor" class="form-control">
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label>Resultado</label>
+                                                <select name="salmonella_resultado" class="form-control">
+                                                    <option value="">-- Seleccionar --</option>
+                                                    <option value="correcto">Correcto</option>
+                                                    <option value="incorrecto">Incorrecto</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Guardar Tendencia Micro</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        </div>
                     @else
-                        {{-- Modal por defecto para otros tipos (Tendencias micro u otros) --}}
+                        {{-- Modal por defecto para otros tipos --}}
                         <div class="modal-body">
                             <div class="container-fluid">
                                 <div class="row">
@@ -325,6 +515,74 @@
 @section('main_content')
     <div class="col-12 bg-white p-3">
         <div class="mb-4"></div>
+        {{-- Flash success message area --}}
+        @if(session('success'))
+            <div id="flash-success" class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+        @endif
+
+        {{-- Formulario de filtros --}}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fa fa-filter mr-2"></i>Filtros de búsqueda
+                    <button class="btn btn-sm btn-outline-secondary float-right" type="button" data-toggle="collapse" data-target="#filtrosCollapse" aria-expanded="false">
+                        <i class="fa fa-chevron-down"></i>
+                    </button>
+                </h6>
+            </div>
+            <div class="collapse @if(request()->hasAny(['num_tienda', 'nombre_tienda', 'tipo_analitica'])) show @endif" id="filtrosCollapse">
+                <div class="card-body">
+                    <form method="GET" action="{{ route('evaluacion_analisis.list') }}">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="num_tienda">Número de Tienda</label>
+                                    <input type="text" name="num_tienda" id="num_tienda" class="form-control" 
+                                           value="{{ request('num_tienda') }}" placeholder="Buscar por número...">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="nombre_tienda">Nombre de Tienda</label>
+                                    <input type="text" name="nombre_tienda" id="nombre_tienda" class="form-control" 
+                                           value="{{ request('nombre_tienda') }}" placeholder="Buscar por nombre...">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="tipo_analitica">Tipo de Analítica</label>
+                                    <select name="tipo_analitica" id="tipo_analitica" class="form-control">
+                                        <option value="">-- Todos --</option>
+                                        <option value="Resultados agua" {{ request('tipo_analitica') == 'Resultados agua' ? 'selected' : '' }}>Resultados agua</option>
+                                        <option value="Tendencias superficie" {{ request('tipo_analitica') == 'Tendencias superficie' ? 'selected' : '' }}>Tendencias superficie</option>
+                                        <option value="Tendencias micro" {{ request('tipo_analitica') == 'Tendencias micro' ? 'selected' : '' }}>Tendencias micro</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fa fa-search mr-1"></i>Buscar
+                                </button>
+                                <a href="{{ route('evaluacion_analisis.list') }}" class="btn btn-secondary ml-2">
+                                    <i class="fa fa-times mr-1"></i>Limpiar filtros
+                                </a>
+                                @if(request()->hasAny(['num_tienda', 'nombre_tienda', 'tipo_analitica']))
+                                    <span class="badge badge-info ml-2">
+                                        <i class="fa fa-filter mr-1"></i>Filtros activos
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <table class="table table-hover table-striped table-bordered">
             <thead>
                 <tr>
@@ -350,7 +608,8 @@
                             <a href="#" class="btn btn-sm btn-primary btn-agregar-analitica-eval"
                                 data-tipo="{{ $a->tipo_analitica }}" data-tienda="{{ $a->num_tienda }}"
                                 data-nombre="{{ $a->tienda_nombre ?? (optional($a->tienda)->nombre_tienda ?? '') }}"
-                                data-prov="{{ $a->proveedor_id }}">
+                                data-prov="{{ $a->proveedor_id }}"
+                                data-prov-nombre="{{ optional($a->proveedor)->nombre_proveedor ?? '' }}">
                                 <i class="fa fa-plus mr-1"></i>Agregar Analítica
                             </a>
                         </td>
@@ -375,6 +634,7 @@
             var tienda = $(this).data('tienda');
             var nombre = $(this).data('nombre');
             var prov = $(this).data('prov');
+            var provNombre = $(this).data('prov-nombre');
             var modalMap = {
                 'Resultados agua': '#modal_resultados_agua',
                 'Tendencias superficie': '#modal_tendencias_superficie',
@@ -446,6 +706,45 @@
                     }
                 }
             }
+
+            // Si es modal Tendencias micro, rellenar num_tienda
+            if (target === '#modal_tendencias_micro') {
+                $modal.find('input.num_tienda_input').val(tienda);
+                // rellenar tienda_id si tenemos el mapping num_tienda -> id
+                try {
+                    if (tiendaMap[tienda]) {
+                        $modal.find('.tienda_id_input').val(tiendaMap[tienda]);
+                    } else {
+                        $modal.find('.tienda_id_input').val('');
+                    }
+                } catch (err) { /* no-op */ }
+                
+                // Precargar datos del proveedor si están disponibles
+                if (prov && provNombre) {
+                    $modal.find('.codigo_proveedor_input').val(prov);
+                    $modal.find('.nombre_proveedor_input').val(provNombre);
+                }
+                
+                // Si ya hay fecha en el campo, realizar el mismo parseo "split" que en la otra vista
+                var raw = $modal.find('.fecha_muestra_input').val() || '';
+                var first = raw.split(/\s+|T|\|/)[0];
+                if (first) {
+                    var parts = first.split('-');
+                    if (parts.length >= 3) {
+                        var y = parseInt(parts[0], 10);
+                        var m = parseInt(parts[1], 10);
+                        var d = parseInt(parts[2], 10);
+                        if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+                            $modal.find('.anio_input').val(y);
+                            $modal.find('.mes_input').val(('0' + m).slice(-2));
+                            var dateObj = new Date(y, m - 1, d);
+                            var onejan = new Date(y,0,1);
+                            var week = Math.ceil((((dateObj - onejan) / 86400000) + onejan.getDay()+1)/7);
+                            $modal.find('.semana_input').val(week);
+                        }
+                    }
+                }
+            }
         });
 
         // Limpieza al cerrar modales
@@ -474,6 +773,62 @@
                     var week = Math.ceil((((dateObj - onejan) / 86400000) + onejan.getDay()+1)/7);
                     $row.find('.semana_input').val(week);
                 }
+            }
+        });
+        
+        // Lookup de productos por código
+        $(document).on('blur', '.codigo_producto_input', function() {
+            var codigo = $(this).val().trim();
+            if (!codigo) {
+                $(this).closest('.modal').find('.nombre_producto_input').val('');
+                return;
+            }
+            
+            var $nombreInput = $(this).closest('.modal').find('.nombre_producto_input');
+            
+            $.get("{{ route('evaluacion_analisis.buscar_producto') }}", {
+                codigo: codigo
+            }).done(function(response) {
+                if (response.success) {
+                    $nombreInput.val(response.producto.descripcion);
+                } else {
+                    $nombreInput.val('Producto no encontrado');
+                }
+            }).fail(function() {
+                $nombreInput.val('Error al buscar producto');
+            });
+        });
+        
+        // Lookup de proveedores por código
+        $(document).on('blur', '.codigo_proveedor_input', function() {
+            var codigo = $(this).val().trim();
+            if (!codigo) {
+                $(this).closest('.modal').find('.nombre_proveedor_input').val('');
+                return;
+            }
+            
+            var $nombreInput = $(this).closest('.modal').find('.nombre_proveedor_input');
+            
+            $.get("{{ route('evaluacion_analisis.buscar_proveedor') }}", {
+                codigo: codigo
+            }).done(function(response) {
+                if (response.success) {
+                    $nombreInput.val(response.proveedor.nombre);
+                } else {
+                    $nombreInput.val('Proveedor no encontrado');
+                }
+            }).fail(function() {
+                $nombreInput.val('Error al buscar proveedor');
+            });
+        });
+
+        // Auto-dismiss flash success message after 4 seconds
+        $(function(){
+            var $flash = $('#flash-success');
+            if ($flash.length) {
+                setTimeout(function(){
+                    $flash.alert('close');
+                }, 4000);
             }
         });
     </script>
