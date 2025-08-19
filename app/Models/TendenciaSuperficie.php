@@ -12,7 +12,7 @@ class TendenciaSuperficie extends Model
     protected $table = 'tendencias_superficie';
 
     protected $fillable = [
-        'tienda_id', 'proveedor_id', 'fecha_muestra', 'anio', 'mes', 'semana',
+        'tienda_id', 'analitica_id', 'proveedor_id', 'fecha_muestra', 'anio', 'mes', 'semana',
         'codigo_centro', 'descripcion_centro', 'provincia', 'numero_muestras',
         'numero_factura', 'codigo_referencia', 'referencias',
         'aerobios_mesofilos_30c_valor','aerobios_mesofilos_30c_result',
@@ -29,5 +29,10 @@ class TendenciaSuperficie extends Model
     public function proveedor()
     {
         return $this->belongsTo(\App\Models\MainApp\Proveedor::class, 'proveedor_id', 'id_proveedor');
+    }
+
+    public function analitica()
+    {
+        return $this->belongsTo(\App\Models\Analitica::class);
     }
 }

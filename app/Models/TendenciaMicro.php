@@ -13,6 +13,7 @@ class TendenciaMicro extends Model
 
     protected $fillable = [
         'tienda_id',
+        'analitica_id',
         'proveedor_id',
         'fecha_toma_muestras',
         'anio',
@@ -57,5 +58,11 @@ class TendenciaMicro extends Model
     public function proveedor()
     {
         return $this->belongsTo('App\Models\Proveedor', 'proveedor_id', 'id_proveedor');
+    }
+
+    // Relación con la analítica
+    public function analitica()
+    {
+        return $this->belongsTo(\App\Models\Analitica::class);
     }
 }

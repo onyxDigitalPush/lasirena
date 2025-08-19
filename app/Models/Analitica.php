@@ -14,9 +14,10 @@ class Analitica extends Model
         'asesor_externo_nombre',
         'asesor_externo_empresa',
         'fecha_real_analitica',
-    'periodicidad',
-    'tipo_analitica',
-    'proveedor_id',
+        'fecha_realizacion',
+        'periodicidad',
+        'tipo_analitica',
+        'proveedor_id',
     ];
 
     public function tienda()
@@ -27,5 +28,16 @@ class Analitica extends Model
     public function proveedor()
     {
         return $this->belongsTo(\App\Models\MainApp\Proveedor::class, 'proveedor_id', 'id_proveedor');
+    }
+
+    // Relaciones con los resultados de analíticas
+    public function tendenciaSuperficie()
+    {
+        return $this->hasOne(\App\Models\TendenciaSuperficie::class);
+    }
+
+    public function tendenciaMicro()
+    {
+        return $this->hasOne(\App\Models\TendenciaMicro::class);
     }
 }

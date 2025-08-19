@@ -9,6 +9,9 @@
                 <form method="POST" action="@if($tipo === 'Tendencias superficie') {{ route('evaluacion_analisis.tendencias_superficie.guardar') }} @elseif($tipo === 'Tendencias micro') {{ route('evaluacion_analisis.tendencias_micro.guardar') }} @else {{ route('evaluacion_analisis.guardar_analitica') }} @endif">
                     @csrf
                     <input type="hidden" name="num_tienda" class="num_tienda_input">
+                    <input type="hidden" name="modo_edicion" class="modo_edicion_input" value="agregar">
+                    <input type="hidden" name="id_registro" class="id_registro_input">
+                    <input type="hidden" name="analitica_id" class="analitica_id_input">
                     <div class="modal-header bg-primary text-white">
                         <h5 class="modal-title" id="{{ $modalId }}Label">Agregar Analítica - {{ $tipo }}
                         </h5>
@@ -590,6 +593,7 @@
                     <th class="text-center">Nombre Tienda</th>
                     <th class="text-center">Tipo Analítica</th>
                     <th class="text-center">Fecha Real</th>
+                    <th class="text-center">Estado</th>
                     <th class="text-center">Periodicidad</th>
                     <th class="text-center">Proveedor</th>
                     <th class="text-center">Acciones</th>
@@ -597,21 +601,100 @@
             </thead>
             <tbody>
                 @foreach ($analiticas as $a)
-                    <tr>
+                    @php
+                        $tieneResultados = false;
+                        $fechaRealizacion = null;
+                        
+                        // Verificar si existen resultados según el tipo y analítica específica
+                        if ($a->tipo_analitica === 'Resultados agua') {
+                            // Para resultados agua, usar la relación directa si existe
+                            $tieneResultados = $a->created_at !== null;
+                            $fechaRealizacion = $a->created_at ? $a->created_at->format('d/m/Y') : null;
+                        } elseif ($a->tipo_analitica === 'Tendencias superficie') {
+                            // Buscar tendencia superficie específica de esta analítica
+                            $tienda = \App\Models\Tienda::where('num_tienda', $a->num_tienda)->first();
+                            if ($tienda) {
+                                // Buscar por analitica_id si existe, sino por tienda y fecha aproximada
+                                $resultado = \App\Models\TendenciaSuperficie::where('tienda_id', $tienda->id)
+                                    ->when($a->id, function($query) use ($a) {
+                                        return $query->where('analitica_id', $a->id);
+                                    })
+                                    ->when(!$a->id, function($query) use ($a) {
+                                        // Fallback: buscar por fecha cercana
+                                        $fechaAnalisis = \Carbon\Carbon::parse($a->fecha_real_analitica);
+                                        return $query->whereDate('created_at', '>=', $fechaAnalisis->subDays(1))
+                                                   ->whereDate('created_at', '<=', $fechaAnalisis->addDays(1));
+                                    })
+                                    ->first();
+                                $tieneResultados = $resultado && $resultado->created_at;
+                                $fechaRealizacion = $resultado ? $resultado->created_at->format('d/m/Y') : null;
+                            }
+                        } elseif ($a->tipo_analitica === 'Tendencias micro') {
+                            // Buscar tendencia micro específica de esta analítica
+                            $tienda = \App\Models\Tienda::where('num_tienda', $a->num_tienda)->first();
+                            if ($tienda) {
+                                // Buscar por analitica_id si existe, sino por tienda y fecha aproximada
+                                $resultado = \App\Models\TendenciaMicro::where('tienda_id', $tienda->id)
+                                    ->when($a->id, function($query) use ($a) {
+                                        return $query->where('analitica_id', $a->id);
+                                    })
+                                    ->when(!$a->id, function($query) use ($a) {
+                                        // Fallback: buscar por fecha cercana
+                                        $fechaAnalisis = \Carbon\Carbon::parse($a->fecha_real_analitica);
+                                        return $query->whereDate('created_at', '>=', $fechaAnalisis->subDays(1))
+                                                   ->whereDate('created_at', '<=', $fechaAnalisis->addDays(1));
+                                    })
+                                    ->first();
+                                $tieneResultados = $resultado && $resultado->created_at;
+                                $fechaRealizacion = $resultado ? $resultado->created_at->format('d/m/Y') : null;
+                            }
+                        }
+                    @endphp
+                    <tr class="{{ $tieneResultados ? 'table-success' : '' }}">
                         <td class="text-center">{{ $a->num_tienda }}</td>
                         <td class="text-center">{{ $a->tienda_nombre ?? (optional($a->tienda)->nombre_tienda ?? '-') }}</td>
                         <td class="text-center">{{ $a->tipo_analitica }}</td>
                         <td class="text-center">{{ $a->fecha_real_analitica }}</td>
+
+                        <!-- Estado: muestra realizada o pendiente -->
+                        <td class="text-center">
+                            @if($tieneResultados)
+                                <span class="badge badge-success">
+                                    <i class="fa fa-check mr-1"></i>Realizada el {{ $fechaRealizacion }}
+                                </span>
+                            @else
+                                <span class="badge badge-warning">Pendiente</span>
+                            @endif
+                        </td>
+
                         <td class="text-center">{{ $a->periodicidad }}</td>
                         <td class="text-center">{{ optional($a->proveedor)->nombre_proveedor ?? '-' }}</td>
+
+                        <!-- Acciones: Editar (si existe) y Agregar -->
                         <td class="text-center">
-                            <a href="#" class="btn btn-sm btn-primary btn-agregar-analitica-eval"
-                                data-tipo="{{ $a->tipo_analitica }}" data-tienda="{{ $a->num_tienda }}"
-                                data-nombre="{{ $a->tienda_nombre ?? (optional($a->tienda)->nombre_tienda ?? '') }}"
-                                data-prov="{{ $a->proveedor_id }}"
-                                data-prov-nombre="{{ optional($a->proveedor)->nombre_proveedor ?? '' }}">
-                                <i class="fa fa-plus mr-1"></i>Agregar Analítica
-                            </a>
+                            <div class="btn-group" role="group">
+                                @if($tieneResultados)
+                                                <a href="#" class="btn btn-sm btn-warning mr-1 btn-editar-analitica-eval"
+                                                    data-analitica-id="{{ $a->id }}"
+                                                    data-tipo="{{ $a->tipo_analitica }}" data-tienda="{{ $a->num_tienda }}"
+                                                    data-nombre="{{ $a->tienda_nombre ?? (optional($a->tienda)->nombre_tienda ?? '') }}"
+                                                    data-prov="{{ $a->proveedor_id }}"
+                                                    data-prov-nombre="{{ optional($a->proveedor)->nombre_proveedor ?? '' }}"
+                                                    data-modo="editar">
+                                        <i class="fa fa-edit mr-1"></i>Editar
+                                    </a>
+                                @endif
+
+                                <a href="#" class="btn btn-sm btn-primary btn-agregar-analitica-eval"
+                                    data-analitica-id="{{ $a->id }}"
+                                    data-tipo="{{ $a->tipo_analitica }}" data-tienda="{{ $a->num_tienda }}"
+                                    data-nombre="{{ $a->tienda_nombre ?? (optional($a->tienda)->nombre_tienda ?? '') }}"
+                                    data-prov="{{ $a->proveedor_id }}"
+                                    data-prov-nombre="{{ optional($a->proveedor)->nombre_proveedor ?? '' }}"
+                                    data-modo="agregar">
+                                    <i class="fa fa-plus mr-1"></i>{{ $tieneResultados ? 'Agregar Nueva' : 'Agregar Analítica' }}
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 @endforeach
@@ -624,17 +707,45 @@
     </div>
 @endsection
 @section('custom_footer')
+    <style>
+        /* Estilo para filas de analíticas realizadas */
+        .table-success {
+            background-color: #d4edda !important;
+        }
+        
+        /* Hover effect para las filas */
+        .table-success:hover {
+            background-color: #c3e6cb !important;
+        }
+        
+        /* Badge de estado realizada */
+        .badge-success {
+            background-color: #28a745;
+        }
+        
+        /* Separación entre botones */
+        .btn-group .btn {
+            margin-right: 5px;
+        }
+        
+        .btn-group .btn:last-child {
+            margin-right: 0;
+        }
+    </style>
     <script>
     var tendenciasGuardarUrl = "{{ route('evaluacion_analisis.tendencias_superficie.guardar') }}";
     var tiendaMap = {!! \App\Models\Tienda::pluck('id','num_tienda')->toJson() !!};
         // Evitar duplicar jQuery/Bootstrap: usar los cargados en includes/head_common.blade.php
-        $(document).on('click', '.btn-agregar-analitica-eval', function(e) {
+        $(document).on('click', '.btn-agregar-analitica-eval, .btn-editar-analitica-eval', function(e) {
             e.preventDefault();
             var tipo = $(this).data('tipo');
             var tienda = $(this).data('tienda');
             var nombre = $(this).data('nombre');
             var prov = $(this).data('prov');
             var provNombre = $(this).data('prov-nombre');
+            var modo = $(this).data('modo') || 'agregar';
+            var esEdicion = modo === 'editar';
+            
             var modalMap = {
                 'Resultados agua': '#modal_resultados_agua',
                 'Tendencias superficie': '#modal_tendencias_superficie',
@@ -650,8 +761,34 @@
             });
             $('body').removeClass('modal-open');
 
+            // Configurar modo de edición
+            $modal.find('.modo_edicion_input').val(modo);
             $modal.find('.num_tienda_input').val(tienda);
+            // Si el botón tiene data-analitica-id, setearlo
+            var analiticaIdFromBtn = $(this).data('analitica-id') || $(this).data('analiticaId') || $(this).data('analitica');
+            if (analiticaIdFromBtn) {
+                $modal.find('.analitica_id_input').val(analiticaIdFromBtn);
+            }
+            
+            // Cambiar título del modal
+            var nuevoTitulo = esEdicion ? 'Editar Analítica - ' + tipo : 'Agregar Analítica - ' + tipo;
+            $modal.find('.modal-title').text(nuevoTitulo);
+            
+            // Cambiar texto del botón submit
+            var $submitBtn = $modal.find('button[type="submit"]');
+            $submitBtn.text(esEdicion ? 'Actualizar Analítica' : 'Guardar Analítica');
+
             if (prov) $modal.find('.proveedor_select').val(prov);
+            
+            // Si es modo edición, cargar datos existentes
+            if (esEdicion) {
+                cargarDatosExistentes($modal, tipo, tienda);
+            } else {
+                // Limpiar formulario para modo agregar
+                // NO limpiar el _token CSRF ni el id_registro ni num_tienda ni el campo de modo
+                $modal.find('input, select, textarea').not('.num_tienda_input, .modo_edicion_input, .id_registro_input, .analitica_id_input, input[name="_token"]').val('');
+            }
+            
             $modal.modal({
                 show: true,
                 backdrop: true
@@ -747,10 +884,58 @@
             }
         });
 
+        // Función para cargar datos existentes cuando se edita
+        function cargarDatosExistentes($modal, tipo, tienda) {
+            var endpoint = '';
+            if (tipo === 'Resultados agua') {
+                endpoint = '{{ route("evaluacion_analisis.obtener_datos") }}';
+            } else if (tipo === 'Tendencias superficie') {
+                endpoint = '{{ route("evaluacion_analisis.obtener_datos") }}';
+            } else if (tipo === 'Tendencias micro') {
+                endpoint = '{{ route("evaluacion_analisis.obtener_datos") }}';
+            }
+            
+            if (endpoint) {
+                $.get(endpoint, {
+                    num_tienda: tienda,
+                    tipo: tipo
+                }).done(function(response) {
+                    if (response.success && response.data) {
+                        var data = response.data;
+                        
+                        // Rellenar campos según el tipo
+                        Object.keys(data).forEach(function(key) {
+                            var $input = $modal.find('[name="' + key + '"]');
+                            if ($input.length) {
+                                $input.val(data[key]);
+                            }
+                        });
+                        
+                        // Guardar ID para el update
+                        if (data.id) {
+                            $modal.find('.id_registro_input').val(data.id);
+                        }
+                        // Si la respuesta incluye analitica_id, guardarlo en el campo oculto
+                        if (data.analitica_id) {
+                            $modal.find('.analitica_id_input').val(data.analitica_id);
+                        }
+                    }
+                }).fail(function() {
+                    alert('Error al cargar los datos existentes');
+                });
+            }
+        }
+
         // Limpieza al cerrar modales
         $(document).on('hidden.bs.modal', '.modal', function() {
             $('.modal-backdrop').remove();
             $('body').removeClass('modal-open');
+            
+            // Resetear formulario al cerrar
+            $(this).find('.modo_edicion_input').val('agregar');
+            $(this).find('.id_registro_input').val('');
+            $(this).find('.modal-title').text($(this).find('.modal-title').text().replace('Editar', 'Agregar'));
+            $(this).find('button[type="submit"]').text('Guardar Analítica');
         });
 
         // Actualizar año/mes al cambiar fecha de muestra

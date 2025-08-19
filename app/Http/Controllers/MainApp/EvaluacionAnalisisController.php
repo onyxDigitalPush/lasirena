@@ -66,9 +66,22 @@ class EvaluacionAnalisisController extends Controller
     }
     public function guardarAnalitica(Request $request)
     {
-        Analitica::create($request->all());
-
-        return redirect()->back()->with('success', 'Analítica guardada correctamente.');
+        $modo = $request->input('modo_edicion', 'agregar');
+        
+        if ($modo === 'editar' && $request->filled('id_registro')) {
+            // Actualizar registro existente
+            $analitica = Analitica::find($request->id_registro);
+            if ($analitica) {
+                $analitica->update($request->except(['modo_edicion', 'id_registro', '_token']));
+                return redirect()->back()->with('success', 'Analítica actualizada correctamente.');
+            } else {
+                return redirect()->back()->with('error', 'No se encontró la analítica a actualizar.');
+            }
+        } else {
+            // Crear nuevo registro
+            Analitica::create($request->except(['modo_edicion', 'id_registro']));
+            return redirect()->back()->with('success', 'Analítica guardada correctamente.');
+        }
     }
 
     public function evaluacionList(Request $request)
@@ -212,6 +225,48 @@ class EvaluacionAnalisisController extends Controller
                 $resultado->fecha_limite = null;
                 $resultado->dias_restantes = null;
             }
+
+            // Determinar si la entrada ya tiene datos/resultados asociados (fecha_realizacion)
+            $resultado->fecha_realizacion = null;
+            $resultado->realizada = false;
+
+            try {
+                if (isset($resultado->tabla_origen) && $resultado->tabla_origen === 'analitica') {
+                    // Buscar la analítica por id y revisar campo fecha_realizacion o registros vinculados
+                    $anal = Analitica::find($resultado->id);
+                    if ($anal) {
+                        if (!empty($anal->fecha_realizacion)) {
+                            $resultado->fecha_realizacion = $anal->fecha_realizacion;
+                            $resultado->realizada = true;
+                        } else {
+                            // Comprobar si hay tendencias vinculadas a esta analítica
+                            $ts = TendenciaSuperficie::where('analitica_id', $anal->id)->orderByDesc('created_at')->first();
+                            if ($ts) {
+                                $resultado->fecha_realizacion = $ts->fecha_muestra ?? ($ts->created_at ? $ts->created_at->format('Y-m-d') : null);
+                                $resultado->realizada = true;
+                            } else {
+                                $tm = TendenciaMicro::where('analitica_id', $anal->id)->orderByDesc('created_at')->first();
+                                if ($tm) {
+                                    $resultado->fecha_realizacion = $tm->fecha_toma_muestras ?? ($tm->created_at ? $tm->created_at->format('Y-m-d') : null);
+                                    $resultado->realizada = true;
+                                }
+                            }
+                        }
+                    }
+                } elseif (isset($resultado->tabla_origen) && $resultado->tabla_origen === 'superficie') {
+                    // Este registro ya proviene de TendenciaSuperficie -> considerar realizada
+                    $resultado->fecha_realizacion = $resultado->fecha_real_analitica ?: null;
+                    $resultado->realizada = true;
+                } elseif (isset($resultado->tabla_origen) && $resultado->tabla_origen === 'micro') {
+                    // Registro de TendenciaMicro
+                    $resultado->fecha_realizacion = $resultado->fecha_real_analitica ?: null;
+                    $resultado->realizada = true;
+                }
+            } catch (\Exception $e) {
+                // No interrumpir la carga si alguna comprobación lanza error
+                $resultado->fecha_realizacion = $resultado->fecha_realizacion ?? null;
+                $resultado->realizada = $resultado->realizada ?? false;
+            }
         }
 
         $proveedores = Proveedor::select('id_proveedor', 'nombre_proveedor')
@@ -244,6 +299,7 @@ class EvaluacionAnalisisController extends Controller
     {
         $data = $request->validate([
             'tienda_id' => 'nullable|exists:tiendas,id',
+            'analitica_id' => 'nullable|exists:analiticas,id',
             'num_tienda' => 'nullable|string',
             'proveedor_id' => 'nullable|exists:proveedores,id_proveedor',
             'fecha_muestra' => 'nullable|date',
@@ -287,12 +343,30 @@ class EvaluacionAnalisisController extends Controller
             }
         }
 
+        // Aceptar analitica_id si viene en el request
+        if ($request->filled('analitica_id')) {
+            $data['analitica_id'] = $request->input('analitica_id');
+        }
+
         // Eliminar num_tienda si existe para evitar columnas inesperadas
         if (isset($data['num_tienda'])) unset($data['num_tienda']);
 
-        TendenciaSuperficie::create($data);
-
-        return redirect()->back()->with('success', 'Tendencia superficie guardada correctamente.');
+        $modo = $request->input('modo_edicion', 'agregar');
+        
+        if ($modo === 'editar' && $request->filled('id_registro')) {
+            // Actualizar registro existente
+            $tendencia = TendenciaSuperficie::find($request->id_registro);
+            if ($tendencia) {
+                $tendencia->update($data);
+                return redirect()->back()->with('success', 'Tendencia superficie actualizada correctamente.');
+            } else {
+                return redirect()->back()->with('error', 'No se encontró la tendencia superficie a actualizar.');
+            }
+        } else {
+            // Crear nuevo registro
+            TendenciaSuperficie::create($data);
+            return redirect()->back()->with('success', 'Tendencia superficie guardada correctamente.');
+        }
     }
 
     // Listar tendencias micro
@@ -310,6 +384,7 @@ class EvaluacionAnalisisController extends Controller
     {
         $request->validate([
             'fecha_toma_muestras' => 'required|date',
+            'analitica_id' => 'nullable|exists:analiticas,id',
             'codigo_producto' => 'nullable|string',
             'codigo_proveedor' => 'nullable|string',
         ]);
@@ -324,12 +399,30 @@ class EvaluacionAnalisisController extends Controller
             }
         }
 
+        // Aceptar analitica_id si viene en el request
+        if ($request->filled('analitica_id')) {
+            $data['analitica_id'] = $request->input('analitica_id');
+        }
+
         // Eliminar num_tienda si existe para evitar columnas inesperadas
         if (isset($data['num_tienda'])) unset($data['num_tienda']);
 
-        TendenciaMicro::create($data);
-
-        return redirect()->back()->with('success', 'Tendencia micro guardada correctamente.');
+        $modo = $request->input('modo_edicion', 'agregar');
+        
+        if ($modo === 'editar' && $request->filled('id_registro')) {
+            // Actualizar registro existente
+            $tendencia = TendenciaMicro::find($request->id_registro);
+            if ($tendencia) {
+                $tendencia->update($data);
+                return redirect()->back()->with('success', 'Tendencia micro actualizada correctamente.');
+            } else {
+                return redirect()->back()->with('error', 'No se encontró la tendencia micro a actualizar.');
+            }
+        } else {
+            // Crear nuevo registro
+            TendenciaMicro::create($data);
+            return redirect()->back()->with('success', 'Tendencia micro guardada correctamente.');
+        }
     }
 
     // Buscar producto por código
@@ -375,23 +468,65 @@ class EvaluacionAnalisisController extends Controller
     {
         $tipo = $request->tipo;
         $id = $request->id;
+        $num_tienda = $request->num_tienda;
         
-        switch ($tipo) {
-            case 'analitica':
-                $datos = Analitica::with('proveedor')->find($id);
-                break;
-            case 'superficie':
-                $datos = TendenciaSuperficie::with(['tienda', 'proveedor'])->find($id);
-                break;
-            case 'micro':
-                $datos = TendenciaMicro::with(['tienda', 'proveedor'])->find($id);
-                break;
-            default:
-                return response()->json(['success' => false]);
+        // Si solo se envía ID (sin tipo), intentar buscar en la tabla analiticas
+        if ($id && !$tipo) {
+            $datos = Analitica::with('proveedor')->find($id);
+            if ($datos) {
+                return response()->json(['success' => true, 'analitica' => $datos]);
+            }
+            return response()->json(['success' => false, 'message' => 'Analítica no encontrada']);
+        }
+        
+        // Si se proporciona num_tienda y tipo, buscar por esos campos
+        if ($num_tienda && $tipo) {
+            switch ($tipo) {
+                case 'Resultados agua':
+                    $datos = Analitica::where('num_tienda', $num_tienda)->with('proveedor')->first();
+                    break;
+                case 'Tendencias superficie':
+                    // Buscar por tienda_id relacionando con num_tienda
+                    $tienda = Tienda::where('num_tienda', $num_tienda)->first();
+                    if ($tienda) {
+                        $datos = TendenciaSuperficie::where('tienda_id', $tienda->id)->with(['tienda', 'proveedor'])->first();
+                    } else {
+                        $datos = null;
+                    }
+                    break;
+                case 'Tendencias micro':
+                    // Buscar por tienda_id relacionando con num_tienda
+                    $tienda = Tienda::where('num_tienda', $num_tienda)->first();
+                    if ($tienda) {
+                        $datos = TendenciaMicro::where('tienda_id', $tienda->id)->with(['tienda', 'proveedor'])->first();
+                    } else {
+                        $datos = null;
+                    }
+                    break;
+                default:
+                    return response()->json(['success' => false]);
+            }
+        } else if ($id) {
+            // Búsqueda original por ID
+            switch ($tipo) {
+                case 'analitica':
+                    $datos = Analitica::with('proveedor')->find($id);
+                    break;
+                case 'superficie':
+                    $datos = TendenciaSuperficie::with(['tienda', 'proveedor'])->find($id);
+                    break;
+                case 'micro':
+                    $datos = TendenciaMicro::with(['tienda', 'proveedor'])->find($id);
+                    break;
+                default:
+                    return response()->json(['success' => false]);
+            }
+        } else {
+            return response()->json(['success' => false]);
         }
         
         if ($datos) {
-            return response()->json(['success' => true, 'datos' => $datos]);
+            return response()->json(['success' => true, 'data' => $datos]);
         }
         
         return response()->json(['success' => false]);

@@ -15,6 +15,8 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" name="num_tienda" id="tienda_id_modal">
+                    <input type="hidden" name="modo_edicion" id="modo_edicion_modal" value="agregar">
+                    <input type="hidden" name="id_registro" id="id_registro_modal">
                     <div class="form-group">
                         <label for="asesor_externo_nombre">Asesor Externo - Nombre</label>
                         <input type="text" class="form-control" name="asesor_externo_nombre" required>
@@ -100,6 +102,7 @@
                     <th class="text-center">Nombre Tienda</th>
                     <th class="text-center">Dirección</th>
                     <th class="text-center">Responsable</th>
+                    <th class="text-center">Analíticas Existentes</th>
                     <th class="text-center">Agregar Analítica</th>
                     <th class="text-center">Estado Analítica</th>
                 </tr>
@@ -111,6 +114,26 @@
                         <td class="text-center">{{ $tienda->nombre_tienda }}</td>
                         <td class="text-center">{{ $tienda->direccion_tienda }}</td>
                         <td class="text-center">{{ $tienda->responsable }}</td>
+                        <td class="text-center">
+                            <!-- Analíticas existentes -->
+                            @if($tienda->analiticas && $tienda->analiticas->count() > 0)
+                                @foreach($tienda->analiticas as $analitica)
+                                    <div class="mb-2 p-2 border rounded" style="background-color: #f8f9fa;">
+                                        <strong>{{ $analitica->tipo_analitica }}</strong><br>
+                                        <small>{{ $analitica->fecha_real_analitica }}</small><br>
+                                        <small>{{ $analitica->periodicidad }}</small><br>
+                                        <button class="btn btn-sm btn-warning btn-editar-analitica" 
+                                                data-analitica-id="{{ $analitica->id }}"
+                                                data-tienda-id="{{ $tienda->num_tienda }}"
+                                                data-tienda-nombre="{{ $tienda->nombre_tienda }}">
+                                            <i class="fa fa-edit"></i> Editar
+                                        </button>
+                                    </div>
+                                @endforeach
+                            @else
+                                <span class="text-muted">Sin analíticas</span>
+                            @endif
+                        </td>
                         <td class="text-center">
                             <a class="m-2 btn btn-primary btn-agregar-analitica" href="#" data-toggle="modal"
                                 data-target="#modalAgregarAnalitica" data-id="{{ $tienda->num_tienda }}"
@@ -156,9 +179,57 @@
             console.log('Click en btn-agregar-analitica');
             var tiendaId = $(this).attr('data-id');
             var tiendaNombre = $(this).attr('data-nombre');
+            
+            // Limpiar el formulario y configurar para agregar
+            $('#formAgregarAnalitica')[0].reset();
+            $('#modo_edicion').val('agregar');
+            $('#id_registro').val('');
+            $('#modalAgregarAnaliticaLabel').text('Agregar Analítica a ' + tiendaNombre);
+            
             $('#tienda_id_modal').val(tiendaId);
             $('#nombreTiendaModal').text(tiendaNombre);
             $('#modalAgregarAnalitica').modal('show');
+        });
+
+        // Nuevo manejador para editar analíticas
+        $(document).on('click', '.btn-editar-analitica', function(e) {
+            e.preventDefault();
+            var analiticaId = $(this).attr('data-analitica-id');
+            var tiendaId = $(this).attr('data-tienda-id');
+            var tiendaNombre = $(this).attr('data-tienda-nombre');
+            
+            // Configurar modal para edición
+            $('#modalAgregarAnaliticaLabel').text('Editar Analítica de ' + tiendaNombre);
+            $('#modo_edicion').val('editar');
+            $('#id_registro').val(analiticaId);
+            $('#tienda_id_modal').val(tiendaId);
+            $('#nombreTiendaModal').text(tiendaNombre);
+            
+            // Cargar datos de la analítica
+            $.ajax({
+                url: '/evaluacion_analisis/obtener-datos',
+                type: 'GET',
+                data: { id: analiticaId },
+                success: function(data) {
+                    // Llenar el formulario con los datos
+                    if (data.success) {
+                        var analitica = data.analitica;
+                        $('input[name="fecha_real_analitica"]').val(analitica.fecha_real_analitica);
+                        $('input[name="asesor_externo_nombre"]').val(analitica.asesor_externo_nombre);
+                        $('input[name="asesor_externo_empresa"]').val(analitica.asesor_externo_empresa);
+                        $('select[name="periodicidad"]').val(analitica.periodicidad);
+                        $('select[name="tipo_analitica"]').val(analitica.tipo_analitica);
+                        $('select[name="proveedor_id"]').val(analitica.proveedor_id);
+                        
+                        $('#modalAgregarAnalitica').modal('show');
+                    } else {
+                        alert('Error al cargar los datos: ' + data.message);
+                    }
+                },
+                error: function() {
+                    alert('Error al cargar los datos de la analítica');
+                }
+            });
         });
     }
 </script>

@@ -50,6 +50,8 @@ return array(
     'App\\Models\\MainApp\\Project' => $baseDir . '/app/Models/MainApp/Project.php',
     'App\\Models\\MainApp\\Proveedor' => $baseDir . '/app/Models/MainApp/Proveedor.php',
     'App\\Models\\MainApp\\ProveedorMetric' => $baseDir . '/app/Models/MainApp/ProveedorMetric.php',
+    'App\\Models\\TendenciaMicro' => $baseDir . '/app/Models/TendenciaMicro.php',
+    'App\\Models\\TendenciaSuperficie' => $baseDir . '/app/Models/TendenciaSuperficie.php',
     'App\\Models\\Tienda' => $baseDir . '/app/Models/Tienda.php',
     'App\\Models\\User' => $baseDir . '/app/Models/User.php',
     'App\\Providers\\AppServiceProvider' => $baseDir . '/app/Providers/AppServiceProvider.php',

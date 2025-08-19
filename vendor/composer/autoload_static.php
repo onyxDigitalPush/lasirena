@@ -671,6 +671,8 @@ class ComposerStaticInit705fb73970ef4b361891267ba219e830
         'App\\Models\\MainApp\\Project' => __DIR__ . '/../..' . '/app/Models/MainApp/Project.php',
         'App\\Models\\MainApp\\Proveedor' => __DIR__ . '/../..' . '/app/Models/MainApp/Proveedor.php',
         'App\\Models\\MainApp\\ProveedorMetric' => __DIR__ . '/../..' . '/app/Models/MainApp/ProveedorMetric.php',
+        'App\\Models\\TendenciaMicro' => __DIR__ . '/../..' . '/app/Models/TendenciaMicro.php',
+        'App\\Models\\TendenciaSuperficie' => __DIR__ . '/../..' . '/app/Models/TendenciaSuperficie.php',
         'App\\Models\\Tienda' => __DIR__ . '/../..' . '/app/Models/Tienda.php',
         'App\\Models\\User' => __DIR__ . '/../..' . '/app/Models/User.php',
         'App\\Providers\\AppServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AppServiceProvider.php',
