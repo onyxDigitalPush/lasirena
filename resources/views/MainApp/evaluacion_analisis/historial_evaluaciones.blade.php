@@ -69,6 +69,50 @@
 
     <div class="page-title-wrapper">
         <div class="page-title-heading">
+<script>
+    // Toggle text for Mostrar N más / Mostrar menos
+    $(document).on('click', '.toggle-analiticas', function(e){
+        e.preventDefault();
+        var target = $(this).data('target');
+        var $target = $(target);
+        var moreText = $(this).data('more') || 'Mostrar más';
+        var lessText = $(this).data('less') || 'Mostrar menos';
+        $target.collapse('toggle');
+        var $link = $(this);
+        // wait a tick for collapse to change aria-expanded
+        setTimeout(function(){
+            var expanded = $target.hasClass('show');
+            $link.text(expanded ? lessText : moreText);
+        }, 300);
+    });
+
+    // Borrar analítica (AJAX DELETE) - usa la ruta nombrada 'evaluacion_analisis.eliminar'
+    $(document).on('click', '.btn-borrar-analitica', function(e){
+        e.preventDefault();
+        if(!confirm('Confirmar borrado de esta analítica?')) return;
+        var id = $(this).data('analitica-id');
+        var token = '{{ csrf_token() }}';
+        var url = '{{ route("evaluacion_analisis.eliminar") }}';
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: { id: id, tipo: 'analitica', _method: 'DELETE', _token: token },
+            success: function(resp){
+                if(resp.success){
+                    alert('Analítica borrada correctamente');
+                    location.reload();
+                } else {
+                    alert('No se pudo borrar: ' + (resp.message || 'error'));
+                }
+            },
+            error: function(xhr){
+                var msg = 'Error al borrar la analítica';
+                if(xhr.responseJSON && xhr.responseJSON.message) msg += ': ' + xhr.responseJSON.message;
+                alert(msg);
+            }
+        });
+    });
+</script>
             <div class="page-title-icon">
                 <i class="metismenu-icon fa fa-flask icon-gradient bg-secondary"></i>
             </div>
@@ -102,8 +146,8 @@
                     <th class="text-center">Nombre Tienda</th>
                     <th class="text-center">Dirección</th>
                     <th class="text-center">Responsable</th>
-                    <th class="text-center">Analíticas Existentes</th>
                     <th class="text-center">Agregar Analítica</th>
+                    <th class="text-center">Analíticas Existentes</th>
                     <th class="text-center">Estado Analítica</th>
                 </tr>
             </thead>
@@ -115,45 +159,178 @@
                         <td class="text-center">{{ $tienda->direccion_tienda }}</td>
                         <td class="text-center">{{ $tienda->responsable }}</td>
                         <td class="text-center">
-                            <!-- Analíticas existentes -->
-                            @if($tienda->analiticas && $tienda->analiticas->count() > 0)
-                                @foreach($tienda->analiticas as $analitica)
-                                    <div class="mb-2 p-2 border rounded" style="background-color: #f8f9fa;">
-                                        <strong>{{ $analitica->tipo_analitica }}</strong><br>
-                                        <small>{{ $analitica->fecha_real_analitica }}</small><br>
-                                        <small>{{ $analitica->periodicidad }}</small><br>
-                                        <button class="btn btn-sm btn-warning btn-editar-analitica" 
-                                                data-analitica-id="{{ $analitica->id }}"
-                                                data-tienda-id="{{ $tienda->num_tienda }}"
-                                                data-tienda-nombre="{{ $tienda->nombre_tienda }}">
-                                            <i class="fa fa-edit"></i> Editar
-                                        </button>
-                                    </div>
-                                @endforeach
-                            @else
-                                <span class="text-muted">Sin analíticas</span>
-                            @endif
-                        </td>
-                        <td class="text-center">
                             <a class="m-2 btn btn-primary btn-agregar-analitica" href="#" data-toggle="modal"
                                 data-target="#modalAgregarAnalitica" data-id="{{ $tienda->num_tienda }}"
                                 data-nombre="{{ $tienda->nombre_tienda }}">
                                 <i class="metismenu-icon fa fa-plus mr-2"></i>Agregar Analítica
                             </a>
                         </td>
-                        <td class="text-center"
-                            @if($tienda->analitica_vencida ?? false) style="background: #ffcccc; color: #a94442; font-weight: bold;" @endif>
-                            @if($tienda->fecha_ultima_analitica)
-                                Última: {{ $tienda->fecha_ultima_analitica }}<br>
-                                Periodicidad: {{ $tienda->periodicidad_ultima_analitica }}<br>
-                                @if($tienda->analitica_vencida)
-                                    Falta analítica
-                                @else
-                                    Al día
+                        <td class="text-center text-right" style="min-width: 260px;">
+                            {{-- Analíticas existentes: compactas, mostrar 2 y colapsar el resto --}}
+                            @if($tienda->analiticas && $tienda->analiticas->count() > 0)
+                                @php $totalAnal = $tienda->analiticas->count(); @endphp
+                                @foreach($tienda->analiticas->take(2) as $analitica)
+                                    <div class="d-flex justify-content-end align-items-center mb-1">
+                                        <div class="mr-2 text-right" style="min-width:160px;">
+                                            <strong style="display:block">{{ $analitica->tipo_analitica }}</strong>
+                                            <small style="display:block">{{ $analitica->fecha_real_analitica }}</small>
+                                            <small style="display:block">{{ $analitica->periodicidad }}</small>
+                                        </div>
+                                        <div class="text-right">
+                                            @php
+                                                $vencido = true;
+                                                if(!empty($analitica->fecha_real_analitica)){
+                                                    try {
+                                                        $f = \Carbon\Carbon::parse($analitica->fecha_real_analitica);
+                                                        switch($analitica->periodicidad){
+                                                            case '1 mes': $lim = $f->copy()->addMonth(); break;
+                                                            case '3 meses': $lim = $f->copy()->addMonths(3); break;
+                                                            case '6 meses': $lim = $f->copy()->addMonths(6); break;
+                                                            case 'anual': $lim = $f->copy()->addYear(); break;
+                                                            default: $lim = $f; break;
+                                                        }
+                                                        $vencido = now()->greaterThan($lim);
+                                                    } catch(\Exception $e) {
+                                                        $vencido = false;
+                                                    }
+                                                }
+                                            @endphp
+                                            <span class="badge {{ $vencido ? 'badge-danger' : 'badge-success' }}">{{ $vencido ? 'Vencida' : 'Al día' }}</span>
+                                            <button class="btn btn-sm btn-warning btn-editar-analitica ml-2" 
+                                                data-analitica-id="{{ $analitica->id }}"
+                                                data-tienda-id="{{ $tienda->num_tienda }}"
+                                                data-tienda-nombre="{{ $tienda->nombre_tienda }}">
+                                                <i class="fa fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger btn-borrar-analitica ml-2" 
+                                                data-analitica-id="{{ $analitica->id }}"
+                                                data-tienda-id="{{ $tienda->num_tienda }}">
+                                                Borrar
+                                            </button>
+                                        </div>
+                                    </div>
+                                @endforeach
+
+                                @if($totalAnal > 2)
+                                    <div class="collapse mt-2" id="collapseAnaliticas{{ $tienda->num_tienda }}">
+                                        @foreach($tienda->analiticas->slice(2) as $analitica)
+                                            <div class="d-flex justify-content-end align-items-center mb-1">
+                                                <div class="mr-2 text-right" style="min-width:160px;">
+                                                    <strong style="display:block">{{ $analitica->tipo_analitica }}</strong>
+                                                    <small style="display:block">{{ $analitica->fecha_real_analitica }}</small>
+                                                    <small style="display:block">{{ $analitica->periodicidad }}</small>
+                                                </div>
+                                                <div class="text-right">
+                                                    @php
+                                                        $vencido = true;
+                                                        if(!empty($analitica->fecha_real_analitica)){
+                                                            try {
+                                                                $f = \Carbon\Carbon::parse($analitica->fecha_real_analitica);
+                                                                switch($analitica->periodicidad){
+                                                                    case '1 mes': $lim = $f->copy()->addMonth(); break;
+                                                                    case '3 meses': $lim = $f->copy()->addMonths(3); break;
+                                                                    case '6 meses': $lim = $f->copy()->addMonths(6); break;
+                                                                    case 'anual': $lim = $f->copy()->addYear(); break;
+                                                                    default: $lim = $f; break;
+                                                                }
+                                                                $vencido = now()->greaterThan($lim);
+                                                            } catch(\Exception $e) {
+                                                                $vencido = false;
+                                                            }
+                                                        }
+                                                    @endphp
+                                                    <span class="badge {{ $vencido ? 'badge-danger' : 'badge-success' }}">{{ $vencido ? 'Vencida' : 'Al día' }}</span>
+                                                    <button class="btn btn-sm btn-warning btn-editar-analitica ml-2" 
+                                                        data-analitica-id="{{ $analitica->id }}"
+                                                        data-tienda-id="{{ $tienda->num_tienda }}"
+                                                        data-tienda-nombre="{{ $tienda->nombre_tienda }}">
+                                                        <i class="fa fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger btn-borrar-analitica ml-2" 
+                                                        data-analitica-id="{{ $analitica->id }}"
+                                                        data-tienda-id="{{ $tienda->num_tienda }}">
+                                                        Borrar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    <a class="btn btn-sm btn-link toggle-analiticas" href="#" data-target="#collapseAnaliticas{{ $tienda->num_tienda }}" data-more="Mostrar {{ $totalAnal - 2 }} más" data-less="Mostrar menos" role="button" aria-expanded="false">Mostrar {{ $totalAnal - 2 }} más</a>
                                 @endif
                             @else
-                                Sin analíticas registradas<br>
-                                <span style="color: #a94442;">Falta analítica</span>
+                                <span class="text-muted">Sin analíticas</span>
+                            @endif
+                        </td>
+                        <td class="text-right align-middle" style="min-width: 220px;">
+                            {{-- Mostrar estado por cada analítica, compactado (2 visibles + colapsable) --}}
+                            @if($tienda->analiticas && $tienda->analiticas->count() > 0)
+                                @php $totalAnalEstado = $tienda->analiticas->count(); @endphp
+                                @foreach($tienda->analiticas->take(2) as $anal)
+                                    <div class="d-flex justify-content-end align-items-center mb-1">
+                                        <div class="mr-2 text-right" style="min-width:140px;">
+                                            <small style="display:block">{{ $anal->tipo_analitica }}</small>
+                                            <small style="display:block">{{ $anal->fecha_real_analitica }}</small>
+                                        </div>
+                                        <div class="text-right">
+                                            @php
+                                                $vencido = true;
+                                                if(!empty($anal->fecha_real_analitica)){
+                                                    try {
+                                                        $f = \Carbon\Carbon::parse($anal->fecha_real_analitica);
+                                                        switch($anal->periodicidad){
+                                                            case '1 mes': $lim = $f->copy()->addMonth(); break;
+                                                            case '3 meses': $lim = $f->copy()->addMonths(3); break;
+                                                            case '6 meses': $lim = $f->copy()->addMonths(6); break;
+                                                            case 'anual': $lim = $f->copy()->addYear(); break;
+                                                            default: $lim = $f; break;
+                                                        }
+                                                        $vencido = now()->greaterThan($lim);
+                                                    } catch(\Exception $e) {
+                                                        $vencido = false;
+                                                    }
+                                                }
+                                            @endphp
+                                            <span class="badge {{ $vencido ? 'badge-danger' : 'badge-success' }}">{{ $vencido ? 'Vencida' : 'Al día' }}</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+
+                                @if($totalAnalEstado > 2)
+                                    <div class="collapse mt-2" id="collapseEstadoAnaliticas{{ $tienda->num_tienda }}">
+                                        @foreach($tienda->analiticas->slice(2) as $anal)
+                                            <div class="d-flex justify-content-end align-items-center mb-1">
+                                                <div class="mr-2 text-right" style="min-width:140px;">
+                                                    <small style="display:block">{{ $anal->tipo_analitica }}</small>
+                                                    <small style="display:block">{{ $anal->fecha_real_analitica }}</small>
+                                                </div>
+                                                <div class="text-right">
+                                                    @php
+                                                        $vencido = true;
+                                                        if(!empty($anal->fecha_real_analitica)){
+                                                            try {
+                                                                $f = \Carbon\Carbon::parse($anal->fecha_real_analitica);
+                                                                switch($anal->periodicidad){
+                                                                    case '1 mes': $lim = $f->copy()->addMonth(); break;
+                                                                    case '3 meses': $lim = $f->copy()->addMonths(3); break;
+                                                                    case '6 meses': $lim = $f->copy()->addMonths(6); break;
+                                                                    case 'anual': $lim = $f->copy()->addYear(); break;
+                                                                    default: $lim = $f; break;
+                                                                }
+                                                                $vencido = now()->greaterThan($lim);
+                                                            } catch(\Exception $e) {
+                                                                $vencido = false;
+                                                            }
+                                                        }
+                                                    @endphp
+                                                    <span class="badge {{ $vencido ? 'badge-danger' : 'badge-success' }}">{{ $vencido ? 'Vencida' : 'Al día' }}</span>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    <a class="btn btn-sm btn-link toggle-analiticas" href="#" data-target="#collapseEstadoAnaliticas{{ $tienda->num_tienda }}" data-more="Mostrar {{ $totalAnalEstado - 2 }} más" data-less="Mostrar menos" role="button" aria-expanded="false">Mostrar {{ $totalAnalEstado - 2 }} más</a>
+                                @endif
+                            @else
+                                <span class="text-muted">Sin analíticas</span>
                             @endif
                         </td>
                     </tr>
@@ -182,8 +359,8 @@
             
             // Limpiar el formulario y configurar para agregar
             $('#formAgregarAnalitica')[0].reset();
-            $('#modo_edicion').val('agregar');
-            $('#id_registro').val('');
+            $('#modo_edicion_modal').val('agregar');
+            $('#id_registro_modal').val('');
             $('#modalAgregarAnaliticaLabel').text('Agregar Analítica a ' + tiendaNombre);
             
             $('#tienda_id_modal').val(tiendaId);
@@ -200,31 +377,37 @@
             
             // Configurar modal para edición
             $('#modalAgregarAnaliticaLabel').text('Editar Analítica de ' + tiendaNombre);
-            $('#modo_edicion').val('editar');
-            $('#id_registro').val(analiticaId);
+            $('#modo_edicion_modal').val('editar');
+            $('#id_registro_modal').val(analiticaId);
             $('#tienda_id_modal').val(tiendaId);
             $('#nombreTiendaModal').text(tiendaNombre);
             
             // Cargar datos de la analítica
             $.ajax({
-                url: '/evaluacion_analisis/obtener-datos',
+                url: '{{ route("evaluacion_analisis.obtener_datos") }}',
                 type: 'GET',
                 data: { id: analiticaId },
                 success: function(data) {
-                    // Llenar el formulario con los datos
-                    if (data.success) {
-                        var analitica = data.analitica;
-                        $('input[name="fecha_real_analitica"]').val(analitica.fecha_real_analitica);
-                        $('input[name="asesor_externo_nombre"]').val(analitica.asesor_externo_nombre);
-                        $('input[name="asesor_externo_empresa"]').val(analitica.asesor_externo_empresa);
-                        $('select[name="periodicidad"]').val(analitica.periodicidad);
-                        $('select[name="tipo_analitica"]').val(analitica.tipo_analitica);
-                        $('select[name="proveedor_id"]').val(analitica.proveedor_id);
-                        
-                        $('#modalAgregarAnalitica').modal('show');
-                    } else {
-                        alert('Error al cargar los datos: ' + data.message);
+                    if (!data || !data.success) {
+                        alert('Error al cargar los datos: ' + (data && data.message ? data.message : 'error'));
+                        return;
                     }
+                    var analitica = data.analitica || data.data;
+                    // Si la analítica ya está realizada, no permitir edición
+                    if (analitica.realizada) {
+                        alert('No se puede editar: la analítica ya fue realizada o tiene resultados asociados.');
+                        return;
+                    }
+
+                    // Llenar el formulario con los datos para edición
+                    $('input[name="fecha_real_analitica"]').val(analitica.fecha_real_analitica);
+                    $('input[name="asesor_externo_nombre"]').val(analitica.asesor_externo_nombre);
+                    $('input[name="asesor_externo_empresa"]').val(analitica.asesor_externo_empresa);
+                    $('select[name="periodicidad"]').val(analitica.periodicidad);
+                    $('select[name="tipo_analitica"]').val(analitica.tipo_analitica);
+                    $('select[name="proveedor_id"]').val(analitica.proveedor_id);
+                    
+                    $('#modalAgregarAnalitica').modal('show');
                 },
                 error: function() {
                     alert('Error al cargar los datos de la analítica');

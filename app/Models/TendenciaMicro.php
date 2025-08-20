@@ -57,9 +57,8 @@ class TendenciaMicro extends Model
     // Relación con el proveedor
     public function proveedor()
     {
-        return $this->belongsTo('App\Models\Proveedor', 'proveedor_id', 'id_proveedor');
+        return $this->belongsTo(\App\Models\MainApp\Proveedor::class, 'proveedor_id', 'id_proveedor');
     }
-
     // Relación con la analítica
     public function analitica()
     {

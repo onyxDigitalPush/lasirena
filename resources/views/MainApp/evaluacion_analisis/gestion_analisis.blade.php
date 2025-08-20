@@ -179,10 +179,14 @@
                 </thead>
                 <tbody>
                     @foreach ($resultados as $resultado)
-                        @php
+                            @php
                             // Determinar si existe fecha de realización (resultado ya cargado)
-                            $fechaRealizacion = $resultado->fecha_realizacion ?? $resultado->fecha_real_analitica ?? null;
-                            $esRealizada = !empty($fechaRealizacion);
+                            // Usamos la bandera `realizada` que calcula el controlador. No usamos
+                            // `fecha_real_analitica` como prueba de que está realizada porque
+                            // esa fecha es la fecha del análisis programado y puede existir
+                            // aunque no se haya cargado un resultado final.
+                            $fechaRealizacion = $resultado->fecha_realizacion ?? null;
+                            $esRealizada = (!empty($resultado->realizada) || !empty($fechaRealizacion));
 
                             // Mantener lógica de vencido/advertencia cuando NO está realizada
                             $estadoClase = 'success';
