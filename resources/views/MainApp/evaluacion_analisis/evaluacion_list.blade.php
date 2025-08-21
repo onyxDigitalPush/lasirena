@@ -694,6 +694,10 @@
                                     data-modo="agregar">
                                     <i class="fa fa-plus mr-1"></i>{{ $tieneResultados ? 'Agregar Nueva' : 'Agregar Analítica' }}
                                 </a>
+                                <a href="#" class="btn btn-sm btn-info btn-duplicar-analitica ml-1" 
+                                    data-analitica-id="{{ $a->id }}">
+                                    <i class="fa fa-clone mr-1"></i>Duplicar
+                                </a>
                             </div>
                         </td>
                     </tr>
@@ -1015,6 +1019,67 @@
                     $flash.alert('close');
                 }, 4000);
             }
+        });
+
+        // --- Duplicar analítica ---
+        // Modal DOM (append to body) -------------------------------------------------
+    var duplicarModalHtml = '\n<div class="modal fade" id="modalDuplicarAnalitica" tabindex="-1" role="dialog" aria-labelledby="modalDuplicarAnaliticaLabel">\n  <div class="modal-dialog" role="document">\n    <div class="modal-content">\n      <form id="formDuplicarAnalitica" method="POST" action="{{ route("evaluacion_analisis.guardar_analitica") }}">\n        @csrf\n        <input type="hidden" name="modo_edicion" value="duplicar">\n        <input type="hidden" name="id_registro" id="dup_id_registro">\n        <div class="modal-header">\n          <h5 class="modal-title" id="modalDuplicarAnaliticaLabel">Duplicar Analítica</h5>\n          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>\n        </div>\n        <div class="modal-body">\n          <div class="form-group">\n            <label>Origen: </label> <div id="dup_origen_info"></div>\n          </div>\n          <div class="form-row">\n            <div class="form-group col-md-6">\n              <label>Periodicidad origen</label>\n              <input type="text" id="dup_periodicidad" class="form-control" readonly>\n            </div>\n            <div class="form-group col-md-6">\n              <label>Tipo analítica origen</label>\n              <input type="text" id="dup_tipo_analitica" class="form-control" readonly>\n            </div>\n          </div>\n          <div class="form-row">\n            <div class="form-group col-md-6">\n              <label>Fecha real (opcional)</label>\n              <input type="date" name="fecha_real_analitica" id="dup_fecha_real_analitica" class="form-control">\n            </div>\n          </div>\n          <div class="form-row">\n            <div class="form-group col-md-6">\n              <label>Seleccionar Tienda destino</label>\n              <select name="num_tienda" id="dup_num_tienda" class="form-control">\n                <option value="">-- Seleccionar tienda --</option>\n                @foreach($tiendas as $t)\n                  <option value="{{ $t->num_tienda }}">{{ $t->num_tienda }} - {{ $t->nombre_tienda }}</option>\n                @endforeach\n              </select>\n            </div>\n            <div class="form-group col-md-6">\n              <label>Seleccionar Proveedor destino</label>\n              <select name="proveedor_id" id="dup_proveedor_id" class="form-control">\n                <option value="">-- Seleccionar proveedor --</option>\n                @foreach($proveedores as $p)\n                  <option value="{{ $p->id_proveedor }}">{{ $p->nombre_proveedor }}</option>\n                @endforeach\n              </select>\n            </div>\n          </div>\n          <p class="text-muted small">Se duplicarán los campos del formulario de analítica origen; podrá editar antes de guardar.</p>\n        </div>\n        <div class="modal-footer">\n          <button type="submit" class="btn btn-primary">Guardar Clon</button>\n          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>\n        </div>\n      </form>\n    </div>\n  </div>\n</div>';
+        $('body').append(duplicarModalHtml);
+
+        $(document).on('click', '.btn-duplicar-analitica', function(e){
+            e.preventDefault();
+            var id = $(this).data('analitica-id');
+            if(!id) return alert('ID de analítica no encontrado');
+            // Limpiar modal
+            $('#dup_id_registro').val('');
+            $('#dup_origen_info').text('Cargando...');
+            $('#dup_num_tienda').val('');
+            $('#dup_proveedor_id').val('');
+            $('#modalDuplicarAnalitica').modal('show');
+
+            // Cargar datos del origen via obtener-datos
+            $.get('{{ route("evaluacion_analisis.obtener_datos") }}', { id: id }).done(function(resp){
+                if(!resp.success) {
+                    $('#dup_origen_info').text('No se pudo cargar la analítica origen');
+                    return;
+                }
+                var anal = resp.analitica || resp.data || {};
+                $('#dup_id_registro').val(anal.id || id);
+                var info = (anal.tipo_analitica || '') + ' — ' + (anal.fecha_real_analitica || '') + ' — ' + (anal.periodicidad || '');
+                $('#dup_origen_info').text(info);
+                // rellenar campos adicionales
+                $('#dup_periodicidad').val(anal.periodicidad || '');
+                $('#dup_tipo_analitica').val(anal.tipo_analitica || '');
+                if (anal.fecha_real_analitica) {
+                    // normalizar a YYYY-MM-DD si viene en otro formato
+                    var d = anal.fecha_real_analitica.split(' ')[0];
+                    $('#dup_fecha_real_analitica').val(d);
+                } else {
+                    $('#dup_fecha_real_analitica').val('');
+                }
+
+                // Si la analítica origen está realizada, bloquear duplicado
+                if (anal.realizada) {
+                    $('#dup_origen_info').append(' <span class="text-danger">(Realizada - no duplicable)</span>');
+                    $('#formDuplicarAnalitica button[type=submit]').prop('disabled', true);
+                } else {
+                    $('#formDuplicarAnalitica button[type=submit]').prop('disabled', false);
+                }
+
+                // Preselect proveedor if present
+                if(anal.proveedor_id) $('#dup_proveedor_id').val(anal.proveedor_id);
+            }).fail(function(){
+                $('#dup_origen_info').text('Error al cargar origen');
+            });
+        });
+
+        // Al enviar el formulario de duplicado, hacemos un POST al mismo endpoint de guardar_analitica
+        // con modo 'duplicar' y el id_registro del origen. El backend actual guarda con los campos enviados.
+        $(document).on('submit', '#formDuplicarAnalitica', function(e){
+            // opcional: validar campos
+            var tienda = $('#dup_num_tienda').val();
+            if(!tienda) { alert('Seleccione una tienda destino'); e.preventDefault(); return; }
+            // dejar que el form se envíe normalmente (POST) y el controlador guardará la nueva analítica
         });
     </script>
 @endsection
