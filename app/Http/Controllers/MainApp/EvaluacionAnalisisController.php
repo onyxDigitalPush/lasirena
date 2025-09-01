@@ -74,7 +74,40 @@ class EvaluacionAnalisisController extends Controller
             // Actualizar registro existente
             $analitica = Analitica::find($request->id_registro);
             if ($analitica) {
-                $analitica->update($request->except(['modo_edicion', 'id_registro', '_token']));
+                $data = $request->except(['modo_edicion', 'id_registro', '_token', 'crear_siguiente', 'siguiente_fecha_teorica', 'siguiente_tipo', 'siguiente_proveedor_id', 'siguiente_periodicidad', 'siguiente_asesor_externo_nombre', 'siguiente_asesor_externo_empresa']);
+                
+                // Si se cambió el estado a realizada, registrar la fecha
+                if (isset($data['estado_analitica']) && $data['estado_analitica'] === 'realizada' && 
+                    $analitica->estado_analitica !== 'realizada') {
+                    $data['fecha_cambio_estado'] = now();
+                }
+                
+                $analitica->update($data);
+                
+                // Si se solicita crear la siguiente analítica automáticamente
+                if ($request->filled('crear_siguiente') && $request->input('crear_siguiente') == '1') {
+                    try {
+                        $siguienteData = [
+                            'num_tienda' => $analitica->num_tienda,
+                            'tipo_analitica' => $request->input('siguiente_tipo'),
+                            'fecha_real_analitica' => $request->input('siguiente_fecha_teorica'),
+                            'periodicidad' => $request->input('siguiente_periodicidad'),
+                            'proveedor_id' => $request->input('siguiente_proveedor_id'),
+                            'asesor_externo_nombre' => $request->input('siguiente_asesor_externo_nombre', ''),
+                            'asesor_externo_empresa' => $request->input('siguiente_asesor_externo_empresa', ''),
+                            'estado_analitica' => 'sin_iniciar',
+                            'observaciones' => 'Creada automáticamente al marcar la anterior como realizada'
+                        ];
+                        
+                        Analitica::create($siguienteData);
+                        
+                        return redirect()->back()->with('success', 'Analítica actualizada correctamente y siguiente analítica creada automáticamente para el ' . $request->input('siguiente_fecha_teorica') . '.');
+                    } catch (\Exception $e) {
+                        Log::error('Error creando siguiente analítica automáticamente: ' . $e->getMessage());
+                        return redirect()->back()->with('warning', 'Analítica actualizada correctamente, pero hubo un error al crear la siguiente automáticamente.');
+                    }
+                }
+                
                 return redirect()->back()->with('success', 'Analítica actualizada correctamente.');
             } else {
                 return redirect()->back()->with('error', 'No se encontró la analítica a actualizar.');
@@ -91,7 +124,9 @@ class EvaluacionAnalisisController extends Controller
 
             // Determinar si la analítica origen ya está realizada -> prohibir duplicar
             $esRealizada = false;
-            if (!empty($origen->fecha_realizacion)) {
+            if ($origen->estado_analitica === 'realizada') {
+                $esRealizada = true;
+            } else if (!empty($origen->fecha_realizacion)) {
                 $esRealizada = true;
             } else {
                 $esRealizada = TendenciaSuperficie::where('analitica_id', $origen->id)->exists() || TendenciaMicro::where('analitica_id', $origen->id)->exists();
@@ -117,10 +152,10 @@ class EvaluacionAnalisisController extends Controller
                 $data['fecha_real_analitica'] = $request->input('fecha_real_analitica');
             }
 
-            // Asegurarse de no copiar una fecha_realizacion vinculada al origen
-            if (array_key_exists('fecha_realizacion', $data)) {
-                $data['fecha_realizacion'] = null;
-            }
+            // Asegurarse de no copiar campos relacionados con el estado realizada
+            $data['fecha_realizacion'] = null;
+            $data['fecha_cambio_estado'] = null;
+            $data['estado_analitica'] = 'sin_iniciar'; // Nueva analítica siempre inicia sin iniciar
 
             // Crear el clon
             try {
@@ -134,7 +169,39 @@ class EvaluacionAnalisisController extends Controller
 
         else {
             // Crear nuevo registro
-            Analitica::create($request->except(['modo_edicion', 'id_registro']));
+            $data = $request->except(['modo_edicion', 'id_registro', '_token', 'crear_siguiente', 'siguiente_fecha_teorica', 'siguiente_tipo', 'siguiente_proveedor_id', 'siguiente_periodicidad', 'siguiente_asesor_externo_nombre', 'siguiente_asesor_externo_empresa']);
+            
+            // Si se marca como realizada desde el inicio, registrar la fecha
+            if (isset($data['estado_analitica']) && $data['estado_analitica'] === 'realizada') {
+                $data['fecha_cambio_estado'] = now();
+            }
+            
+            $analitica = Analitica::create($data);
+            
+            // Si se solicita crear la siguiente analítica automáticamente
+            if ($request->filled('crear_siguiente') && $request->input('crear_siguiente') == '1') {
+                try {
+                    $siguienteData = [
+                        'num_tienda' => $data['num_tienda'],
+                        'tipo_analitica' => $request->input('siguiente_tipo'),
+                        'fecha_real_analitica' => $request->input('siguiente_fecha_teorica'),
+                        'periodicidad' => $request->input('siguiente_periodicidad'),
+                        'proveedor_id' => $request->input('siguiente_proveedor_id'),
+                        'asesor_externo_nombre' => $request->input('siguiente_asesor_externo_nombre', ''),
+                        'asesor_externo_empresa' => $request->input('siguiente_asesor_externo_empresa', ''),
+                        'estado_analitica' => 'sin_iniciar',
+                        'observaciones' => 'Creada automáticamente al marcar la anterior como realizada'
+                    ];
+                    
+                    Analitica::create($siguienteData);
+                    
+                    return redirect()->back()->with('success', 'Analítica guardada correctamente y siguiente analítica creada automáticamente para el ' . $request->input('siguiente_fecha_teorica') . '.');
+                } catch (\Exception $e) {
+                    Log::error('Error creando siguiente analítica automáticamente: ' . $e->getMessage());
+                    return redirect()->back()->with('warning', 'Analítica guardada correctamente, pero hubo un error al crear la siguiente automáticamente.');
+                }
+            }
+            
             return redirect()->back()->with('success', 'Analítica guardada correctamente.');
         }
     }
@@ -424,6 +491,7 @@ class EvaluacionAnalisisController extends Controller
             'numero_factura' => 'nullable|string',
             'codigo_referencia' => 'nullable|string',
             'referencias' => 'nullable|string',
+            'estado_analitica' => 'nullable|in:sin_iniciar,pendiente,realizada',
 
             'aerobios_mesofilos_30c_valor' => 'nullable|string',
             'aerobios_mesofilos_30c_result' => 'nullable|in:correcto,incorrecto',
@@ -439,6 +507,11 @@ class EvaluacionAnalisisController extends Controller
             'repeticion_n2' => 'nullable|string',
         ]);
 
+        // Debug: registrar si se solicita crear siguiente analítica
+        if ($request->filled('crear_siguiente')) {
+            Log::info('guardarTendenciaSuperficie - crear_siguiente presente. Request keys: ' . implode(',', array_keys($request->all())));
+        }
+
         if (!empty($data['fecha_muestra'])) {
             $d = Carbon::parse($data['fecha_muestra']);
             $data['anio'] = $d->year;
@@ -453,6 +526,8 @@ class EvaluacionAnalisisController extends Controller
                 $data['tienda_id'] = $ti->id;
             }
         }
+    // Guardar num_tienda original (si existe) para posibles creaciones de analíticas automáticas
+    $numTiendaOriginal = isset($data['num_tienda']) ? $data['num_tienda'] : null;
 
         // Aceptar analitica_id si viene en el request
         if ($request->filled('analitica_id')) {
@@ -460,7 +535,12 @@ class EvaluacionAnalisisController extends Controller
         }
 
         // Eliminar num_tienda si existe para evitar columnas inesperadas
-        if (isset($data['num_tienda'])) unset($data['num_tienda']);
+    if (isset($data['num_tienda'])) unset($data['num_tienda']);
+
+        // Si se cambió el estado a realizada, registrar la fecha
+        if (isset($data['estado_analitica']) && $data['estado_analitica'] === 'realizada') {
+            $data['fecha_cambio_estado'] = now();
+        }
 
         $modo = $request->input('modo_edicion', 'agregar');
         
@@ -468,14 +548,87 @@ class EvaluacionAnalisisController extends Controller
             // Actualizar registro existente
             $tendencia = TendenciaSuperficie::find($request->id_registro);
             if ($tendencia) {
+                // Verificar si se cambió el estado para registrar fecha
+                if (isset($data['estado_analitica']) && $data['estado_analitica'] === 'realizada' && 
+                    $tendencia->estado_analitica !== 'realizada') {
+                    $data['fecha_cambio_estado'] = now();
+                }
+                
                 $tendencia->update($data);
+
+                // También actualizar el estado en la analítica principal si existe
+                if ($tendencia->analitica_id) {
+                    $analitica = Analitica::find($tendencia->analitica_id);
+                    if ($analitica && isset($data['estado_analitica'])) {
+                        $analitica->cambiarEstado($data['estado_analitica']);
+                    }
+                }
+
+                // Si se solicita crear la siguiente analítica automáticamente desde este formulario
+                if ($request->filled('crear_siguiente') && $request->input('crear_siguiente') == '1') {
+                    try {
+                        $siguienteData = [
+                            'num_tienda' => $numTiendaOriginal ?: ($tendencia->tienda_id ? Tienda::where('id', $tendencia->tienda_id)->value('num_tienda') : null),
+                            'tipo_analitica' => $request->input('siguiente_tipo'),
+                            'fecha_real_analitica' => $request->input('siguiente_fecha_teorica'),
+                            'periodicidad' => $request->input('siguiente_periodicidad'),
+                            'proveedor_id' => $request->input('siguiente_proveedor_id'),
+                            'asesor_externo_nombre' => $request->input('siguiente_asesor_externo_nombre', ''),
+                            'asesor_externo_empresa' => $request->input('siguiente_asesor_externo_empresa', ''),
+                            'estado_analitica' => 'sin_iniciar',
+                            'observaciones' => 'Creada automáticamente al marcar la anterior como realizada desde Tendencias Superficie'
+                        ];
+                        // Solo crear si tenemos num_tienda
+                        if (!empty($siguienteData['num_tienda'])) {
+                            Analitica::create($siguienteData);
+                        } else {
+                            Log::warning('No se pudo crear analítica automática (num_tienda faltante) en guardarTendenciaSuperficie', $siguienteData);
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('Error creando siguiente analítica automáticamente desde Tendencias Superficie: ' . $e->getMessage());
+                    }
+                }
+
                 return redirect()->back()->with('success', 'Tendencia superficie actualizada correctamente.');
             } else {
                 return redirect()->back()->with('error', 'No se encontró la tendencia superficie a actualizar.');
             }
         } else {
             // Crear nuevo registro
-            TendenciaSuperficie::create($data);
+            $tendencia = TendenciaSuperficie::create($data);
+
+            // También actualizar el estado en la analítica principal si existe
+            if ($tendencia->analitica_id && isset($data['estado_analitica'])) {
+                $analitica = Analitica::find($tendencia->analitica_id);
+                if ($analitica) {
+                    $analitica->cambiarEstado($data['estado_analitica']);
+                }
+            }
+
+            // Si se solicita crear la siguiente analítica automáticamente desde este formulario
+            if ($request->filled('crear_siguiente') && $request->input('crear_siguiente') == '1') {
+                try {
+                    $siguienteData = [
+                        'num_tienda' => $numTiendaOriginal ?: ($tendencia->tienda_id ? Tienda::where('id', $tendencia->tienda_id)->value('num_tienda') : null),
+                        'tipo_analitica' => $request->input('siguiente_tipo'),
+                        'fecha_real_analitica' => $request->input('siguiente_fecha_teorica'),
+                        'periodicidad' => $request->input('siguiente_periodicidad'),
+                        'proveedor_id' => $request->input('siguiente_proveedor_id'),
+                        'asesor_externo_nombre' => $request->input('siguiente_asesor_externo_nombre', ''),
+                        'asesor_externo_empresa' => $request->input('siguiente_asesor_externo_empresa', ''),
+                        'estado_analitica' => 'sin_iniciar',
+                        'observaciones' => 'Creada automáticamente al marcar la anterior como realizada desde Tendencias Superficie'
+                    ];
+                    if (!empty($siguienteData['num_tienda'])) {
+                        Analitica::create($siguienteData);
+                    } else {
+                        Log::warning('No se pudo crear analítica automática (num_tienda faltante) en guardarTendenciaSuperficie (nuevo)', $siguienteData);
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Error creando siguiente analítica automáticamente desde Tendencias Superficie (nuevo): ' . $e->getMessage());
+                }
+            }
+
             return redirect()->back()->with('success', 'Tendencia superficie guardada correctamente.');
         }
     }
@@ -498,9 +651,18 @@ class EvaluacionAnalisisController extends Controller
             'analitica_id' => 'nullable|exists:analiticas,id',
             'codigo_producto' => 'nullable|string',
             'codigo_proveedor' => 'nullable|string',
+            'estado_analitica' => 'nullable|in:sin_iniciar,pendiente,realizada',
         ]);
 
         $data = $request->all();
+
+        // Debug: registrar si se solicita crear siguiente analítica
+        if ($request->filled('crear_siguiente')) {
+            Log::info('guardarTendenciaMicro - crear_siguiente presente. Request keys: ' . implode(',', array_keys($request->all())));
+        }
+
+        // Guardar num_tienda original (si existe) para posibles creaciones de analíticas automáticas
+        $numTiendaOriginal = isset($data['num_tienda']) ? $data['num_tienda'] : null;
 
         // Si no se envía tienda_id pero sí num_tienda, buscar el id correspondiente
         if (empty($data['tienda_id']) && !empty($data['num_tienda'])) {
@@ -518,20 +680,97 @@ class EvaluacionAnalisisController extends Controller
         // Eliminar num_tienda si existe para evitar columnas inesperadas
         if (isset($data['num_tienda'])) unset($data['num_tienda']);
 
+        // Si se cambió el estado a realizada, registrar la fecha
+        if (isset($data['estado_analitica']) && $data['estado_analitica'] === 'realizada') {
+            $data['fecha_cambio_estado'] = now();
+        }
+
         $modo = $request->input('modo_edicion', 'agregar');
         
         if ($modo === 'editar' && $request->filled('id_registro')) {
             // Actualizar registro existente
             $tendencia = TendenciaMicro::find($request->id_registro);
             if ($tendencia) {
+                // Verificar si se cambió el estado para registrar fecha
+                if (isset($data['estado_analitica']) && $data['estado_analitica'] === 'realizada' && 
+                    $tendencia->estado_analitica !== 'realizada') {
+                    $data['fecha_cambio_estado'] = now();
+                }
+                
                 $tendencia->update($data);
+
+                // También actualizar el estado en la analítica principal si existe
+                if ($tendencia->analitica_id && isset($data['estado_analitica'])) {
+                    $analitica = Analitica::find($tendencia->analitica_id);
+                    if ($analitica) {
+                        $analitica->cambiarEstado($data['estado_analitica']);
+                    }
+                }
+
+                // Si se solicita crear la siguiente analítica automáticamente desde este formulario
+                if ($request->filled('crear_siguiente') && $request->input('crear_siguiente') == '1') {
+                    try {
+                        $siguienteData = [
+                            'num_tienda' => $numTiendaOriginal ?: ($tendencia->tienda_id ? Tienda::where('id', $tendencia->tienda_id)->value('num_tienda') : null),
+                            'tipo_analitica' => $request->input('siguiente_tipo'),
+                            'fecha_real_analitica' => $request->input('siguiente_fecha_teorica'),
+                            'periodicidad' => $request->input('siguiente_periodicidad'),
+                            'proveedor_id' => $request->input('siguiente_proveedor_id'),
+                            'asesor_externo_nombre' => $request->input('siguiente_asesor_externo_nombre', ''),
+                            'asesor_externo_empresa' => $request->input('siguiente_asesor_externo_empresa', ''),
+                            'estado_analitica' => 'sin_iniciar',
+                            'observaciones' => 'Creada automáticamente al marcar la anterior como realizada desde Tendencias Micro'
+                        ];
+                        if (!empty($siguienteData['num_tienda'])) {
+                            Analitica::create($siguienteData);
+                        } else {
+                            Log::warning('No se pudo crear analítica automática (num_tienda faltante) en guardarTendenciaMicro', $siguienteData);
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('Error creando siguiente analítica automáticamente desde Tendencias Micro: ' . $e->getMessage());
+                    }
+                }
+
                 return redirect()->back()->with('success', 'Tendencia micro actualizada correctamente.');
             } else {
                 return redirect()->back()->with('error', 'No se encontró la tendencia micro a actualizar.');
             }
         } else {
             // Crear nuevo registro
-            TendenciaMicro::create($data);
+            $tendencia = TendenciaMicro::create($data);
+
+            // También actualizar el estado en la analítica principal si existe
+            if ($tendencia->analitica_id && isset($data['estado_analitica'])) {
+                $analitica = Analitica::find($tendencia->analitica_id);
+                if ($analitica) {
+                    $analitica->cambiarEstado($data['estado_analitica']);
+                }
+            }
+
+            // Si se solicita crear la siguiente analítica automáticamente desde este formulario
+            if ($request->filled('crear_siguiente') && $request->input('crear_siguiente') == '1') {
+                try {
+                    $siguienteData = [
+                        'num_tienda' => $numTiendaOriginal ?: ($tendencia->tienda_id ? Tienda::where('id', $tendencia->tienda_id)->value('num_tienda') : null),
+                        'tipo_analitica' => $request->input('siguiente_tipo'),
+                        'fecha_real_analitica' => $request->input('siguiente_fecha_teorica'),
+                        'periodicidad' => $request->input('siguiente_periodicidad'),
+                        'proveedor_id' => $request->input('siguiente_proveedor_id'),
+                        'asesor_externo_nombre' => $request->input('siguiente_asesor_externo_nombre', ''),
+                        'asesor_externo_empresa' => $request->input('siguiente_asesor_externo_empresa', ''),
+                        'estado_analitica' => 'sin_iniciar',
+                        'observaciones' => 'Creada automáticamente al marcar la anterior como realizada desde Tendencias Micro'
+                    ];
+                    if (!empty($siguienteData['num_tienda'])) {
+                        Analitica::create($siguienteData);
+                    } else {
+                        Log::warning('No se pudo crear analítica automática (num_tienda faltante) en guardarTendenciaMicro (nuevo)', $siguienteData);
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Error creando siguiente analítica automáticamente desde Tendencias Micro (nuevo): ' . $e->getMessage());
+                }
+            }
+
             return redirect()->back()->with('success', 'Tendencia micro guardada correctamente.');
         }
     }

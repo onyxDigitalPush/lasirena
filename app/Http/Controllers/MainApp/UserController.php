@@ -14,7 +14,8 @@ class UserController extends Controller
 {
     public function index()
     {
-        $array_users = User::select('id', 'name', 'email', 'type_user')
+    // Traer también type_user_multi para la vista
+    $array_users = User::select('id', 'name', 'email', 'type_user', 'type_user_multi')
             ->orderBy('id', 'desc')
             ->get();
 
@@ -22,11 +23,25 @@ class UserController extends Controller
     }
     public function store(Request $request)
     {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:6',
+            'type_user_multi' => 'nullable|array',
+            'type_user_multi.*' => 'integer',
+        ]);
+
         $user = new User();
-        $user->name = $request->input('name');
-        $user->email = $request->input('email');
-        $user->password = bcrypt($request->input('password'));
-        $user->type_user = $request->input('type_user');
+        $user->name = $data['name'];
+        $user->email = $data['email'];
+        $user->password = bcrypt($data['password']);
+        // Guardamos en type_user_multi para permitir múltiples selección
+        $user->type_user_multi = $data['type_user_multi'] ?? [];
+        // También, para compatibilidad con código antiguo que usa type_user (single int),
+        // establecemos type_user al primer elemento si existe
+        if (!empty($user->type_user_multi)) {
+            $user->type_user = intval($user->type_user_multi[0]);
+        }
         $user->save();
 
         return redirect()->back()->with('success', 'Usuario creado correctamente.');
@@ -65,9 +80,19 @@ class UserController extends Controller
             return redirect()->back()->with('error', 'Usuario no encontrado.');
         }
 
-        $user->name = $request->input('name');
-        $user->email = $request->input('email');
-        $user->type_user = $request->input('type_user');
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'type_user_multi' => 'nullable|array',
+            'type_user_multi.*' => 'integer',
+        ]);
+
+        $user->name = $data['name'];
+        $user->email = $data['email'];
+        $user->type_user_multi = $data['type_user_multi'] ?? [];
+        if (!empty($user->type_user_multi)) {
+            $user->type_user = intval($user->type_user_multi[0]);
+        }
         $user->save();
 
         return redirect()->back()->with('success', 'Usuario actualizado correctamente.');

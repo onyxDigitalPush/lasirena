@@ -18,7 +18,46 @@ class Analitica extends Model
         'periodicidad',
         'tipo_analitica',
         'proveedor_id',
+        'estado_analitica',
+        'fecha_cambio_estado',
     ];
+
+    protected $casts = [
+        'fecha_cambio_estado' => 'datetime',
+    ];
+
+    // Constantes para los estados
+    const ESTADO_SIN_INICIAR = 'sin_iniciar';
+    const ESTADO_PENDIENTE = 'pendiente';
+    const ESTADO_REALIZADA = 'realizada';
+
+    // Método para verificar si está realizada
+    public function isRealizada()
+    {
+        return $this->estado_analitica === self::ESTADO_REALIZADA;
+    }
+
+    // Método para verificar si está pendiente
+    public function isPendiente()
+    {
+        return $this->estado_analitica === self::ESTADO_PENDIENTE;
+    }
+
+    // Método para verificar si no se ha iniciado
+    public function isSinIniciar()
+    {
+        return $this->estado_analitica === self::ESTADO_SIN_INICIAR;
+    }
+
+    // Método para cambiar estado y registrar fecha
+    public function cambiarEstado($nuevoEstado)
+    {
+        $this->estado_analitica = $nuevoEstado;
+        if ($nuevoEstado === self::ESTADO_REALIZADA) {
+            $this->fecha_cambio_estado = now();
+        }
+        $this->save();
+    }
 
     public function tienda()
     {

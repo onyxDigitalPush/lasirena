@@ -28,6 +28,8 @@ class TendenciaMicro extends Model
         'nombre_producto',
         'codigo_proveedor',
         'nombre_proveedor',
+        'estado_analitica',
+        'fecha_cambio_estado',
         'te_proveedor',
         'lote',
         'tipo',
@@ -47,6 +49,31 @@ class TendenciaMicro extends Model
     protected $dates = [
         'fecha_toma_muestras'
     ];
+
+    protected $casts = [
+        'fecha_cambio_estado' => 'datetime',
+    ];
+
+    // Constantes para los estados
+    const ESTADO_SIN_INICIAR = 'sin_iniciar';
+    const ESTADO_PENDIENTE = 'pendiente';
+    const ESTADO_REALIZADA = 'realizada';
+
+    // Método para verificar si está realizada
+    public function isRealizada()
+    {
+        return $this->estado_analitica === self::ESTADO_REALIZADA;
+    }
+
+    // Método para cambiar estado y registrar fecha
+    public function cambiarEstado($nuevoEstado)
+    {
+        $this->estado_analitica = $nuevoEstado;
+        if ($nuevoEstado === self::ESTADO_REALIZADA) {
+            $this->fecha_cambio_estado = now();
+        }
+        $this->save();
+    }
 
     // Relación con la tienda
     public function tienda()

@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+@section('custom_head')
+<meta name="csrf-token" content="{{ csrf_token() }}">
+@endsection
+
 <!-- Modals para cada tipo (2 columnas) -->
 @foreach (['Resultados agua' => 'modal_resultados_agua', 'Tendencias superficie' => 'modal_tendencias_superficie', 'Tendencias micro' => 'modal_tendencias_micro'] as $tipo => $modalId)
     <div class="modal fade" id="{{ $modalId }}" tabindex="-1" role="dialog"
@@ -12,6 +16,12 @@
                     <input type="hidden" name="modo_edicion" class="modo_edicion_input" value="agregar">
                     <input type="hidden" name="id_registro" class="id_registro_input">
                     <input type="hidden" name="analitica_id" class="analitica_id_input">
+                    <input type="hidden" name="fecha_teorica_original" class="fecha_teorica_original_input">
+                    <input type="hidden" name="periodicidad_original" class="periodicidad_original_input">
+                    <input type="hidden" name="proveedor_id_original" class="proveedor_id_original_input">
+                    <input type="hidden" name="tipo_analitica_original" class="tipo_analitica_original_input">
+                    <input type="hidden" name="asesor_externo_nombre_original" class="asesor_externo_nombre_original_input">
+                    <input type="hidden" name="asesor_externo_empresa_original" class="asesor_externo_empresa_original_input">
                     <div class="modal-header bg-primary text-white">
                         <h5 class="modal-title" id="{{ $modalId }}Label">Agregar Analítica - {{ $tipo }}
                         </h5>
@@ -32,6 +42,14 @@
                                             <label>Fecha de muestra</label>
                                             <input type="date" name="fecha_muestra"
                                                 class="form-control fecha_muestra_input" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Estado de Analítica</label>
+                                            <select name="estado_analitica" class="form-control estado_analitica_input">
+                                                <option value="sin_iniciar">Sin Iniciar</option>
+                                                <option value="pendiente">Pendiente</option>
+                                                <option value="realizada">Realizada</option>
+                                            </select>
                                         </div>
                                         <div class="form-row">
                                             <div class="form-group col-md-6">
@@ -132,6 +150,14 @@
                                             <div class="form-group col-md-6">
                                                 <label>Fecha muestras</label>
                                                 <input type="date" name="fecha_muestra" class="form-control fecha_muestra_input">
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label>Estado de Analítica</label>
+                                                <select name="estado_analitica" class="form-control estado_analitica_input">
+                                                    <option value="sin_iniciar">Sin Iniciar</option>
+                                                    <option value="pendiente">Pendiente</option>
+                                                    <option value="realizada">Realizada</option>
+                                                </select>
                                             </div>
                                         </div>
                                         <div class="form-row">
@@ -290,6 +316,14 @@
                                             <div class="form-group col-md-6">
                                                 <label>Fecha toma muestras</label>
                                                 <input type="date" name="fecha_toma_muestras" class="form-control fecha_muestra_input" required>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label>Estado de Analítica</label>
+                                                <select name="estado_analitica" class="form-control estado_analitica_input">
+                                                    <option value="sin_iniciar">Sin Iniciar</option>
+                                                    <option value="pendiente">Pendiente</option>
+                                                    <option value="realizada">Realizada</option>
+                                                </select>
                                             </div>
                                         </div>
                                         <div class="form-row">
@@ -467,7 +501,7 @@
                                             <input type="text" name="asesor_externo_empresa" class="form-control">
                                         </div>
                                         <div class="form-group">
-                                            <label>Fecha Real de la Analítica</label>
+                                            <label>Fecha teorica de la Analítica</label>
                                             <input type="date" name="fecha_real_analitica" class="form-control">
                                         </div>
                                     </div>
@@ -592,7 +626,7 @@
                     <th class="text-center">Num Tienda</th>
                     <th class="text-center">Nombre Tienda</th>
                     <th class="text-center">Tipo Analítica</th>
-                    <th class="text-center">Fecha Real</th>
+                    <th class="text-center">Fecha Teorica</th>
                     <th class="text-center">Estado</th>
                     <th class="text-center">Periodicidad</th>
                     <th class="text-center">Proveedor</th>
@@ -602,98 +636,105 @@
             <tbody>
                 @foreach ($analiticas as $a)
                     @php
-                        $tieneResultados = false;
+                        // El estado se basa en el campo estado_analitica de la tabla analiticas
+                        $estadoAnalitica = $a->estado_analitica ?? 'sin_iniciar';
                         $fechaRealizacion = null;
                         
-                        // Verificar si existen resultados según el tipo y analítica específica
+                        // Si está marcada como realizada, buscar la fecha de cambio de estado o la fecha de realización
+                        if ($estadoAnalitica === 'realizada') {
+                            $fechaRealizacion = $a->fecha_cambio_estado ? $a->fecha_cambio_estado->format('d/m/Y') : 
+                                               ($a->fecha_realizacion ? $a->fecha_realizacion->format('d/m/Y') : 
+                                               ($a->updated_at ? $a->updated_at->format('d/m/Y') : null));
+                        }
+                        
+                        // Verificar si tiene resultados guardados para mostrar información adicional
+                        $tieneResultados = false;
                         if ($a->tipo_analitica === 'Resultados agua') {
-                            // Para resultados agua, usar la relación directa si existe
                             $tieneResultados = $a->created_at !== null;
-                            $fechaRealizacion = $a->created_at ? $a->created_at->format('d/m/Y') : null;
                         } elseif ($a->tipo_analitica === 'Tendencias superficie') {
-                            // Buscar tendencia superficie específica de esta analítica
                             $tienda = \App\Models\Tienda::where('num_tienda', $a->num_tienda)->first();
                             if ($tienda) {
-                                // Buscar por analitica_id si existe, sino por tienda y fecha aproximada
                                 $resultado = \App\Models\TendenciaSuperficie::where('tienda_id', $tienda->id)
-                                    ->when($a->id, function($query) use ($a) {
-                                        return $query->where('analitica_id', $a->id);
-                                    })
-                                    ->when(!$a->id, function($query) use ($a) {
-                                        // Fallback: buscar por fecha cercana
-                                        $fechaAnalisis = \Carbon\Carbon::parse($a->fecha_real_analitica);
-                                        return $query->whereDate('created_at', '>=', $fechaAnalisis->subDays(1))
-                                                   ->whereDate('created_at', '<=', $fechaAnalisis->addDays(1));
-                                    })
-                                    ->first();
-                                $tieneResultados = $resultado && $resultado->created_at;
-                                $fechaRealizacion = $resultado ? $resultado->created_at->format('d/m/Y') : null;
+                                    ->where('analitica_id', $a->id)->first();
+                                $tieneResultados = $resultado !== null;
                             }
                         } elseif ($a->tipo_analitica === 'Tendencias micro') {
-                            // Buscar tendencia micro específica de esta analítica
                             $tienda = \App\Models\Tienda::where('num_tienda', $a->num_tienda)->first();
                             if ($tienda) {
-                                // Buscar por analitica_id si existe, sino por tienda y fecha aproximada
                                 $resultado = \App\Models\TendenciaMicro::where('tienda_id', $tienda->id)
-                                    ->when($a->id, function($query) use ($a) {
-                                        return $query->where('analitica_id', $a->id);
-                                    })
-                                    ->when(!$a->id, function($query) use ($a) {
-                                        // Fallback: buscar por fecha cercana
-                                        $fechaAnalisis = \Carbon\Carbon::parse($a->fecha_real_analitica);
-                                        return $query->whereDate('created_at', '>=', $fechaAnalisis->subDays(1))
-                                                   ->whereDate('created_at', '<=', $fechaAnalisis->addDays(1));
-                                    })
-                                    ->first();
-                                $tieneResultados = $resultado && $resultado->created_at;
-                                $fechaRealizacion = $resultado ? $resultado->created_at->format('d/m/Y') : null;
+                                    ->where('analitica_id', $a->id)->first();
+                                $tieneResultados = $resultado !== null;
                             }
                         }
                     @endphp
-                    <tr class="{{ $tieneResultados ? 'table-success' : '' }}">
+                    <tr class="{{ $estadoAnalitica === 'realizada' ? 'table-success' : ($estadoAnalitica === 'pendiente' ? 'table-warning' : '') }}">
                         <td class="text-center">{{ $a->num_tienda }}</td>
                         <td class="text-center">{{ $a->tienda_nombre ?? (optional($a->tienda)->nombre_tienda ?? '-') }}</td>
                         <td class="text-center">{{ $a->tipo_analitica }}</td>
                         <td class="text-center">{{ $a->fecha_real_analitica }}</td>
 
-                        <!-- Estado: muestra realizada o pendiente -->
+                        <!-- Estado: muestra el estado basado en el campo estado_analitica -->
                         <td class="text-center">
-                            @if($tieneResultados)
+                            @if($estadoAnalitica === 'realizada')
                                 <span class="badge badge-success">
-                                    <i class="fa fa-check mr-1"></i>Realizada el {{ $fechaRealizacion }}
+                                    <i class="fa fa-check mr-1"></i>Realizada
+                                    @if($fechaRealizacion)
+                                        el {{ $fechaRealizacion }}
+                                    @endif
+                                </span>
+                            @elseif($estadoAnalitica === 'pendiente')
+                                <span class="badge badge-warning">
+                                    <i class="fa fa-clock mr-1"></i>Pendiente
+                                    @if($tieneResultados)
+                                        (con datos guardados)
+                                    @endif
                                 </span>
                             @else
-                                <span class="badge badge-warning">Pendiente</span>
+                                <span class="badge badge-secondary">
+                                    <i class="fa fa-pause mr-1"></i>Sin Iniciar
+                                </span>
                             @endif
                         </td>
 
                         <td class="text-center">{{ $a->periodicidad }}</td>
                         <td class="text-center">{{ optional($a->proveedor)->nombre_proveedor ?? '-' }}</td>
 
-                        <!-- Acciones: Editar (si existe) y Agregar -->
+                        <!-- Acciones: Condicionadas según el estado -->
                         <td class="text-center">
                             <div class="btn-group" role="group">
                                 @if($tieneResultados)
-                                                <a href="#" class="btn btn-sm btn-warning mr-1 btn-editar-analitica-eval"
-                                                    data-analitica-id="{{ $a->id }}"
-                                                    data-tipo="{{ $a->tipo_analitica }}" data-tienda="{{ $a->num_tienda }}"
-                                                    data-nombre="{{ $a->tienda_nombre ?? (optional($a->tienda)->nombre_tienda ?? '') }}"
-                                                    data-prov="{{ $a->proveedor_id }}"
-                                                    data-prov-nombre="{{ optional($a->proveedor)->nombre_proveedor ?? '' }}"
-                                                    data-modo="editar">
+                                    {{-- Si ya tiene resultados guardados, solo mostrar editar --}}
+                                    <a href="#" class="btn btn-sm btn-warning btn-editar-analitica-eval"
+                                        data-analitica-id="{{ $a->id }}"
+                                        data-tipo="{{ $a->tipo_analitica }}" data-tienda="{{ $a->num_tienda }}"
+                                        data-nombre="{{ $a->tienda_nombre ?? (optional($a->tienda)->nombre_tienda ?? '') }}"
+                                        data-prov="{{ $a->proveedor_id }}"
+                                        data-prov-nombre="{{ optional($a->proveedor)->nombre_proveedor ?? '' }}"
+                                        data-fecha-teorica="{{ $a->fecha_real_analitica }}"
+                                        data-periodicidad="{{ $a->periodicidad }}"
+                                        data-asesor-externo-nombre="{{ $a->asesor_externo_nombre ?? '' }}"
+                                        data-asesor-externo-empresa="{{ $a->asesor_externo_empresa ?? '' }}"
+                                        data-modo="editar">
                                         <i class="fa fa-edit mr-1"></i>Editar
                                     </a>
+                                @else
+                                    {{-- Si no tiene resultados, mostrar agregar --}}
+                                    <a href="#" class="btn btn-sm btn-primary btn-agregar-analitica-eval"
+                                        data-analitica-id="{{ $a->id }}"
+                                        data-tipo="{{ $a->tipo_analitica }}" data-tienda="{{ $a->num_tienda }}"
+                                        data-nombre="{{ $a->tienda_nombre ?? (optional($a->tienda)->nombre_tienda ?? '') }}"
+                                        data-prov="{{ $a->proveedor_id }}"
+                                        data-prov-nombre="{{ optional($a->proveedor)->nombre_proveedor ?? '' }}"
+                                        data-fecha-teorica="{{ $a->fecha_real_analitica }}"
+                                        data-periodicidad="{{ $a->periodicidad }}"
+                                        data-asesor-externo-nombre="{{ $a->asesor_externo_nombre ?? '' }}"
+                                        data-asesor-externo-empresa="{{ $a->asesor_externo_empresa ?? '' }}"
+                                        data-modo="agregar">
+                                        <i class="fa fa-plus mr-1"></i>Agregar Analítica
+                                    </a>
                                 @endif
-
-                                <a href="#" class="btn btn-sm btn-primary btn-agregar-analitica-eval"
-                                    data-analitica-id="{{ $a->id }}"
-                                    data-tipo="{{ $a->tipo_analitica }}" data-tienda="{{ $a->num_tienda }}"
-                                    data-nombre="{{ $a->tienda_nombre ?? (optional($a->tienda)->nombre_tienda ?? '') }}"
-                                    data-prov="{{ $a->proveedor_id }}"
-                                    data-prov-nombre="{{ optional($a->proveedor)->nombre_proveedor ?? '' }}"
-                                    data-modo="agregar">
-                                    <i class="fa fa-plus mr-1"></i>{{ $tieneResultados ? 'Agregar Nueva' : 'Agregar Analítica' }}
-                                </a>
+                                
+                                {{-- El botón duplicar siempre se muestra --}}
                                 <a href="#" class="btn btn-sm btn-info btn-duplicar-analitica ml-1" 
                                     data-analitica-id="{{ $a->id }}">
                                     <i class="fa fa-clone mr-1"></i>Duplicar
@@ -717,14 +758,34 @@
             background-color: #d4edda !important;
         }
         
+        /* Estilo para filas de analíticas pendientes */
+        .table-warning {
+            background-color: #fff3cd !important;
+        }
+        
         /* Hover effect para las filas */
         .table-success:hover {
             background-color: #c3e6cb !important;
         }
         
+        .table-warning:hover {
+            background-color: #ffeaa7 !important;
+        }
+        
         /* Badge de estado realizada */
         .badge-success {
             background-color: #28a745;
+        }
+        
+        /* Badge de estado pendiente */
+        .badge-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        /* Badge de estado sin iniciar */
+        .badge-secondary {
+            background-color: #6c757d;
         }
         
         /* Separación entre botones */
@@ -750,6 +811,20 @@
             var modo = $(this).data('modo') || 'agregar';
             var esEdicion = modo === 'editar';
             
+            // Obtener datos adicionales desde los data attributes para la funcionalidad de auto-duplicar
+            var fechaTeorica = $(this).data('fecha-teorica') || '';
+            var periodicidad = $(this).data('periodicidad') || '';
+            var asesorExternoNombre = $(this).data('asesor-externo-nombre') || '';
+            var asesorExternoEmpresa = $(this).data('asesor-externo-empresa') || '';
+            
+            console.log('DEBUG - Datos del botón para auto-duplicar:');
+            console.log('- fechaTeorica:', fechaTeorica);
+            console.log('- periodicidad:', periodicidad);
+            console.log('- prov:', prov);
+            console.log('- tipo:', tipo);
+            console.log('- asesorExternoNombre:', asesorExternoNombre);
+            console.log('- asesorExternoEmpresa:', asesorExternoEmpresa);
+            
             var modalMap = {
                 'Resultados agua': '#modal_resultados_agua',
                 'Tendencias superficie': '#modal_tendencias_superficie',
@@ -768,6 +843,30 @@
             // Configurar modo de edición
             $modal.find('.modo_edicion_input').val(modo);
             $modal.find('.num_tienda_input').val(tienda);
+            
+            // Guardar datos originales para la funcionalidad de auto-duplicar
+            console.log('=== ASIGNANDO DATOS ORIGINALES ===');
+            console.log('fechaTeorica:', fechaTeorica);
+            console.log('periodicidad:', periodicidad);
+            console.log('prov:', prov);
+            console.log('tipo:', tipo);
+            console.log('asesorExternoNombre:', asesorExternoNombre);
+            console.log('asesorExternoEmpresa:', asesorExternoEmpresa);
+            
+            $modal.find('.fecha_teorica_original_input').val(fechaTeorica);
+            $modal.find('.periodicidad_original_input').val(periodicidad);
+            $modal.find('.proveedor_id_original_input').val(prov);
+            $modal.find('.tipo_analitica_original_input').val(tipo);
+            $modal.find('.asesor_externo_nombre_original_input').val(asesorExternoNombre);
+            $modal.find('.asesor_externo_empresa_original_input').val(asesorExternoEmpresa);
+            
+            console.log('Verificando asignación:');
+            console.log('- fecha_teorica_original_input:', $modal.find('.fecha_teorica_original_input').val());
+            console.log('- periodicidad_original_input:', $modal.find('.periodicidad_original_input').val());
+            console.log('- proveedor_id_original_input:', $modal.find('.proveedor_id_original_input').val());
+            console.log('- tipo_analitica_original_input:', $modal.find('.tipo_analitica_original_input').val());
+            console.log('=== FIN ASIGNACIÓN ===');
+            
             // Si el botón tiene data-analitica-id, setearlo
             var analiticaIdFromBtn = $(this).data('analitica-id') || $(this).data('analiticaId') || $(this).data('analitica');
             if (analiticaIdFromBtn) {
@@ -789,8 +888,8 @@
                 cargarDatosExistentes($modal, tipo, tienda);
             } else {
                 // Limpiar formulario para modo agregar
-                // NO limpiar el _token CSRF ni el id_registro ni num_tienda ni el campo de modo
-                $modal.find('input, select, textarea').not('.num_tienda_input, .modo_edicion_input, .id_registro_input, .analitica_id_input, input[name="_token"]').val('');
+                // NO limpiar el _token CSRF ni el id_registro ni num_tienda ni el campo de modo ni los datos originales
+                $modal.find('input, select, textarea').not('.num_tienda_input, .modo_edicion_input, .id_registro_input, .analitica_id_input, .fecha_teorica_original_input, .periodicidad_original_input, .proveedor_id_original_input, .tipo_analitica_original_input, .asesor_externo_nombre_original_input, .asesor_externo_empresa_original_input, input[name="_token"]').val('');
             }
             
             $modal.modal({
@@ -915,6 +1014,11 @@
                             }
                         });
                         
+                        // Manejar específicamente el campo estado_analitica
+                        if (data.estado_analitica) {
+                            $modal.find('.estado_analitica_input').val(data.estado_analitica);
+                        }
+                        
                         // Guardar ID para el update
                         if (data.id) {
                             $modal.find('.id_registro_input').val(data.id);
@@ -922,6 +1026,16 @@
                         // Si la respuesta incluye analitica_id, guardarlo en el campo oculto
                         if (data.analitica_id) {
                             $modal.find('.analitica_id_input').val(data.analitica_id);
+                        }
+                        
+                        // Cargar también los datos originales de la analítica para la funcionalidad de auto-duplicar
+                        if (data.analitica) {
+                            $modal.find('.fecha_teorica_original_input').val(data.analitica.fecha_real_analitica || '');
+                            $modal.find('.periodicidad_original_input').val(data.analitica.periodicidad || '');
+                            $modal.find('.proveedor_id_original_input').val(data.analitica.proveedor_id || '');
+                            $modal.find('.tipo_analitica_original_input').val(data.analitica.tipo_analitica || '');
+                            $modal.find('.asesor_externo_nombre_original_input').val(data.analitica.asesor_externo_nombre || '');
+                            $modal.find('.asesor_externo_empresa_original_input').val(data.analitica.asesor_externo_empresa || '');
                         }
                     }
                 }).fail(function() {
@@ -963,6 +1077,70 @@
                     $row.find('.semana_input').val(week);
                 }
             }
+        });
+
+        // Manejar cambio de estado de analítica
+        $(document).on('change', '.estado_analitica_input', function() {
+            var estado = $(this).val();
+            var $modal = $(this).closest('.modal');
+            var $form = $(this).closest('form');
+            
+            console.log('=== CAMBIO DE ESTADO ===');
+            console.log('Estado seleccionado:', estado);
+            console.log('Modal:', $modal.attr('id'));
+            console.log('Formulario encontrado:', $form.length);
+            
+            // Si se marca como realizada, se puede considerar automáticamente establecer la fecha
+            if (estado === 'realizada') {
+                console.log('Analítica marcada como realizada');
+                console.log('Verificando datos para auto-duplicar:');
+                console.log('- fecha_teorica_original:', $form.find('.fecha_teorica_original_input').val());
+                console.log('- periodicidad_original:', $form.find('.periodicidad_original_input').val());
+                console.log('- proveedor_id_original:', $form.find('.proveedor_id_original_input').val());
+                console.log('- tipo_analitica_original:', $form.find('.tipo_analitica_original_input').val());
+                
+                // Intentar agregar los campos ocultos en este momento para asegurar que se envíen
+                try {
+                    var datosOriginalesCambio = {
+                        tienda: $form.find('.num_tienda_input').val(),
+                        tipo: $form.find('.tipo_analitica_original_input').val(),
+                        fechaTeorica: $form.find('.fecha_teorica_original_input').val(),
+                        periodicidad: $form.find('.periodicidad_original_input').val(),
+                        proveedorId: $form.find('.proveedor_id_original_input').val(),
+                        asesorExternoNombre: $form.find('.asesor_externo_nombre_original_input').val(),
+                        asesorExternoEmpresa: $form.find('.asesor_externo_empresa_original_input').val()
+                    };
+
+                    if (datosOriginalesCambio.tienda && datosOriginalesCambio.tipo && datosOriginalesCambio.fechaTeorica && datosOriginalesCambio.periodicidad) {
+                        var siguienteFechaCambio = calcularSiguienteFecha(datosOriginalesCambio.fechaTeorica, datosOriginalesCambio.periodicidad);
+                        if (siguienteFechaCambio) {
+                            if ($form.find('input[name="crear_siguiente"]').length === 0) {
+                                $form.append('<input type="hidden" name="crear_siguiente" value="1">');
+                                $form.append('<input type="hidden" name="siguiente_fecha_teorica" value="' + siguienteFechaCambio + '">');
+                                $form.append('<input type="hidden" name="siguiente_tipo" value="' + datosOriginalesCambio.tipo + '">');
+                                $form.append('<input type="hidden" name="siguiente_proveedor_id" value="' + datosOriginalesCambio.proveedorId + '">');
+                                $form.append('<input type="hidden" name="siguiente_periodicidad" value="' + datosOriginalesCambio.periodicidad + '">');
+                                $form.append('<input type="hidden" name="siguiente_asesor_externo_nombre" value="' + datosOriginalesCambio.asesorExternoNombre + '">');
+                                $form.append('<input type="hidden" name="siguiente_asesor_externo_empresa" value="' + datosOriginalesCambio.asesorExternoEmpresa + '">');
+                                console.log('Campos ocultos para crear siguiente agregados en cambio de estado. siguienteFecha:', siguienteFechaCambio);
+                            } else {
+                                console.log('Campos para crear siguiente ya existen (en cambio de estado)');
+                            }
+                        } else {
+                            console.log('No se pudo calcular siguiente fecha en cambio de estado (fuera de rango)');
+                        }
+                    } else {
+                        console.log('Datos insuficientes en cambio de estado para crear siguiente analítica:', datosOriginalesCambio);
+                    }
+                } catch (err) {
+                    console.error('Error al intentar agregar campos ocultos en cambio de estado:', err);
+                }
+            } else if (estado === 'pendiente') {
+                console.log('Analítica marcada como pendiente');
+            } else {
+                console.log('Analítica marcada como sin iniciar');
+            }
+            console.log('=== FIN CAMBIO ESTADO ===');
         });
         
         // Lookup de productos por código
@@ -1080,6 +1258,146 @@
             var tienda = $('#dup_num_tienda').val();
             if(!tienda) { alert('Seleccione una tienda destino'); e.preventDefault(); return; }
             // dejar que el form se envíe normalmente (POST) y el controlador guardará la nueva analítica
+        });
+
+        // Función para calcular la siguiente fecha según periodicidad
+        function calcularSiguienteFecha(fechaTeorica, periodicidad) {
+            if (!fechaTeorica || !periodicidad) return null;
+            
+            // Parsear la fecha teórica
+            var fecha = new Date(fechaTeorica);
+            if (isNaN(fecha.getTime())) {
+                // Intentar parsear si viene en formato dd/mm/yyyy
+                var partes = fechaTeorica.split(/[-\/]/);
+                if (partes.length === 3) {
+                    // Asumir formato yyyy-mm-dd o dd/mm/yyyy
+                    if (partes[0].length === 4) {
+                        fecha = new Date(partes[0], partes[1] - 1, partes[2]);
+                    } else {
+                        fecha = new Date(partes[2], partes[1] - 1, partes[0]);
+                    }
+                }
+                if (isNaN(fecha.getTime())) return null;
+            }
+            
+            // Calcular cuando vence según periodicidad
+            var fechaVencimiento = new Date(fecha);
+            switch(periodicidad.toLowerCase().trim()) {
+                case '1 mes':
+                    fechaVencimiento.setMonth(fechaVencimiento.getMonth() + 1);
+                    break;
+                case '3 meses':
+                    fechaVencimiento.setMonth(fechaVencimiento.getMonth() + 3);
+                    break;
+                case '6 meses':
+                    fechaVencimiento.setMonth(fechaVencimiento.getMonth() + 6);
+                    break;
+                case 'anual':
+                    fechaVencimiento.setFullYear(fechaVencimiento.getFullYear() + 1);
+                    break;
+                default:
+                    console.log('Periodicidad no reconocida:', periodicidad);
+                    return null;
+            }
+            
+            // Obtener fecha actual
+            var hoy = new Date();
+            hoy.setHours(0, 0, 0, 0); // Normalizar a medianoche
+            fechaVencimiento.setHours(23, 59, 59, 999); // Hasta el final del día de vencimiento
+            
+            // Verificar si está dentro del rango (no vencido)
+            if (hoy <= fechaVencimiento) {
+                // La fecha de la nueva analítica será mañana
+                var manana = new Date();
+                manana.setDate(manana.getDate() + 1);
+                return manana.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+            } else {
+                console.log('Fuera de rango - Hoy:', hoy.toDateString(), 'Vencimiento:', fechaVencimiento.toDateString());
+                return null;
+            }
+        }
+
+        // Debug del botón submit
+        $(document).on('click', '#modal_resultados_agua button[type="submit"], #modal_tendencias_superficie button[type="submit"], #modal_tendencias_micro button[type="submit"]', function(e) {
+            console.log('🟡 BOTÓN SUBMIT CLICKEADO 🟡');
+            var $form = $(this).closest('form');
+            var estado = $form.find('.estado_analitica_input').val();
+            console.log('Estado actual:', estado);
+            console.log('Formulario válido:', $form[0].checkValidity());
+        });
+
+        // Handler para interceptar el envío de formularios cuando se marca como "realizada"
+        $(document).on('submit', '#modal_resultados_agua form, #modal_tendencias_superficie form, #modal_tendencias_micro form', function(e) {
+            console.log('🔥 EVENTO SUBMIT DETECTADO 🔥');
+            
+            var $form = $(this);
+            var estadoAnalitica = $form.find('.estado_analitica_input').val();
+            
+            console.log('=== DEBUG SUBMIT FORM ===');
+            console.log('Formulario enviado con estado:', estadoAnalitica);
+            console.log('Selector del estado:', '.estado_analitica_input');
+            console.log('Elemento del estado encontrado:', $form.find('.estado_analitica_input').length);
+            console.log('Valor del estado:', $form.find('.estado_analitica_input').val());
+            
+            // Si se marca como realizada, capturar datos para crear la siguiente
+            if (estadoAnalitica === 'realizada') {
+                console.log('DEBUG: Formulario detectado como realizada, capturando datos...');
+                
+                // Verificar que los campos ocultos existen
+                console.log('Campos ocultos disponibles:');
+                console.log('- fecha_teorica_original_input:', $form.find('.fecha_teorica_original_input').length, 'valor:', $form.find('.fecha_teorica_original_input').val());
+                console.log('- periodicidad_original_input:', $form.find('.periodicidad_original_input').length, 'valor:', $form.find('.periodicidad_original_input').val());
+                console.log('- proveedor_id_original_input:', $form.find('.proveedor_id_original_input').length, 'valor:', $form.find('.proveedor_id_original_input').val());
+                console.log('- tipo_analitica_original_input:', $form.find('.tipo_analitica_original_input').length, 'valor:', $form.find('.tipo_analitica_original_input').val());
+                
+                var datosOriginales = {
+                    tienda: $form.find('.num_tienda_input').val(),
+                    tipo: $form.find('.tipo_analitica_original_input').val(),
+                    fechaTeorica: $form.find('.fecha_teorica_original_input').val(),
+                    periodicidad: $form.find('.periodicidad_original_input').val(),
+                    proveedorId: $form.find('.proveedor_id_original_input').val(),
+                    asesorExternoNombre: $form.find('.asesor_externo_nombre_original_input').val(),
+                    asesorExternoEmpresa: $form.find('.asesor_externo_empresa_original_input').val()
+                };
+                
+                console.log('Datos originales capturados:', datosOriginales);
+                
+                // Verificar que tenemos los datos necesarios
+                if (datosOriginales.tienda && datosOriginales.tipo && datosOriginales.fechaTeorica && datosOriginales.periodicidad) {
+                    console.log('Datos suficientes para crear siguiente analítica - agregando datos al formulario');
+                    
+                    // Agregar datos de la siguiente analítica al formulario como campos ocultos
+                    var siguienteFecha = calcularSiguienteFecha(datosOriginales.fechaTeorica, datosOriginales.periodicidad);
+                    if (siguienteFecha) {
+                        // Verificar que no existen ya estos campos para evitar duplicados
+                        if ($form.find('input[name="crear_siguiente"]').length === 0) {
+                            // Agregar campos ocultos para crear la siguiente analítica
+                            $form.append('<input type="hidden" name="crear_siguiente" value="1">');
+                            $form.append('<input type="hidden" name="siguiente_fecha_teorica" value="' + siguienteFecha + '">');
+                            $form.append('<input type="hidden" name="siguiente_tipo" value="' + datosOriginales.tipo + '">');
+                            $form.append('<input type="hidden" name="siguiente_proveedor_id" value="' + datosOriginales.proveedorId + '">');
+                            $form.append('<input type="hidden" name="siguiente_periodicidad" value="' + datosOriginales.periodicidad + '">');
+                            $form.append('<input type="hidden" name="siguiente_asesor_externo_nombre" value="' + datosOriginales.asesorExternoNombre + '">');
+                            $form.append('<input type="hidden" name="siguiente_asesor_externo_empresa" value="' + datosOriginales.asesorExternoEmpresa + '">');
+                            
+                            console.log('✅ Siguiente fecha calculada:', siguienteFecha);
+                            console.log('✅ Campos ocultos agregados para crear siguiente analítica');
+                            console.log('✅ Dejando que el formulario se envíe normalmente...');
+                        } else {
+                            console.log('Los campos para crear siguiente ya existen, no se duplican');
+                        }
+                    } else {
+                        console.log('No se pudo calcular la siguiente fecha (fuera de rango de periodicidad)');
+                    }
+                } else {
+                    console.log('Datos insuficientes para crear siguiente analítica:', datosOriginales);
+                }
+            } else {
+                console.log('Estado no es "realizada", no se creará siguiente analítica');
+            }
+            
+            console.log('=== FIN DEBUG SUBMIT ===');
+            console.log('🚀 Enviando formulario al servidor...');
         });
     </script>
 @endsection

@@ -97,9 +97,10 @@
         </div>
     </div>
 @endsection
-<br><br><br><br><br>
+
 {{-- Mensajes de éxito y error --}}
 @if (session('success'))
+<br><br>
     <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
         {{ session('success') }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>

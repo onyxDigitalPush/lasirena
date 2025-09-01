@@ -18,8 +18,34 @@ class TendenciaSuperficie extends Model
         'aerobios_mesofilos_30c_valor','aerobios_mesofilos_30c_result',
         'enterobacterias_valor','enterobacterias_result',
         'listeria_monocytogenes_valor','listeria_monocytogenes_result',
-        'accion_correctiva','repeticion_n1','repeticion_n2'
+        'accion_correctiva','repeticion_n1','repeticion_n2',
+        'estado_analitica', 'fecha_cambio_estado'
     ];
+
+    protected $casts = [
+        'fecha_cambio_estado' => 'datetime',
+    ];
+
+    // Constantes para los estados
+    const ESTADO_SIN_INICIAR = 'sin_iniciar';
+    const ESTADO_PENDIENTE = 'pendiente';
+    const ESTADO_REALIZADA = 'realizada';
+
+    // Método para verificar si está realizada
+    public function isRealizada()
+    {
+        return $this->estado_analitica === self::ESTADO_REALIZADA;
+    }
+
+    // Método para cambiar estado y registrar fecha
+    public function cambiarEstado($nuevoEstado)
+    {
+        $this->estado_analitica = $nuevoEstado;
+        if ($nuevoEstado === self::ESTADO_REALIZADA) {
+            $this->fecha_cambio_estado = now();
+        }
+        $this->save();
+    }
 
     public function tienda()
     {

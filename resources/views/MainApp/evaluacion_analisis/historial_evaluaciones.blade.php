@@ -26,7 +26,7 @@
                         <input type="text" class="form-control" name="asesor_externo_empresa" required>
                     </div>
                     <div class="form-group">
-                        <label for="fecha_real_analitica">Fecha Real de la Analítica</label>
+                        <label for="fecha_real_analitica">Fecha Teorica de la Analítica</label>
                         <input type="date" class="form-control" name="fecha_real_analitica" required>
                     </div>
                     <div class="form-group">
@@ -178,24 +178,18 @@
                                         </div>
                                         <div class="text-right">
                                             @php
-                                                $vencido = true;
-                                                if(!empty($analitica->fecha_real_analitica)){
-                                                    try {
-                                                        $f = \Carbon\Carbon::parse($analitica->fecha_real_analitica);
-                                                        switch($analitica->periodicidad){
-                                                            case '1 mes': $lim = $f->copy()->addMonth(); break;
-                                                            case '3 meses': $lim = $f->copy()->addMonths(3); break;
-                                                            case '6 meses': $lim = $f->copy()->addMonths(6); break;
-                                                            case 'anual': $lim = $f->copy()->addYear(); break;
-                                                            default: $lim = $f; break;
-                                                        }
-                                                        $vencido = now()->greaterThan($lim);
-                                                    } catch(\Exception $e) {
-                                                        $vencido = false;
-                                                    }
+                                                // Mostrar estado basado en campo estado_analitica
+                                                $estado = $analitica->estado_analitica ?? 'sin_iniciar';
+                                                $fechaCambio = null;
+                                                if(!empty($analitica->fecha_cambio_estado)){
+                                                    try { $fechaCambio = \Carbon\Carbon::parse($analitica->fecha_cambio_estado)->format('d/m/Y'); } catch(\Exception $e) { $fechaCambio = null; }
+                                                } elseif(!empty($analitica->fecha_realizacion)){
+                                                    try { $fechaCambio = \Carbon\Carbon::parse($analitica->fecha_realizacion)->format('d/m/Y'); } catch(\Exception $e) { $fechaCambio = null; }
                                                 }
+                                                $badgeClass = $estado === 'realizada' ? 'badge-success' : ($estado === 'pendiente' ? 'badge-warning' : 'badge-secondary');
+                                                $label = $estado === 'realizada' ? 'Realizada' . ($fechaCambio ? ' el ' . $fechaCambio : '') : ($estado === 'pendiente' ? 'Pendiente' : 'Sin iniciar');
                                             @endphp
-                                            <span class="badge {{ $vencido ? 'badge-danger' : 'badge-success' }}">{{ $vencido ? 'Vencida' : 'Al día' }}</span>
+                                            <span class="badge {{ $badgeClass }}">{{ $label }}</span>
                                             <button class="btn btn-sm btn-warning btn-editar-analitica ml-2" 
                                                 data-analitica-id="{{ $analitica->id }}"
                                                 data-tienda-id="{{ $tienda->num_tienda }}"
@@ -222,24 +216,18 @@
                                                 </div>
                                                 <div class="text-right">
                                                     @php
-                                                        $vencido = true;
-                                                        if(!empty($analitica->fecha_real_analitica)){
-                                                            try {
-                                                                $f = \Carbon\Carbon::parse($analitica->fecha_real_analitica);
-                                                                switch($analitica->periodicidad){
-                                                                    case '1 mes': $lim = $f->copy()->addMonth(); break;
-                                                                    case '3 meses': $lim = $f->copy()->addMonths(3); break;
-                                                                    case '6 meses': $lim = $f->copy()->addMonths(6); break;
-                                                                    case 'anual': $lim = $f->copy()->addYear(); break;
-                                                                    default: $lim = $f; break;
-                                                                }
-                                                                $vencido = now()->greaterThan($lim);
-                                                            } catch(\Exception $e) {
-                                                                $vencido = false;
-                                                            }
+                                                        // Mostrar estado basado en campo estado_analitica
+                                                        $estado = $analitica->estado_analitica ?? 'sin_iniciar';
+                                                        $fechaCambio = null;
+                                                        if(!empty($analitica->fecha_cambio_estado)){
+                                                            try { $fechaCambio = \Carbon\Carbon::parse($analitica->fecha_cambio_estado)->format('d/m/Y'); } catch(\Exception $e) { $fechaCambio = null; }
+                                                        } elseif(!empty($analitica->fecha_realizacion)){
+                                                            try { $fechaCambio = \Carbon\Carbon::parse($analitica->fecha_realizacion)->format('d/m/Y'); } catch(\Exception $e) { $fechaCambio = null; }
                                                         }
+                                                        $badgeClass = $estado === 'realizada' ? 'badge-success' : ($estado === 'pendiente' ? 'badge-warning' : 'badge-secondary');
+                                                        $label = $estado === 'realizada' ? 'Realizada' . ($fechaCambio ? ' el ' . $fechaCambio : '') : ($estado === 'pendiente' ? 'Pendiente' : 'Sin iniciar');
                                                     @endphp
-                                                    <span class="badge {{ $vencido ? 'badge-danger' : 'badge-success' }}">{{ $vencido ? 'Vencida' : 'Al día' }}</span>
+                                                    <span class="badge {{ $badgeClass }}">{{ $label }}</span>
                                                     <button class="btn btn-sm btn-warning btn-editar-analitica ml-2" 
                                                         data-analitica-id="{{ $analitica->id }}"
                                                         data-tienda-id="{{ $tienda->num_tienda }}"
@@ -273,24 +261,18 @@
                                         </div>
                                         <div class="text-right">
                                             @php
-                                                $vencido = true;
-                                                if(!empty($anal->fecha_real_analitica)){
-                                                    try {
-                                                        $f = \Carbon\Carbon::parse($anal->fecha_real_analitica);
-                                                        switch($anal->periodicidad){
-                                                            case '1 mes': $lim = $f->copy()->addMonth(); break;
-                                                            case '3 meses': $lim = $f->copy()->addMonths(3); break;
-                                                            case '6 meses': $lim = $f->copy()->addMonths(6); break;
-                                                            case 'anual': $lim = $f->copy()->addYear(); break;
-                                                            default: $lim = $f; break;
-                                                        }
-                                                        $vencido = now()->greaterThan($lim);
-                                                    } catch(\Exception $e) {
-                                                        $vencido = false;
-                                                    }
+                                                // Mostrar estado basado en campo estado_analitica
+                                                $estado = $anal->estado_analitica ?? 'sin_iniciar';
+                                                $fechaCambio = null;
+                                                if(!empty($anal->fecha_cambio_estado)){
+                                                    try { $fechaCambio = \Carbon\Carbon::parse($anal->fecha_cambio_estado)->format('d/m/Y'); } catch(\Exception $e) { $fechaCambio = null; }
+                                                } elseif(!empty($anal->fecha_realizacion)){
+                                                    try { $fechaCambio = \Carbon\Carbon::parse($anal->fecha_realizacion)->format('d/m/Y'); } catch(\Exception $e) { $fechaCambio = null; }
                                                 }
+                                                $badgeClass = $estado === 'realizada' ? 'badge-success' : ($estado === 'pendiente' ? 'badge-warning' : 'badge-secondary');
+                                                $label = $estado === 'realizada' ? 'Realizada' . ($fechaCambio ? ' el ' . $fechaCambio : '') : ($estado === 'pendiente' ? 'Pendiente' : 'Sin iniciar');
                                             @endphp
-                                            <span class="badge {{ $vencido ? 'badge-danger' : 'badge-success' }}">{{ $vencido ? 'Vencida' : 'Al día' }}</span>
+                                            <span class="badge {{ $badgeClass }}">{{ $label }}</span>
                                         </div>
                                     </div>
                                 @endforeach
@@ -305,24 +287,18 @@
                                                 </div>
                                                 <div class="text-right">
                                                     @php
-                                                        $vencido = true;
-                                                        if(!empty($anal->fecha_real_analitica)){
-                                                            try {
-                                                                $f = \Carbon\Carbon::parse($anal->fecha_real_analitica);
-                                                                switch($anal->periodicidad){
-                                                                    case '1 mes': $lim = $f->copy()->addMonth(); break;
-                                                                    case '3 meses': $lim = $f->copy()->addMonths(3); break;
-                                                                    case '6 meses': $lim = $f->copy()->addMonths(6); break;
-                                                                    case 'anual': $lim = $f->copy()->addYear(); break;
-                                                                    default: $lim = $f; break;
-                                                                }
-                                                                $vencido = now()->greaterThan($lim);
-                                                            } catch(\Exception $e) {
-                                                                $vencido = false;
-                                                            }
+                                                        // Mostrar estado basado en campo estado_analitica
+                                                        $estado = $anal->estado_analitica ?? 'sin_iniciar';
+                                                        $fechaCambio = null;
+                                                        if(!empty($anal->fecha_cambio_estado)){
+                                                            try { $fechaCambio = \Carbon\Carbon::parse($anal->fecha_cambio_estado)->format('d/m/Y'); } catch(\Exception $e) { $fechaCambio = null; }
+                                                        } elseif(!empty($anal->fecha_realizacion)){
+                                                            try { $fechaCambio = \Carbon\Carbon::parse($anal->fecha_realizacion)->format('d/m/Y'); } catch(\Exception $e) { $fechaCambio = null; }
                                                         }
+                                                        $badgeClass = $estado === 'realizada' ? 'badge-success' : ($estado === 'pendiente' ? 'badge-warning' : 'badge-secondary');
+                                                        $label = $estado === 'realizada' ? 'Realizada' . ($fechaCambio ? ' el ' . $fechaCambio : '') : ($estado === 'pendiente' ? 'Pendiente' : 'Sin iniciar');
                                                     @endphp
-                                                    <span class="badge {{ $vencido ? 'badge-danger' : 'badge-success' }}">{{ $vencido ? 'Vencida' : 'Al día' }}</span>
+                                                    <span class="badge {{ $badgeClass }}">{{ $label }}</span>
                                                 </div>
                                             </div>
                                         @endforeach
