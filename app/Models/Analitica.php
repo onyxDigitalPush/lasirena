@@ -17,6 +17,7 @@ class Analitica extends Model
         'fecha_realizacion',
         'periodicidad',
         'tipo_analitica',
+        'procede',
         'proveedor_id',
         'estado_analitica',
         'fecha_cambio_estado',

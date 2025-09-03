@@ -159,6 +159,13 @@
                                                     <option value="realizada">Realizada</option>
                                                 </select>
                                             </div>
+                                            <div class="form-group col-md-6">
+                                                <label>¿Procede?</label>
+                                                <select name="procede" class="form-control procede_input">
+                                                    <option value="1">Sí</option>
+                                                    <option value="0">No</option>
+                                                </select>
+                                            </div>
                                         </div>
                                         <div class="form-row">
                                             <div class="form-group col-md-6">
@@ -323,6 +330,14 @@
                                                     <option value="sin_iniciar">Sin Iniciar</option>
                                                     <option value="pendiente">Pendiente</option>
                                                     <option value="realizada">Realizada</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label>Procede</label>
+                                                <select name="procede" class="form-control">
+                                                    <option value="">-- Seleccionar --</option>
+                                                    <option value="1">Sí</option>
+                                                    <option value="0">No</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -504,6 +519,13 @@
                                             <label>Fecha teorica de la Analítica</label>
                                             <input type="date" name="fecha_real_analitica" class="form-control">
                                         </div>
+                                        <div class="form-group">
+                                            <label>¿Procede?</label>
+                                            <select name="procede" class="form-control procede_input">
+                                                <option value="1">Sí</option>
+                                                <option value="0">No</option>
+                                            </select>
+                                        </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
@@ -630,6 +652,7 @@
                     <th class="text-center">Estado</th>
                     <th class="text-center">Periodicidad</th>
                     <th class="text-center">Proveedor</th>
+                    <th class="text-center">Procede</th>
                     <th class="text-center">Acciones</th>
                 </tr>
             </thead>
@@ -698,6 +721,17 @@
 
                         <td class="text-center">{{ $a->periodicidad }}</td>
                         <td class="text-center">{{ optional($a->proveedor)->nombre_proveedor ?? '-' }}</td>
+                        
+                        <!-- Procede -->
+                        <td class="text-center">
+                            @if($a->procede === 1)
+                                <span class="badge badge-success">Sí</span>
+                            @elseif($a->procede === 0)
+                                <span class="badge badge-danger">No</span>
+                            @else
+                                <span class="text-muted">-</span>
+                            @endif
+                        </td>
 
                         <!-- Acciones: Condicionadas según el estado -->
                         <td class="text-center">
@@ -714,6 +748,7 @@
                                         data-periodicidad="{{ $a->periodicidad }}"
                                         data-asesor-externo-nombre="{{ $a->asesor_externo_nombre ?? '' }}"
                                         data-asesor-externo-empresa="{{ $a->asesor_externo_empresa ?? '' }}"
+                                        data-procede="{{ $a->procede ?? '' }}"
                                         data-modo="editar">
                                         <i class="fa fa-edit mr-1"></i>Editar
                                     </a>
@@ -729,16 +764,19 @@
                                         data-periodicidad="{{ $a->periodicidad }}"
                                         data-asesor-externo-nombre="{{ $a->asesor_externo_nombre ?? '' }}"
                                         data-asesor-externo-empresa="{{ $a->asesor_externo_empresa ?? '' }}"
+                                        data-procede="{{ $a->procede ?? '' }}"
                                         data-modo="agregar">
                                         <i class="fa fa-plus mr-1"></i>Agregar Analítica
                                     </a>
                                 @endif
                                 
-                                {{-- El botón duplicar siempre se muestra --}}
-                                <a href="#" class="btn btn-sm btn-info btn-duplicar-analitica ml-1" 
-                                    data-analitica-id="{{ $a->id }}">
-                                    <i class="fa fa-clone mr-1"></i>Duplicar
-                                </a>
+                                {{-- El botón duplicar solo se muestra cuando procede=1 --}}
+                                @if(($a->procede ?? 1) == 1)
+                                    <a href="#" class="btn btn-sm btn-info btn-duplicar-analitica ml-1" 
+                                        data-analitica-id="{{ $a->id }}">
+                                        <i class="fa fa-clone mr-1"></i>Duplicar
+                                    </a>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -816,6 +854,7 @@
             var periodicidad = $(this).data('periodicidad') || '';
             var asesorExternoNombre = $(this).data('asesor-externo-nombre') || '';
             var asesorExternoEmpresa = $(this).data('asesor-externo-empresa') || '';
+            var procede = $(this).data('procede') || '';
             
             console.log('DEBUG - Datos del botón para auto-duplicar:');
             console.log('- fechaTeorica:', fechaTeorica);
@@ -824,6 +863,7 @@
             console.log('- tipo:', tipo);
             console.log('- asesorExternoNombre:', asesorExternoNombre);
             console.log('- asesorExternoEmpresa:', asesorExternoEmpresa);
+            console.log('- procede:', procede);
             
             var modalMap = {
                 'Resultados agua': '#modal_resultados_agua',
@@ -890,6 +930,11 @@
                 // Limpiar formulario para modo agregar
                 // NO limpiar el _token CSRF ni el id_registro ni num_tienda ni el campo de modo ni los datos originales
                 $modal.find('input, select, textarea').not('.num_tienda_input, .modo_edicion_input, .id_registro_input, .analitica_id_input, .fecha_teorica_original_input, .periodicidad_original_input, .proveedor_id_original_input, .tipo_analitica_original_input, .asesor_externo_nombre_original_input, .asesor_externo_empresa_original_input, input[name="_token"]').val('');
+            }
+            
+            // Setear el campo procede desde los data attributes del botón (tanto para edición como agregar)
+            if (procede !== '') {
+                $modal.find('select[name="procede"]').val(procede);
             }
             
             $modal.modal({
@@ -1019,6 +1064,11 @@
                             $modal.find('.estado_analitica_input').val(data.estado_analitica);
                         }
                         
+                        // Manejar específicamente el campo procede
+                        if (data.procede !== undefined && data.procede !== null) {
+                            $modal.find('select[name="procede"]').val(data.procede.toString());
+                        }
+                        
                         // Guardar ID para el update
                         if (data.id) {
                             $modal.find('.id_registro_input').val(data.id);
@@ -1036,6 +1086,11 @@
                             $modal.find('.tipo_analitica_original_input').val(data.analitica.tipo_analitica || '');
                             $modal.find('.asesor_externo_nombre_original_input').val(data.analitica.asesor_externo_nombre || '');
                             $modal.find('.asesor_externo_empresa_original_input').val(data.analitica.asesor_externo_empresa || '');
+                            
+                            // También cargar el campo procede desde la analítica asociada
+                            if (data.analitica.procede !== undefined && data.analitica.procede !== null) {
+                                $modal.find('select[name="procede"]').val(data.analitica.procede.toString());
+                            }
                         }
                     }
                 }).fail(function() {

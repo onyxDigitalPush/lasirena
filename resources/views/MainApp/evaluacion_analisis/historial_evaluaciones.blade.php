@@ -55,6 +55,14 @@
                             <option value="Tendencias micro">Tendencias micro</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="procede">Procede</label>
+                        <select class="form-control" name="procede">
+                            <option value="">-- Seleccionar --</option>
+                            <option value="1">Sí</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Guardar Analítica</button>
@@ -364,11 +372,20 @@
                 type: 'GET',
                 data: { id: analiticaId },
                 success: function(data) {
+                    console.log('=== DEBUG CARGA DE DATOS ===');
+                    console.log('Datos recibidos del servidor:', data);
+                    console.log('data.success:', data.success);
+                    console.log('data.analitica:', data.analitica);
+                    console.log('data.data:', data.data);
+                    
                     if (!data || !data.success) {
                         alert('Error al cargar los datos: ' + (data && data.message ? data.message : 'error'));
                         return;
                     }
                     var analitica = data.analitica || data.data;
+                    console.log('Objeto analitica final:', analitica);
+                    console.log('analitica.procede:', analitica.procede, 'tipo:', typeof analitica.procede);
+                    
                     // Si la analítica ya está realizada, no permitir edición
                     if (analitica.realizada) {
                         alert('No se puede editar: la analítica ya fue realizada o tiene resultados asociados.');
@@ -376,12 +393,29 @@
                     }
 
                     // Llenar el formulario con los datos para edición
+                    console.log('=== LLENANDO FORMULARIO ===');
                     $('input[name="fecha_real_analitica"]').val(analitica.fecha_real_analitica);
                     $('input[name="asesor_externo_nombre"]').val(analitica.asesor_externo_nombre);
                     $('input[name="asesor_externo_empresa"]').val(analitica.asesor_externo_empresa);
                     $('select[name="periodicidad"]').val(analitica.periodicidad);
                     $('select[name="tipo_analitica"]').val(analitica.tipo_analitica);
                     $('select[name="proveedor_id"]').val(analitica.proveedor_id);
+                    
+                    // Manejar específicamente el campo procede
+                    console.log('Procesando campo procede...');
+                    console.log('analitica.procede antes de asignación:', analitica.procede);
+                    var procedeSelect = $('select[name="procede"]');
+                    console.log('Select procede encontrado:', procedeSelect.length);
+                    
+                    if (analitica.procede !== undefined && analitica.procede !== null) {
+                        var procedeValue = analitica.procede.toString();
+                        console.log('Asignando valor procede:', procedeValue);
+                        procedeSelect.val(procedeValue);
+                        console.log('Valor asignado en select:', procedeSelect.val());
+                    } else {
+                        console.log('Campo procede vacío o no encontrado, asignando vacío');
+                        procedeSelect.val('');
+                    }
                     
                     $('#modalAgregarAnalitica').modal('show');
                 },
