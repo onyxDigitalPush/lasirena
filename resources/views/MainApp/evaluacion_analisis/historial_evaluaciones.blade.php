@@ -31,21 +31,46 @@
                     </div>
                     <div class="form-group">
                         <label for="periodicidad">Periodicidad Temporal</label>
-                        <select class="form-control" name="periodicidad" required>
-                            <option value="1 mes">1 mes</option>
-                            <option value="3 meses">3 meses</option>
-                            <option value="6 meses">6 meses</option>
-                            <option value="anual">Anual</option>
-                        </select>
+                        <div class="row">
+                            <div class="col-9">
+                                <select class="form-control" name="periodicidad" id="periodicidad_select" required>
+                                    <option value="">-- Seleccionar periodicidad --</option>
+                                    <option value="1 mes">1 mes</option>
+                                    <option value="3 meses">3 meses</option>
+                                    <option value="6 meses">6 meses</option>
+                                    <option value="anual">Anual</option>
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <div class="form-check mt-2">
+                                    <input type="checkbox" class="form-check-input" name="periodicidad_no_procede" id="periodicidad_no_procede" value="1">
+                                    <label class="form-check-label" for="periodicidad_no_procede">
+                                        No procede
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="proveedor_id">Proveedor Relacionado</label>
-                        <select class="form-control" name="proveedor_id">
-                            <option value="">-- Seleccionar proveedor --</option>
-                            @foreach($proveedores as $prov)
-                                <option value="{{ $prov->id_proveedor }}">{{ $prov->nombre_proveedor }}</option>
-                            @endforeach
-                        </select>
+                        <div class="row">
+                            <div class="col-9">
+                                <select class="form-control" name="proveedor_id" id="proveedor_id_select">
+                                    <option value="">-- Seleccionar proveedor --</option>
+                                    @foreach($proveedores as $prov)
+                                        <option value="{{ $prov->id_proveedor }}">{{ $prov->nombre_proveedor }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <div class="form-check mt-2">
+                                    <input type="checkbox" class="form-check-input" name="proveedor_no_procede" id="proveedor_no_procede" value="1">
+                                    <label class="form-check-label" for="proveedor_no_procede">
+                                        No procede
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="tipo_analitica">Tipo Analítica</label>
@@ -53,14 +78,6 @@
                             <option value="Resultados agua">Resultados agua</option>
                             <option value="Tendencias superficie">Tendencias superficie</option>
                             <option value="Tendencias micro">Tendencias micro</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="procede">Procede</label>
-                        <select class="form-control" name="procede">
-                            <option value="">-- Seleccionar --</option>
-                            <option value="1">Sí</option>
-                            <option value="0">No</option>
                         </select>
                     </div>
                 </div>
@@ -182,7 +199,11 @@
                                         <div class="mr-2 text-right" style="min-width:160px;">
                                             <strong style="display:block">{{ $analitica->tipo_analitica }}</strong>
                                             <small style="display:block">{{ $analitica->fecha_real_analitica }}</small>
-                                            <small style="display:block">{{ $analitica->periodicidad }}</small>
+                                            @if(!empty($analitica->periodicidad_no_procede) && $analitica->periodicidad_no_procede == 1)
+                                                <small style="display:block"><span class="badge badge-secondary">No procede</span></small>
+                                            @else
+                                                <small style="display:block">{{ $analitica->periodicidad ?: '-' }}</small>
+                                            @endif
                                         </div>
                                         <div class="text-right">
                                             @php
@@ -220,7 +241,11 @@
                                                 <div class="mr-2 text-right" style="min-width:160px;">
                                                     <strong style="display:block">{{ $analitica->tipo_analitica }}</strong>
                                                     <small style="display:block">{{ $analitica->fecha_real_analitica }}</small>
-                                                    <small style="display:block">{{ $analitica->periodicidad }}</small>
+                                                    @if(!empty($analitica->periodicidad_no_procede) && $analitica->periodicidad_no_procede == 1)
+                                                        <small style="display:block"><span class="badge badge-secondary">No procede</span></small>
+                                                    @else
+                                                        <small style="display:block">{{ $analitica->periodicidad ?: '-' }}</small>
+                                                    @endif
                                                 </div>
                                                 <div class="text-right">
                                                     @php
@@ -374,9 +399,6 @@
                 success: function(data) {
                     console.log('=== DEBUG CARGA DE DATOS ===');
                     console.log('Datos recibidos del servidor:', data);
-                    console.log('data.success:', data.success);
-                    console.log('data.analitica:', data.analitica);
-                    console.log('data.data:', data.data);
                     
                     if (!data || !data.success) {
                         alert('Error al cargar los datos: ' + (data && data.message ? data.message : 'error'));
@@ -384,7 +406,6 @@
                     }
                     var analitica = data.analitica || data.data;
                     console.log('Objeto analitica final:', analitica);
-                    console.log('analitica.procede:', analitica.procede, 'tipo:', typeof analitica.procede);
                     
                     // Si la analítica ya está realizada, no permitir edición
                     if (analitica.realizada) {
@@ -397,24 +418,24 @@
                     $('input[name="fecha_real_analitica"]').val(analitica.fecha_real_analitica);
                     $('input[name="asesor_externo_nombre"]').val(analitica.asesor_externo_nombre);
                     $('input[name="asesor_externo_empresa"]').val(analitica.asesor_externo_empresa);
-                    $('select[name="periodicidad"]').val(analitica.periodicidad);
                     $('select[name="tipo_analitica"]').val(analitica.tipo_analitica);
-                    $('select[name="proveedor_id"]').val(analitica.proveedor_id);
                     
-                    // Manejar específicamente el campo procede
-                    console.log('Procesando campo procede...');
-                    console.log('analitica.procede antes de asignación:', analitica.procede);
-                    var procedeSelect = $('select[name="procede"]');
-                    console.log('Select procede encontrado:', procedeSelect.length);
-                    
-                    if (analitica.procede !== undefined && analitica.procede !== null) {
-                        var procedeValue = analitica.procede.toString();
-                        console.log('Asignando valor procede:', procedeValue);
-                        procedeSelect.val(procedeValue);
-                        console.log('Valor asignado en select:', procedeSelect.val());
+                    // Manejar proveedor y checkbox "no procede"
+                    if (analitica.proveedor_no_procede == 1) {
+                        $('#proveedor_no_procede').prop('checked', true);
+                        $('#proveedor_id_select').prop('disabled', true).val('');
                     } else {
-                        console.log('Campo procede vacío o no encontrado, asignando vacío');
-                        procedeSelect.val('');
+                        $('#proveedor_no_procede').prop('checked', false);
+                        $('#proveedor_id_select').prop('disabled', false).val(analitica.proveedor_id);
+                    }
+                    
+                    // Manejar periodicidad y checkbox "no procede"
+                    if (analitica.periodicidad_no_procede == 1) {
+                        $('#periodicidad_no_procede').prop('checked', true);
+                        $('#periodicidad_select').prop('disabled', true).val('');
+                    } else {
+                        $('#periodicidad_no_procede').prop('checked', false);
+                        $('#periodicidad_select').prop('disabled', false).val(analitica.periodicidad);
                     }
                     
                     $('#modalAgregarAnalitica').modal('show');
@@ -423,6 +444,24 @@
                     alert('Error al cargar los datos de la analítica');
                 }
             });
+        });
+
+        // Manejar checkboxes "No procede" para proveedor
+        $(document).on('change', '#proveedor_no_procede', function() {
+            if ($(this).is(':checked')) {
+                $('#proveedor_id_select').prop('disabled', true).val('');
+            } else {
+                $('#proveedor_id_select').prop('disabled', false);
+            }
+        });
+
+        // Manejar checkboxes "No procede" para periodicidad
+        $(document).on('change', '#periodicidad_no_procede', function() {
+            if ($(this).is(':checked')) {
+                $('#periodicidad_select').prop('disabled', true).val('').prop('required', false);
+            } else {
+                $('#periodicidad_select').prop('disabled', false).prop('required', true);
+            }
         });
     }
 </script>

@@ -187,7 +187,6 @@
                             // aunque no se haya cargado un resultado final.
                             $fechaRealizacion = $resultado->fecha_realizacion ?? null;
                             $esRealizada = (!empty($resultado->realizada) || !empty($fechaRealizacion));
-
                             // Mantener lógica de vencido/advertencia cuando NO está realizada
                             $estadoClase = 'success';
                             $estadoTexto = 'Vigente';
@@ -200,17 +199,24 @@
                                     $estadoTexto = 'Próximo a vencer';
                                 }
                             }
+
+                            // Calcular procede: si proveedor o periodicidad está marcada como 'no procede'
+                            $procedeCalculado = (($resultado->proveedor_no_procede ?? 0) || ($resultado->periodicidad_no_procede ?? 0)) ? 0 : 1;
                         @endphp
-                        <tr class="{{ $esRealizada ? 'table-success' : ($estadoClase === 'danger' ? 'table-danger' : ($estadoClase === 'warning' ? 'table-warning' : '')) }}">
-                            <td class="text-center">
-                                @if($esRealizada)
-                                    <span class="badge badge-success"><i class="fa fa-check mr-1"></i>Realizada el {{ \Carbon\Carbon::parse($fechaRealizacion)->format('d/m/Y') }}</span>
-                                @else
-                                    <span class="badge badge-{{ $estadoClase }}">{{ $estadoTexto }}</span>
-                                @endif
-                            </td>
-                            <td class="text-center">{{ $resultado->num_tienda }}</td>
-                            <td class="text-center">{{ $resultado->tienda_nombre ?? '-' }}</td>
+                            <tr class="{{ $esRealizada ? 'table-success' : ($estadoClase === 'danger' ? 'table-danger' : ($estadoClase === 'warning' ? 'table-warning' : '')) }}">
+                                <td class="text-center">
+                                    @if($esRealizada)
+                                        <span class="badge badge-success"><i class="fa fa-check mr-1"></i>Realizada el {{ \Carbon\Carbon::parse($fechaRealizacion)->format('d/m/Y') }}</span>
+                                    @else
+                                        <span class="badge badge-{{ $estadoClase }}">{{ $estadoTexto }}</span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    {{ $resultado->num_tienda }}
+                                </td>
+                                <td class="text-center">
+                                    {{ $resultado->tienda_nombre ?? '-' }}
+                                </td>
                             <td class="text-center">{{ $resultado->tipo_analitica }}</td>
                             <td class="text-center">{{ $resultado->fecha_real_analitica }}</td>
                             <td class="text-center">
@@ -220,7 +226,13 @@
                                     -
                                 @endif
                             </td>
-                            <td class="text-center">{{ $resultado->periodicidad }}</td>
+                            <td class="text-center">
+                                @if($procedeCalculado === 1)
+                                    {{ $resultado->periodicidad }}
+                                @else
+                                    <span class="badge badge-secondary">No procede</span>
+                                @endif
+                            </td>
                             <td class="text-center">{{ $resultado->fecha_limite }}</td>
                             <td class="text-center">
                                 @if ($resultado->dias_restantes !== null)

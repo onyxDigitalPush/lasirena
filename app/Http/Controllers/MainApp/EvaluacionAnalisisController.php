@@ -76,6 +76,32 @@ class EvaluacionAnalisisController extends Controller
             if ($analitica) {
                 $data = $request->except(['modo_edicion', 'id_registro', '_token', 'crear_siguiente', 'siguiente_fecha_teorica', 'siguiente_tipo', 'siguiente_proveedor_id', 'siguiente_periodicidad', 'siguiente_asesor_externo_nombre', 'siguiente_asesor_externo_empresa']);
                 
+                // Procesar checkboxes "no procede" y calcular el campo 'procede'
+                $proveedorNoProcede = $request->has('proveedor_no_procede') ? 1 : 0;
+                $periodicidadNoProcede = $request->has('periodicidad_no_procede') ? 1 : 0;
+                
+                $data['proveedor_no_procede'] = $proveedorNoProcede;
+                $data['periodicidad_no_procede'] = $periodicidadNoProcede;
+                
+                // Si cualquiera de los dos "no procede" está marcado, entonces procede = 0
+                $data['procede'] = ($proveedorNoProcede || $periodicidadNoProcede) ? 0 : 1;
+                
+                // Si proveedor no procede, limpiar proveedor_id
+                if ($proveedorNoProcede) {
+                    $data['proveedor_id'] = null;
+                }
+                
+                // Si periodicidad no procede, almacenar cadena vacía para evitar constraint NOT NULL
+                if ($periodicidadNoProcede) {
+                    $data['periodicidad'] = '';
+                }
+                
+                Log::info('Procesando analítica (editar) con nuevos campos', [
+                    'proveedor_no_procede' => $proveedorNoProcede,
+                    'periodicidad_no_procede' => $periodicidadNoProcede,
+                    'procede_calculado' => $data['procede']
+                ]);
+                
                 // Si se cambió el estado a realizada, registrar la fecha
                 if (isset($data['estado_analitica']) && $data['estado_analitica'] === 'realizada' && 
                     $analitica->estado_analitica !== 'realizada') {
@@ -87,7 +113,12 @@ class EvaluacionAnalisisController extends Controller
                 // Si se solicita crear la siguiente analítica automáticamente
                 if ($request->filled('crear_siguiente') && $request->input('crear_siguiente') == '1') {
                     // Verificar si procede antes de crear la siguiente analítica
-                    $procedeCrearSiguiente = $analitica->procede ?? null;
+                    $procedeCrearSiguiente = $data['procede'];
+                    
+                    Log::info('Verificando auto-duplicación en editar analítica', [
+                        'procede' => $procedeCrearSiguiente,
+                        'crear_siguiente' => $request->input('crear_siguiente')
+                    ]);
                     
                     if ($procedeCrearSiguiente === 1) {
                         try {
@@ -104,6 +135,7 @@ class EvaluacionAnalisisController extends Controller
                             ];
                             
                             Analitica::create($siguienteData);
+                            Log::info('Analítica siguiente creada automáticamente desde editar');
                             
                             return redirect()->back()->with('success', 'Analítica actualizada correctamente y siguiente analítica creada automáticamente para el ' . $request->input('siguiente_fecha_teorica') . '.');
                         } catch (\Exception $e) {
@@ -112,10 +144,8 @@ class EvaluacionAnalisisController extends Controller
                         }
                     } else {
                         // No procede crear la siguiente analítica
-                        $mensaje = $procedeCrearSiguiente === 0 ? 
-                            'Analítica actualizada correctamente. No se creó la siguiente analítica porque está marcada como "No procede".' :
-                            'Analítica actualizada correctamente. No se creó la siguiente analítica porque el campo "Procede" no está definido.';
-                        return redirect()->back()->with('info', $mensaje);
+                        Log::info('Auto-duplicación cancelada - procede=0 en editar analítica');
+                        return redirect()->back()->with('info', 'Analítica actualizada correctamente. No se creó la siguiente analítica porque hay campos marcados como "No procede".');
                     }
                 }
                 
@@ -182,6 +212,32 @@ class EvaluacionAnalisisController extends Controller
             // Crear nuevo registro
             $data = $request->except(['modo_edicion', 'id_registro', '_token', 'crear_siguiente', 'siguiente_fecha_teorica', 'siguiente_tipo', 'siguiente_proveedor_id', 'siguiente_periodicidad', 'siguiente_asesor_externo_nombre', 'siguiente_asesor_externo_empresa']);
             
+            // Procesar checkboxes "no procede" y calcular el campo 'procede'
+            $proveedorNoProcede = $request->has('proveedor_no_procede') ? 1 : 0;
+            $periodicidadNoProcede = $request->has('periodicidad_no_procede') ? 1 : 0;
+            
+            $data['proveedor_no_procede'] = $proveedorNoProcede;
+            $data['periodicidad_no_procede'] = $periodicidadNoProcede;
+            
+            // Si cualquiera de los dos "no procede" está marcado, entonces procede = 0
+            $data['procede'] = ($proveedorNoProcede || $periodicidadNoProcede) ? 0 : 1;
+            
+            // Si proveedor no procede, limpiar proveedor_id
+            if ($proveedorNoProcede) {
+                $data['proveedor_id'] = null;
+            }
+            
+            // Si periodicidad no procede, almacenar cadena vacía para evitar constraint NOT NULL
+            if ($periodicidadNoProcede) {
+                $data['periodicidad'] = '';
+            }
+            
+            Log::info('Procesando analítica (crear) con nuevos campos', [
+                'proveedor_no_procede' => $proveedorNoProcede,
+                'periodicidad_no_procede' => $periodicidadNoProcede,
+                'procede_calculado' => $data['procede']
+            ]);
+            
             // Si se marca como realizada desde el inicio, registrar la fecha
             if (isset($data['estado_analitica']) && $data['estado_analitica'] === 'realizada') {
                 $data['fecha_cambio_estado'] = now();
@@ -192,7 +248,12 @@ class EvaluacionAnalisisController extends Controller
             // Si se solicita crear la siguiente analítica automáticamente
             if ($request->filled('crear_siguiente') && $request->input('crear_siguiente') == '1') {
                 // Verificar si procede antes de crear la siguiente analítica
-                $procedeCrearSiguiente = $analitica->procede ?? null;
+                $procedeCrearSiguiente = $data['procede'];
+                
+                Log::info('Verificando auto-duplicación en crear analítica', [
+                    'procede' => $procedeCrearSiguiente,
+                    'crear_siguiente' => $request->input('crear_siguiente')
+                ]);
                 
                 if ($procedeCrearSiguiente === 1) {
                     try {
@@ -209,6 +270,7 @@ class EvaluacionAnalisisController extends Controller
                         ];
                         
                         Analitica::create($siguienteData);
+                        Log::info('Analítica siguiente creada automáticamente desde crear');
                         
                         return redirect()->back()->with('success', 'Analítica guardada correctamente y siguiente analítica creada automáticamente para el ' . $request->input('siguiente_fecha_teorica') . '.');
                     } catch (\Exception $e) {
@@ -217,10 +279,8 @@ class EvaluacionAnalisisController extends Controller
                     }
                 } else {
                     // No procede crear la siguiente analítica
-                    $mensaje = $procedeCrearSiguiente === 0 ? 
-                        'Analítica guardada correctamente. No se creó la siguiente analítica porque está marcada como "No procede".' :
-                        'Analítica guardada correctamente. No se creó la siguiente analítica porque el campo "Procede" no está definido.';
-                    return redirect()->back()->with('info', $mensaje);
+                    Log::info('Auto-duplicación cancelada - procede=0 en crear analítica');
+                    return redirect()->back()->with('info', 'Analítica guardada correctamente. No se creó la siguiente analítica porque hay campos marcados como "No procede".');
                 }
             }
             
@@ -277,6 +337,7 @@ class EvaluacionAnalisisController extends Controller
                 'analiticas.tipo_analitica',
                 'analiticas.fecha_real_analitica',
                 'analiticas.periodicidad',
+                DB::raw('NULL as analitica_id'),
                 'analiticas.proveedor_id',
                 DB::raw("'analitica' as tabla_origen")
             )
@@ -316,6 +377,7 @@ class EvaluacionAnalisisController extends Controller
                 DB::raw("'Tendencias superficie' as tipo_analitica"),
                 'tendencias_superficie.fecha_muestra as fecha_real_analitica',
                 DB::raw("'3 meses' as periodicidad"),
+                'tendencias_superficie.analitica_id as analitica_id',
                 'tendencias_superficie.proveedor_id',
                 DB::raw("'superficie' as tabla_origen")
             );
@@ -328,6 +390,7 @@ class EvaluacionAnalisisController extends Controller
                 DB::raw("'Tendencias micro' as tipo_analitica"),
                 'tendencias_micro.fecha_toma_muestras as fecha_real_analitica',
                 DB::raw("'1 mes' as periodicidad"),
+                'tendencias_micro.analitica_id as analitica_id',
                 'tendencias_micro.proveedor_id',
                 DB::raw("'micro' as tabla_origen")
             );
@@ -430,9 +493,32 @@ class EvaluacionAnalisisController extends Controller
                     }
                 } elseif (isset($resultado->tabla_origen) && $resultado->tabla_origen === 'superficie') {
                     // Este registro ya proviene de TendenciaSuperficie -> considerar realizada
+                    // Si la tendencia hace referencia a una analítica, propagar flags de "no_procede"
+                    if (isset($resultado->analitica_id) && $resultado->analitica_id) {
+                        $linked = Analitica::find($resultado->analitica_id);
+                        if ($linked) {
+                            $resultado->periodicidad_no_procede = $linked->periodicidad_no_procede ?? 0;
+                            $resultado->proveedor_no_procede = $linked->proveedor_no_procede ?? 0;
+                            if (!empty($resultado->periodicidad_no_procede)) {
+                                // Evitar que el switch de periodicidad lo trate como un periodo válido
+                                $resultado->periodicidad = '';
+                            }
+                        }
+                    }
                     $resultado->fecha_realizacion = $resultado->fecha_real_analitica ?: null;
                     $resultado->realizada = true;
                 } elseif (isset($resultado->tabla_origen) && $resultado->tabla_origen === 'micro') {
+                    // Si la tendencia hace referencia a una analítica, propagar flags de "no_procede"
+                    if (isset($resultado->analitica_id) && $resultado->analitica_id) {
+                        $linked = Analitica::find($resultado->analitica_id);
+                        if ($linked) {
+                            $resultado->periodicidad_no_procede = $linked->periodicidad_no_procede ?? 0;
+                            $resultado->proveedor_no_procede = $linked->proveedor_no_procede ?? 0;
+                            if (!empty($resultado->periodicidad_no_procede)) {
+                                $resultado->periodicidad = '';
+                            }
+                        }
+                    }
                     // Registro de TendenciaMicro
                     $resultado->fecha_realizacion = $resultado->fecha_real_analitica ?: null;
                     $resultado->realizada = true;
@@ -641,7 +727,12 @@ class EvaluacionAnalisisController extends Controller
             if ($request->filled('crear_siguiente') && $request->input('crear_siguiente') == '1') {
                 // Verificar si procede en la analítica asociada
                 $analitica = $tendencia->analitica_id ? Analitica::find($tendencia->analitica_id) : null;
-                $procedeCrearSiguiente = $analitica ? $analitica->procede : null;
+                $procedeCrearSiguiente = 1; // Default
+                
+                if ($analitica) {
+                    // Calcular procede basado en los campos no_procede
+                    $procedeCrearSiguiente = ($analitica->proveedor_no_procede || $analitica->periodicidad_no_procede) ? 0 : 1;
+                }
                 
                 if ($procedeCrearSiguiente === 1) {
                     try {
@@ -753,7 +844,12 @@ class EvaluacionAnalisisController extends Controller
                 if ($request->filled('crear_siguiente') && $request->input('crear_siguiente') == '1') {
                     // Verificar el campo procede en la analítica asociada antes de duplicar
                     $analiticaAsociada = $tendencia->analitica_id ? Analitica::find($tendencia->analitica_id) : null;
-                    $procede = $analiticaAsociada ? $analiticaAsociada->procede : 1; // Default a 1 si no hay analítica asociada
+                    $procede = 1; // Default
+                    
+                    if ($analiticaAsociada) {
+                        // Calcular procede basado en los campos no_procede
+                        $procede = ($analiticaAsociada->proveedor_no_procede || $analiticaAsociada->periodicidad_no_procede) ? 0 : 1;
+                    }
                     
                     Log::info('Verificando procede en guardarTendenciaMicro (editar)', [
                         'analitica_id' => $tendencia->analitica_id,
@@ -810,7 +906,12 @@ class EvaluacionAnalisisController extends Controller
             if ($request->filled('crear_siguiente') && $request->input('crear_siguiente') == '1') {
                 // Verificar el campo procede en la analítica asociada antes de duplicar
                 $analiticaAsociada = $tendencia->analitica_id ? Analitica::find($tendencia->analitica_id) : null;
-                $procede = $analiticaAsociada ? $analiticaAsociada->procede : 1; // Default a 1 si no hay analítica asociada
+                $procede = 1; // Default
+                
+                if ($analiticaAsociada) {
+                    // Calcular procede basado en los campos no_procede
+                    $procede = ($analiticaAsociada->proveedor_no_procede || $analiticaAsociada->periodicidad_no_procede) ? 0 : 1;
+                }
                 
                 Log::info('Verificando procede en guardarTendenciaMicro (crear)', [
                     'analitica_id' => $tendencia->analitica_id,

@@ -279,12 +279,24 @@
                                         <div class="form-row">
                                             <div class="form-group col-md-6">
                                                 <label>Proveedor</label>
-                                                <select name="proveedor_id" class="form-control proveedor_select">
-                                                    <option value="">-- Seleccionar proveedor --</option>
-                                                    @foreach ($proveedores as $prov)
-                                                        <option value="{{ $prov->id_proveedor }}">{{ $prov->nombre_proveedor }}</option>
-                                                    @endforeach
-                                                </select>
+                                                <div class="row">
+                                                    <div class="col-9">
+                                                        <select name="proveedor_id" class="form-control proveedor_select">
+                                                            <option value="">-- Seleccionar proveedor --</option>
+                                                            @foreach ($proveedores as $prov)
+                                                                <option value="{{ $prov->id_proveedor }}">{{ $prov->nombre_proveedor }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="form-check mt-2">
+                                                            <input type="checkbox" class="form-check-input proveedor_no_procede" name="proveedor_no_procede" value="1">
+                                                            <label class="form-check-label">
+                                                                No procede
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -519,30 +531,50 @@
                                             <label>Fecha teorica de la Analítica</label>
                                             <input type="date" name="fecha_real_analitica" class="form-control">
                                         </div>
-                                        <div class="form-group">
-                                            <label>¿Procede?</label>
-                                            <select name="procede" class="form-control procede_input">
-                                                <option value="1">Sí</option>
-                                                <option value="0">No</option>
-                                            </select>
-                                        </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Periodicidad</label>
-                                            <select name="periodicidad" class="form-control">
-                                                <option value="1 mes">1 mes</option>
-                                                <option value="3 meses">3 meses</option>
-                                            </select>
+                                            <div class="row">
+                                                <div class="col-9">
+                                                    <select name="periodicidad" class="form-control periodicidad_select">
+                                                        <option value="">-- Seleccionar periodicidad --</option>
+                                                        <option value="1 mes">1 mes</option>
+                                                        <option value="3 meses">3 meses</option>
+                                                        <option value="6 meses">6 meses</option>
+                                                        <option value="anual">Anual</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="form-check mt-2">
+                                                        <input type="checkbox" class="form-check-input periodicidad_no_procede" name="periodicidad_no_procede" value="1">
+                                                        <label class="form-check-label">
+                                                            No procede
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                         <div class="form-group">
                                             <label>Proveedor</label>
-                                            <select name="proveedor_id" class="form-control proveedor_select">
-                                                <option value="">-- Seleccionar proveedor --</option>
-                                                @foreach ($proveedores as $prov)
-                                                    <option value="{{ $prov->id_proveedor }}">{{ $prov->nombre_proveedor }}</option>
-                                                @endforeach
-                                            </select>
+                                            <div class="row">
+                                                <div class="col-9">
+                                                    <select name="proveedor_id" class="form-control proveedor_select">
+                                                        <option value="">-- Seleccionar proveedor --</option>
+                                                        @foreach ($proveedores as $prov)
+                                                            <option value="{{ $prov->id_proveedor }}">{{ $prov->nombre_proveedor }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="form-check mt-2">
+                                                        <input type="checkbox" class="form-check-input proveedor_no_procede" name="proveedor_no_procede" value="1">
+                                                        <label class="form-check-label">
+                                                            No procede
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -689,10 +721,16 @@
                                 $tieneResultados = $resultado !== null;
                             }
                         }
+                        // Calcular procede (0 si proveedor_no_procede o periodicidad_no_procede)
+                        $procedeCalculado = (($a->proveedor_no_procede ?? 0) || ($a->periodicidad_no_procede ?? 0)) ? 0 : 1;
                     @endphp
                     <tr class="{{ $estadoAnalitica === 'realizada' ? 'table-success' : ($estadoAnalitica === 'pendiente' ? 'table-warning' : '') }}">
-                        <td class="text-center">{{ $a->num_tienda }}</td>
-                        <td class="text-center">{{ $a->tienda_nombre ?? (optional($a->tienda)->nombre_tienda ?? '-') }}</td>
+                        <td class="text-center">
+                            {{ $a->num_tienda }}
+                        </td>
+                        <td class="text-center">
+                            {{ $a->tienda_nombre ?? (optional($a->tienda)->nombre_tienda ?? '-') }}
+                        </td>
                         <td class="text-center">{{ $a->tipo_analitica }}</td>
                         <td class="text-center">{{ $a->fecha_real_analitica }}</td>
 
@@ -719,17 +757,34 @@
                             @endif
                         </td>
 
-                        <td class="text-center">{{ $a->periodicidad }}</td>
-                        <td class="text-center">{{ optional($a->proveedor)->nombre_proveedor ?? '-' }}</td>
-                        
-                        <!-- Procede -->
                         <td class="text-center">
-                            @if($a->procede === 1)
-                                <span class="badge badge-success">Sí</span>
-                            @elseif($a->procede === 0)
-                                <span class="badge badge-danger">No</span>
+                            @if($procedeCalculado === 1)
+                                @if($a->periodicidad_no_procede)
+                                    <span class="badge badge-secondary">No procede</span>
+                                @else
+                                    {{ $a->periodicidad ?: '-' }}
+                                @endif
                             @else
-                                <span class="text-muted">-</span>
+                                <span class="badge badge-secondary">No procede</span>
+                            @endif
+                        </td>
+                        <td class="text-center">
+                            @if($a->proveedor_no_procede)
+                                <span class="badge badge-secondary">No procede</span>
+                            @else
+                                {{ optional($a->proveedor)->nombre_proveedor ?? '-' }}
+                            @endif
+                        </td>
+                        
+                        <!-- Procede (calculado dinámicamente) -->
+                        <td class="text-center">
+                            @php
+                                $procedeCalculado = (($a->proveedor_no_procede ?? 0) || ($a->periodicidad_no_procede ?? 0)) ? 0 : 1;
+                            @endphp
+                            @if($procedeCalculado === 1)
+                                <span class="badge badge-success">Sí</span>
+                            @else
+                                <span class="badge badge-danger">No</span>
                             @endif
                         </td>
 
@@ -770,8 +825,11 @@
                                     </a>
                                 @endif
                                 
-                                {{-- El botón duplicar solo se muestra cuando procede=1 --}}
-                                @if(($a->procede ?? 1) == 1)
+                                {{-- El botón duplicar solo se muestra cuando procede=1 (calculado dinámicamente) --}}
+                                @php
+                                    $procedeCalculado = (($a->proveedor_no_procede ?? 0) || ($a->periodicidad_no_procede ?? 0)) ? 0 : 1;
+                                @endphp
+                                @if($procedeCalculado == 1)
                                     <a href="#" class="btn btn-sm btn-info btn-duplicar-analitica ml-1" 
                                         data-analitica-id="{{ $a->id }}">
                                         <i class="fa fa-clone mr-1"></i>Duplicar
@@ -839,6 +897,10 @@
     var tendenciasGuardarUrl = "{{ route('evaluacion_analisis.tendencias_superficie.guardar') }}";
     var tiendaMap = {!! \App\Models\Tienda::pluck('id','num_tienda')->toJson() !!};
         // Evitar duplicar jQuery/Bootstrap: usar los cargados en includes/head_common.blade.php
+        // Asegurar que los campos de procede / no_procede no sean required
+        $(function() {
+            $('select[name="procede"], select[name="periodicidad"], select[name="proveedor_id"], input[name="proveedor_no_procede"], input[name="periodicidad_no_procede"]').removeAttr('required');
+        });
         $(document).on('click', '.btn-agregar-analitica-eval, .btn-editar-analitica-eval', function(e) {
             e.preventDefault();
             var tipo = $(this).data('tipo');
@@ -921,7 +983,6 @@
             var $submitBtn = $modal.find('button[type="submit"]');
             $submitBtn.text(esEdicion ? 'Actualizar Analítica' : 'Guardar Analítica');
 
-            if (prov) $modal.find('.proveedor_select').val(prov);
             
             // Si es modo edición, cargar datos existentes
             if (esEdicion) {
@@ -930,16 +991,61 @@
                 // Limpiar formulario para modo agregar
                 // NO limpiar el _token CSRF ni el id_registro ni num_tienda ni el campo de modo ni los datos originales
                 $modal.find('input, select, textarea').not('.num_tienda_input, .modo_edicion_input, .id_registro_input, .analitica_id_input, .fecha_teorica_original_input, .periodicidad_original_input, .proveedor_id_original_input, .tipo_analitica_original_input, .asesor_externo_nombre_original_input, .asesor_externo_empresa_original_input, input[name="_token"]').val('');
+                // En modo "agregar" ocultar el select de "procede" y los checkboxes "No procede"
+                $modal.find('select[name="procede"]').closest('.form-group').hide();
+                // ocultar las columnas de form-check que contienen los checkboxes de "No procede"
+                $modal.find('.form-check').each(function() {
+                    if ($(this).find('input.proveedor_no_procede, input.periodicidad_no_procede').length) {
+                        $(this).hide();
+                    }
+                });
+                // Restaurar selects visibles desde los datos originales (si vienen en data attributes)
+                if (prov) {
+                    $modal.find('select.proveedor_select').val(prov);
+                }
+                if (periodicidad) {
+                    $modal.find('select.periodicidad_select').val(periodicidad);
+                }
             }
             
             // Setear el campo procede desde los data attributes del botón (tanto para edición como agregar)
             if (procede !== '') {
                 $modal.find('select[name="procede"]').val(procede);
             }
+
+            // Si estamos en modo agregar, asegurarnos de que los campos ocultos no impidan el envío
+            if (!esEdicion) {
+                // eliminar valores y atributos required (si existieran)
+                $modal.find('select[name="procede"]').val('');
+                $modal.find('input.proveedor_no_procede, input.periodicidad_no_procede').prop('checked', false);
+                $modal.find('select.proveedor_select, select.periodicidad_select').prop('required', false);
+            } else {
+                // En modo edición mostrar los campos por si estaban ocultos previamente
+                $modal.find('select[name="procede"]').closest('.form-group').show();
+                $modal.find('.form-check').show();
+            }
             
             $modal.modal({
                 show: true,
                 backdrop: true
+            });
+
+            // Antes de enviar el formulario en modo agregar, garantizar que venga el campo 'procede'
+            $modal.find('form').off('submit.ensure_procede').on('submit.ensure_procede', function(ev) {
+                // Si estamos en modo agregar, calcular procede: si algún no_procede está marcado, procede=0, else 1
+                if (!esEdicion) {
+                    var provNo = $modal.find('input.proveedor_no_procede').is(':checked');
+                    var perNo = $modal.find('input.periodicidad_no_procede').is(':checked');
+                    var procedeVal = (provNo || perNo) ? '0' : '1';
+                    // colocar/actualizar un hidden input para procede
+                    var $hidden = $modal.find('input[name="procede_hidden"]');
+                    if ($hidden.length === 0) {
+                        $(this).append('<input type="hidden" name="procede" value="' + procedeVal + '" class="procede_hidden_input"/>');
+                    } else {
+                        $hidden.val(procedeVal);
+                    }
+                }
+                // dejar que el submit continúe
             });
 
             // Si es modal resultados agua, rellenar nombre tienda y escuchar fecha
@@ -1453,6 +1559,30 @@
             
             console.log('=== FIN DEBUG SUBMIT ===');
             console.log('🚀 Enviando formulario al servidor...');
+        });
+
+        // Manejar checkboxes "No procede" para proveedor
+        $(document).on('change', '.proveedor_no_procede', function() {
+            var $checkbox = $(this);
+            var $select = $checkbox.closest('.form-group').find('.proveedor_select');
+            
+            if ($checkbox.is(':checked')) {
+                $select.prop('disabled', true).val('');
+            } else {
+                $select.prop('disabled', false);
+            }
+        });
+
+        // Manejar checkboxes "No procede" para periodicidad
+        $(document).on('change', '.periodicidad_no_procede', function() {
+            var $checkbox = $(this);
+            var $select = $checkbox.closest('.form-group').find('.periodicidad_select');
+            
+            if ($checkbox.is(':checked')) {
+                $select.prop('disabled', true).val('').prop('required', false);
+            } else {
+                $select.prop('disabled', false).prop('required', true);
+            }
         });
     </script>
 @endsection

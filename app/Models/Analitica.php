@@ -16,9 +16,11 @@ class Analitica extends Model
         'fecha_real_analitica',
         'fecha_realizacion',
         'periodicidad',
+        'periodicidad_no_procede',
         'tipo_analitica',
         'procede',
         'proveedor_id',
+        'proveedor_no_procede',
         'estado_analitica',
         'fecha_cambio_estado',
     ];
