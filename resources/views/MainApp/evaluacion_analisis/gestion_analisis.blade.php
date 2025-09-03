@@ -124,6 +124,23 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="fecha_inicio">Fecha inicio</label>
+                                    <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control"
+                                        value="{{ request('fecha_inicio') }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="fecha_fin">Fecha fin</label>
+                                    <input type="date" name="fecha_fin" id="fecha_fin" class="form-control"
+                                        value="{{ request('fecha_fin') }}">
+                                </div>
+                            </div>
+                        </div>
                         <div class="row">
                             <div class="col-md-12">
                                 <button type="submit" class="btn btn-primary">
@@ -170,7 +187,7 @@
                         <th class="text-center">Nombre Tienda</th>
                         <th class="text-center">Tipo Analítica</th>
                         <th class="text-center">Fecha Análisis</th>
-                        <th class="text-center">Fecha Realización</th>
+                        <th class="text-center">Fecha Teorica</th>
                         <th class="text-center">Periodicidad</th>
                         <th class="text-center">Fecha Límite</th>
                         <th class="text-center">Días Restantes</th>

@@ -421,6 +421,38 @@ class EvaluacionAnalisisController extends Controller
             }
         }
 
+        // Filtro por rango de fechas (fecha_real_analitica / fecha_muestra / fecha_toma_muestras)
+        $fechaInicio = $request->input('fecha_inicio');
+        $fechaFin = $request->input('fecha_fin');
+        // Normalizar: si ambas fechas vienen y la inicio es mayor que la fin, invertirlas
+        if (!empty($fechaInicio) && !empty($fechaFin)) {
+            try {
+                $d1 = Carbon::parse($fechaInicio);
+                $d2 = Carbon::parse($fechaFin);
+                if ($d1->greaterThan($d2)) {
+                    $tmp = $fechaInicio; $fechaInicio = $fechaFin; $fechaFin = $tmp;
+                }
+            } catch (\Exception $e) {
+                // ignorar parse errors y usar valores tal cual
+            }
+        }
+
+        if (!empty($fechaInicio) || !empty($fechaFin)) {
+            if (!empty($fechaInicio) && !empty($fechaFin)) {
+                $analiticasQuery->whereBetween('analiticas.fecha_real_analitica', [$fechaInicio, $fechaFin]);
+                $superficieQuery->whereBetween('tendencias_superficie.fecha_muestra', [$fechaInicio, $fechaFin]);
+                $microQuery->whereBetween('tendencias_micro.fecha_toma_muestras', [$fechaInicio, $fechaFin]);
+            } elseif (!empty($fechaInicio)) {
+                $analiticasQuery->where('analiticas.fecha_real_analitica', '>=', $fechaInicio);
+                $superficieQuery->where('tendencias_superficie.fecha_muestra', '>=', $fechaInicio);
+                $microQuery->where('tendencias_micro.fecha_toma_muestras', '>=', $fechaInicio);
+            } elseif (!empty($fechaFin)) {
+                $analiticasQuery->where('analiticas.fecha_real_analitica', '<=', $fechaFin);
+                $superficieQuery->where('tendencias_superficie.fecha_muestra', '<=', $fechaFin);
+                $microQuery->where('tendencias_micro.fecha_toma_muestras', '<=', $fechaFin);
+            }
+        }
+
         // Unir todas las consultas
         $unionQuery = $analiticasQuery->union($superficieQuery)->union($microQuery);
 
