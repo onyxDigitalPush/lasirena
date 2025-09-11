@@ -244,7 +244,7 @@
                                         <option value="">Seleccione una resolución</option>
                                         <option value="Aceptada" {{ old('resolucion_almacen', isset($incidencia) ? $incidencia->resolucion_almacen : '') == 'Aceptada' ? 'selected' : '' }}>Aceptada</option>
                                         <option value="Aceptado Condicional" {{ old('resolucion_almacen', isset($incidencia) ? $incidencia->resolucion_almacen : '') == 'Aceptado Condicional' ? 'selected' : '' }}>Aceptado Condicional</option>
-                                        <option value="Bloque de producto" {{ old('resolucion_almacen', isset($incidencia) ? $incidencia->resolucion_almacen : '') == 'Bloque de producto' ? 'selected' : '' }}>Bloque de producto</option>
+                                        <option value="Bloqueo de producto" {{ old('resolucion_almacen', isset($incidencia) ? $incidencia->resolucion_almacen : '') == 'Bloqueo de producto' ? 'selected' : '' }}>Bloqueo de producto</option>
                                         <option value="Devolucion a proveedor" {{ old('resolucion_almacen', isset($incidencia) ? $incidencia->resolucion_almacen : '') == 'Devolucion a proveedor' ? 'selected' : '' }}>Devolucion a proveedor</option>
                                         <option value="No aplica" {{ old('resolucion_almacen', isset($incidencia) ? $incidencia->resolucion_almacen : '') == 'No aplica' ? 'selected' : '' }}>No aplica</option>
                                         <option value="Retirado General" {{ old('resolucion_almacen', isset($incidencia) ? $incidencia->resolucion_almacen : '') == 'Retirado General' ? 'selected' : '' }}>Retirado General</option>

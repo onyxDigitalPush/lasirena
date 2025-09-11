@@ -192,7 +192,7 @@
                                 <select id="filtro_tipo" name="tipo" class="form-control">
                                     <option value="" {{ $tipo == '' ? 'selected' : '' }}>Todos</option>
                                     <option value="incidencia" {{ $tipo == 'incidencia' ? 'selected' : '' }}>Solo Incidencias</option>
-                                    <option value="devolucion" {{ $tipo == 'devolucion' ? 'selected' : '' }}>Solo Devoluciones</option>
+                                    <option value="devolucion" {{ $tipo == 'devolucion' ? 'selected' : '' }}>Solo DReclamaciones</option>
                                 </select>
                             </div>
                             <div class="col-md-3 d-flex align-items-end">
@@ -203,9 +203,9 @@
                                     <i class="fa fa-times mr-1"></i>Limpiar
                                 </button>
                                 <div class="btn-group mr-2">
-                                    <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">
+                                    {{-- <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">
                                         <i class="fa fa-plus mr-1"></i>Nuevo
-                                    </button>
+                                    </button> --}}
                                     <div class="dropdown-menu">
                                         <a class="dropdown-item" href="{{ route('material_kilo.crear_incidencia') }}">
                                             <i class="fa fa-exclamation-triangle mr-2 text-warning"></i>Nueva Incidencia
@@ -305,7 +305,7 @@
                                 </span>
                             @else
                                 <span class="badge badge-devolucion">
-                                    <i class="fa fa-undo mr-1"></i>Devolución
+                                    <i class="fa fa-undo mr-1"></i>Reclamacion
                                 </span>
                             @endif
                         </td>

@@ -100,7 +100,7 @@
             <div class="page-title-icon">
                 <i class="metismenu-icon fa fa-history icon-gradient bg-secondary"></i>
             </div>
-            <div>Historial de Incidencias y Devoluciones
+            <div>Historial de Incidencias y Reclamaciones
                 <div class="page-title-subheading">
                     Gestión y seguimiento de incidencias y devoluciones de proveedores
                 </div>
@@ -192,7 +192,7 @@
                                 <select id="filtro_tipo" name="tipo" class="form-control">
                                     <option value="" {{ $tipo == '' ? 'selected' : '' }}>Todos</option>
                                     <option value="incidencia" {{ $tipo == 'incidencia' ? 'selected' : '' }}>Solo Incidencias</option>
-                                    <option value="devolucion" {{ $tipo == 'devolucion' ? 'selected' : '' }}>Solo Devoluciones</option>
+                                    <option value="devolucion" {{ $tipo == 'devolucion' ? 'selected' : '' }}>Solo Reclamaciones</option>
                                 </select>
                             </div>
                             <div class="col-md-3 d-flex align-items-end">
@@ -203,15 +203,15 @@
                                     <i class="fa fa-times mr-1"></i>Limpiar
                                 </button>
                                 <div class="btn-group mr-2">
-                                    <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">
+                                    {{-- <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">
                                         <i class="fa fa-plus mr-1"></i>Nuevo
-                                    </button>
+                                    </button> --}}
                                     <div class="dropdown-menu">
                                         <a class="dropdown-item" href="{{ route('material_kilo.crear_incidencia') }}">
                                             <i class="fa fa-exclamation-triangle mr-2 text-warning"></i>Nueva Incidencia
                                         </a>
                                         <a class="dropdown-item" href="{{ route('material_kilo.crear_devolucion') }}">
-                                            <i class="fa fa-undo mr-2 text-info"></i>Nueva Devolución
+                                            <i class="fa fa-undo mr-2 text-info"></i>Nueva Reclamacion
                                         </a>
                                     </div>
                                 </div>

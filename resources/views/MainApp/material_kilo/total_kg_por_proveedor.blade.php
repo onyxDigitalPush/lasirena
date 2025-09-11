@@ -641,7 +641,7 @@
                     <i class="fa fa-times mr-1"></i>Cancelar
                 </button>
                 <button type="button" id="guardarDevolucion" class="btn btn-info">
-                    <i class="fa fa-save mr-1"></i>Guardar Devolución
+                    <i class="fa fa-save mr-1"></i>Guardar Reclamacion
                 </button>
             </div>
         </div>
@@ -842,7 +842,7 @@
                                     <option value="">Seleccione una resolución</option>
                                     <option value="Aceptada">Aceptada</option>
                                     <option value="Aceptado Condicional">Aceptado Condicional</option>
-                                    <option value="Bloque de producto">Bloque de producto</option>
+                                    <option value="Bloqueo de producto">Bloqueo de producto</option>
                                     <option value="Devolucion a proveedor">Devolucion a proveedor</option>
                                     <option value="No aplica">No aplica</option>
                                     <option value="Retirado General">Retirado General</option>
