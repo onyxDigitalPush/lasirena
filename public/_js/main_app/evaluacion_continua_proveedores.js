@@ -27,8 +27,17 @@ $(document).ready(function () {
         searchable: false,
         render: function (data, type, row) {
           if (type === "sort" || type === "type" || type === "filter") {
-            var text = $("<div>").html(data).text();
-            var num = parseFloat(text.replace(/[^\d.-]/g, ""));
+            // data puede ser HTML; extraer texto y también buscar atributo data-total
+            var html = $("<div>").html(data);
+            var dataTotal = html.find('[data-total]').attr('data-total');
+            if (dataTotal !== undefined && dataTotal !== null) {
+              var n = parseFloat(String(dataTotal));
+              return isNaN(n) ? 0 : n;
+            }
+            var text = html.text();
+            // Normalizar formato europeo: "1.234.567,89" -> "1234567.89"
+            var normalized = text.replace(/\./g, "").replace(/,/g, ".");
+            var num = parseFloat(normalized.replace(/[^\d.-]/g, ""));
             return isNaN(num) ? 0 : num;
           }
           return data;
@@ -68,8 +77,18 @@ $(document).ready(function () {
     var totalKg = 0;
 
     filasVisibles.each(function (data, index) {
-      var kgText = $(data[2]).text() || data[2];
-      var kgValue = parseFloat(kgText.replace(/[^\d.-]/g, "")) || 0;
+      // data[2] puede ser HTML con badge y atributo data-total
+      var cellHtml = $(data[2]);
+      var dataTotal = cellHtml.find('[data-total]').attr('data-total');
+      var kgValue = 0;
+      if (dataTotal !== undefined && dataTotal !== null) {
+        kgValue = parseFloat(String(dataTotal)) || 0;
+      } else {
+        var kgText = cellHtml.text() || data[2];
+        // Normalizar formato europeo: "1.234,56" -> "1234.56"
+        var normalized = String(kgText).replace(/\./g, "").replace(/,/g, ".");
+        kgValue = parseFloat(normalized.replace(/[^\d.-]/g, "")) || 0;
+      }
       totalKg += kgValue;
     });
 

@@ -232,6 +232,11 @@ class MaterialKiloController extends Controller
             ->orderByDesc('total_kg_proveedor')
             ->get();
 
+        // Agregar versión formateada para cada proveedor (miles con punto, decimales con coma)
+        foreach ($totales_por_proveedor as $p) {
+            $p->total_kg_proveedor_fmt = number_format((float) $p->total_kg_proveedor, 2, ',', '.');
+        }
+
         // Obtener proveedores ordenados alfabéticamente para el modal
         $proveedores_alfabetico = MaterialKilo::join('proveedores', 'material_kilos.proveedor_id', '=', 'proveedores.id_proveedor')
             ->select('proveedores.id_proveedor', 'proveedores.nombre_proveedor')
@@ -559,6 +564,13 @@ class MaterialKiloController extends Controller
                 $proveedor->ret_pond1 = 0;
                 $proveedor->total_pond1 = 0;
             }
+        }
+
+        // Agregar una versión formateada del total (miles con punto y decimales con coma)
+        // Esto permite mostrar el número en el formato local en la vista sin alterar
+        // el valor numérico original que usa el JavaScript para filtros/cálculos.
+        foreach ($totales_por_proveedor as $p) {
+            $p->total_kg_proveedor_fmt = number_format((float) $p->total_kg_proveedor, 2, ',', '.');
         }
 
         // Obtener todos los proveedores disponibles para el select (sin filtros)

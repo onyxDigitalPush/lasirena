@@ -185,8 +185,15 @@ $(document).ready(function () {
         render: function (data, type, row) {
           // Para ordenar y buscar, extraer el número del HTML
           if (type === "sort" || type === "type" || type === "filter") {
-            var text = $("<div>").html(data).text();
-            var num = parseFloat(text.replace(/[^\d.-]/g, ""));
+            var html = $("<div>").html(data);
+            var dataTotal = html.find('[data-total]').attr('data-total');
+            if (dataTotal !== undefined && dataTotal !== null) {
+              var n = parseFloat(String(dataTotal));
+              return isNaN(n) ? 0 : n;
+            }
+            var text = html.text();
+            var normalized = text.replace(/\./g, "").replace(/,/g, ".");
+            var num = parseFloat(normalized.replace(/[^\d.-]/g, ""));
             return isNaN(num) ? 0 : num;
           }
           return data;
@@ -259,10 +266,18 @@ $(document).ready(function () {
 
     // Calcular suma de KG de las filas visibles
     filasVisibles.each(function (data, index) {
-      // La columna 2 contiene el total KG (necesitamos extraer el número del badge)
-      var kgText = $(data[2]).text() || data[2];
-      var kgValue = parseFloat(kgText.replace(/[^\d.-]/g, "")) || 0;
-      totalKg += kgValue;
+        // La columna 2 contiene el total KG (necesitamos extraer el número del badge)
+        var cellHtml = $(data[2]);
+        var dataTotal = cellHtml.find('[data-total]').attr('data-total');
+        var kgValue = 0;
+        if (dataTotal !== undefined && dataTotal !== null) {
+          kgValue = parseFloat(String(dataTotal)) || 0;
+        } else {
+          var kgText = cellHtml.text() || data[2];
+          var normalized = String(kgText).replace(/\./g, "").replace(/,/g, ".");
+          kgValue = parseFloat(normalized.replace(/[^\d.-]/g, "")) || 0;
+        }
+        totalKg += kgValue;
     });
 
     // Actualizar los elementos en la interfaz usando los IDs específicos
@@ -288,7 +303,16 @@ $(document).ready(function () {
 
       // Extraer el valor de KG de la fila
       var kgText = $(data[2]).text() || data[2];
-      var kgValue = parseFloat(kgText.replace(/[^\d.-]/g, "")) || 0;
+      var cellHtml = $(data[2]);
+      var dataTotal = cellHtml.find('[data-total]').attr('data-total');
+      var kgValue = 0;
+      if (dataTotal !== undefined && dataTotal !== null) {
+        kgValue = parseFloat(String(dataTotal)) || 0;
+      } else {
+        var kgText = cellHtml.text() || data[2];
+        var normalized = String(kgText).replace(/\./g, "").replace(/,/g, ".");
+        kgValue = parseFloat(normalized.replace(/[^\d.-]/g, "")) || 0;
+      }
 
       // Calcular nuevo porcentaje
       var nuevoPorcentaje = (kgValue / totalKgFiltrado) * 100;

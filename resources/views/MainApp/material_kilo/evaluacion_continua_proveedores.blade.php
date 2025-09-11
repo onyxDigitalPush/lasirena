@@ -266,9 +266,9 @@
                     <tr data-proveedor-id="{{ $proveedor->id_proveedor }}">
                         <td class="text-center">{{ $proveedor->id_proveedor }}</td>
                         <td class="text-center">{{ $proveedor->nombre_proveedor }}</td>
-                        <td class="text-center">
+                        <td class="text-center" data-total="{{ $proveedor->total_kg_proveedor }}">
                             <span class="badge badge-success badge-lg">
-                                {{ number_format($proveedor->total_kg_proveedor, 2) }} kg
+                                {{ $proveedor->total_kg_proveedor_fmt }} kg
                             </span>
                         </td>
                         
