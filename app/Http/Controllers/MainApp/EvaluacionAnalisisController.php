@@ -370,26 +370,28 @@ class EvaluacionAnalisisController extends Controller
         });
 
         $superficieQuery = TendenciaSuperficie::leftJoin('tiendas', 'tendencias_superficie.tienda_id', '=', 'tiendas.id')
+            ->leftJoin('analiticas', 'tendencias_superficie.analitica_id', '=', 'analiticas.id')
             ->select(
                 'tendencias_superficie.id',
                 'tiendas.num_tienda',
                 'tiendas.nombre_tienda as tienda_nombre',
                 DB::raw("'Tendencias superficie' as tipo_analitica"),
                 'tendencias_superficie.fecha_muestra as fecha_real_analitica',
-                DB::raw("'3 meses' as periodicidad"),
+                'analiticas.periodicidad',
                 'tendencias_superficie.analitica_id as analitica_id',
                 'tendencias_superficie.proveedor_id',
                 DB::raw("'superficie' as tabla_origen")
             );
 
         $microQuery = TendenciaMicro::leftJoin('tiendas', 'tendencias_micro.tienda_id', '=', 'tiendas.id')
+            ->leftJoin('analiticas', 'tendencias_micro.analitica_id', '=', 'analiticas.id')
             ->select(
                 'tendencias_micro.id',
                 'tiendas.num_tienda',
                 'tiendas.nombre_tienda as tienda_nombre',
                 DB::raw("'Tendencias micro' as tipo_analitica"),
                 'tendencias_micro.fecha_toma_muestras as fecha_real_analitica',
-                DB::raw("'1 mes' as periodicidad"),
+                'analiticas.periodicidad',
                 'tendencias_micro.analitica_id as analitica_id',
                 'tendencias_micro.proveedor_id',
                 DB::raw("'micro' as tabla_origen")
