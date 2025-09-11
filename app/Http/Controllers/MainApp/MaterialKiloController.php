@@ -324,14 +324,63 @@ class MaterialKiloController extends Controller
 
             $now = now();
             $insertados = [];
+            // Contador de filas consecutivas vacías (según columnas clave)
+            $consecEmpty = 0;
             foreach ($datos as $idx => $item) {
-                // Buscar nombre del proveedor
-                $proveedor = DB::table('proveedores')->where('id_proveedor', $item['Código Proveedor'])->first();
-                $nombre_proveedor = $proveedor ? $proveedor->nombre_proveedor : null;
+                // Normalizar y validar valores desde el Excel
+                $codigo_proveedor_excel = isset($item['Código Proveedor']) ? trim((string)$item['Código Proveedor']) : null;
+                $nombre_proveedor_excel = isset($item['Nombre Proveedor']) ? trim((string)$item['Nombre Proveedor']) : null;
+
+                // Detectar filas vacías: si Código Producto, Descripcion Queja y Código Proveedor están vacíos
+                $codigo_producto_val = isset($item['Código Producto']) ? trim((string)$item['Código Producto']) : '';
+                $descripcion_queja_val = isset($item['Descripcion Queja']) ? trim((string)$item['Descripcion Queja']) : '';
+                $codigo_proveedor_val = $codigo_proveedor_excel !== null ? trim((string)$codigo_proveedor_excel) : '';
+
+                if ($codigo_producto_val === '' && $descripcion_queja_val === '' && $codigo_proveedor_val === '') {
+                    // fila considerada vacía
+                    $consecEmpty++;
+                    // Si hay más de 2 filas vacías consecutivas, detener procesamiento
+                    if ($consecEmpty > 2) {
+                        Log::info('guardarExcel: más de 2 filas vacías consecutivas, deteniendo import.', ['fila' => $idx + 3]);
+                        break;
+                    }
+                    // saltar esta fila vacía
+                    continue;
+                } else {
+                    // resetear contador si encontramos fila con datos
+                    $consecEmpty = 0;
+                }
+
+                // Intentar buscar proveedor por código (preferido)
+                $proveedor = null;
+                if ($codigo_proveedor_excel !== null && $codigo_proveedor_excel !== '') {
+                    $proveedor = DB::table('proveedores')->where('id_proveedor', $codigo_proveedor_excel)->first();
+                }
+
+                // Si no se encuentra por código, intentar por nombre exacto (segunda opción)
+                if (!$proveedor && $nombre_proveedor_excel) {
+                    $proveedor = DB::table('proveedores')->where('nombre_proveedor', $nombre_proveedor_excel)->first();
+                }
+
+                // Determinar valores finales a insertar
+                if ($proveedor) {
+                    $codigo_proveedor_db = $proveedor->id_proveedor;
+                    $nombre_proveedor = $proveedor->nombre_proveedor;
+                } else {
+                    // Fallback: usar lo que venga en el Excel para evitar null
+                    $codigo_proveedor_db = $codigo_proveedor_excel;
+                    $nombre_proveedor = $nombre_proveedor_excel;
+                    // Loguear para debugging si no hay match en la BD
+                    Log::warning('guardarExcel: proveedor no encontrado en BD, se usa valor del Excel', [
+                        'fila' => $idx + 3, // +3 porque empezamos a leer datos desde fila 3
+                        'codigo_excel' => $codigo_proveedor_excel,
+                        'nombre_excel' => $nombre_proveedor_excel
+                    ]);
+                }
 
                 $insert = [
                     'codigo_producto' => $item['Código Producto'],
-                    'codigo_proveedor' => $item['Código Proveedor'],
+                    'codigo_proveedor' => $codigo_proveedor_db,
                     'nombre_proveedor' => $nombre_proveedor,
                     'descripcion_producto' => $item['Descripcion Producto'],
                     'descripcion_queja' => $item['Descripcion Queja'],
@@ -391,13 +440,18 @@ class MaterialKiloController extends Controller
         }
         $texto_cabecera = trim($texto_cabecera);
 
-        // Regex para extraer: del 25 al 31 de julio de 2025
-        $regex = '/del\s+(\d{1,2})\s+al\s+(\d{1,2})\s+de\s+([a-zA-Záéíóúñ]+)\s+de\s+(\d{4})/u';
+        // Intentar extraer fechas desde la cabecera en varios formatos.
+        // 1) Formato textual: "del 25 al 31 de julio de 2025"
+        // 2) Formato mixto: "del 15 al 21/08/25" (inicio solo día, fin con dd/mm/yy)
+        // 3) Dos fechas completas: "15/08/2025 al 21/08/2025" o similares
         $fecha_inicio = null;
         $fecha_fin = null;
         $mes = null;
         $año = null;
-        if (preg_match($regex, $texto_cabecera, $matches)) {
+
+        // 1) Texto con nombre de mes y año de 4 dígitos
+        $regex_textual = '/del\s+(\d{1,2})\s+al\s+(\d{1,2})\s+de\s+([a-zA-Záéíóúñ]+)\s+de\s+(\d{4})/u';
+        if (preg_match($regex_textual, $texto_cabecera, $matches)) {
             $dia_inicio = $matches[1];
             $dia_fin = $matches[2];
             $mes_nombre = strtolower($matches[3]);
@@ -412,6 +466,52 @@ class MaterialKiloController extends Controller
             if ($mes && $año) {
                 $fecha_inicio = sprintf('%04d-%02d-%02d', $año, $mes, $dia_inicio);
                 $fecha_fin = sprintf('%04d-%02d-%02d', $año, $mes, $dia_fin);
+            }
+        } else {
+            // 2) Formato mixto: "del 15 al 21/08/25" -> tomar día inicio del primer número y mes/año del segundo
+            $regex_mixto = '/del\s+(\d{1,2})\s+al\s+(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/';
+            if (preg_match($regex_mixto, $texto_cabecera, $matches)) {
+                $dia_inicio = $matches[1];
+                $dia_fin = $matches[2];
+                $mes = (int)$matches[3];
+                $yr = (int)$matches[4];
+                // Normalizar años de 2 dígitos -> suponer 2000..2069 para 00..69, 1900..1999 para 70..99
+                if (strlen($matches[4]) === 2) {
+                    $año = ($yr < 70) ? (2000 + $yr) : (1900 + $yr);
+                } else {
+                    $año = $yr;
+                }
+                if ($mes && $año) {
+                    $fecha_inicio = sprintf('%04d-%02d-%02d', $año, $mes, $dia_inicio);
+                    $fecha_fin = sprintf('%04d-%02d-%02d', $año, $mes, $dia_fin);
+                }
+            } else {
+                // 3) Dos fechas completas en formato dd/mm/yy o dd/mm/yyyy (puede aparecer en cualquier parte)
+                $regex_dos_fechas = '/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4}).*?(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/';
+                if (preg_match($regex_dos_fechas, $texto_cabecera, $matches)) {
+                    $dia_inicio = $matches[1];
+                    $mes_inicio = (int)$matches[2];
+                    $yr1 = (int)$matches[3];
+                    $dia_fin = $matches[4];
+                    $mes_fin = (int)$matches[5];
+                    $yr2 = (int)$matches[6];
+                    // Normalizar años de 2 dígitos
+                    if (strlen($matches[3]) === 2) {
+                        $a1 = ($yr1 < 70) ? (2000 + $yr1) : (1900 + $yr1);
+                    } else {
+                        $a1 = $yr1;
+                    }
+                    if (strlen($matches[6]) === 2) {
+                        $a2 = ($yr2 < 70) ? (2000 + $yr2) : (1900 + $yr2);
+                    } else {
+                        $a2 = $yr2;
+                    }
+                    // Preferir la fecha de inicio para año/mes; si meses coinciden usar ese mes
+                    $año = $a1;
+                    $mes = $mes_inicio;
+                    $fecha_inicio = sprintf('%04d-%02d-%02d', $a1, $mes_inicio, $dia_inicio);
+                    $fecha_fin = sprintf('%04d-%02d-%02d', $a2, $mes_fin, $dia_fin);
+                }
             }
         }
 
