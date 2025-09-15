@@ -100,7 +100,7 @@
                 {{-- ============================================ --}}
                 {{-- 🔵 ADMINISTRACIÓN GENERAL - Solo Admin (1)  --}}
                 {{-- ============================================ --}}
-                @if (Auth::user()->type_user == '1')
+                @if (in_array('1', $__types_str))
                     <!-- Separador visual azul -->
                     <li class="sidebar-section-separator" style="--sep-color: #007bff;"></li>
 
@@ -140,7 +140,7 @@
                 {{-- ============================================ --}}
                 {{-- 🟠 GESTIÓN DE PROVEEDORES - Admin(1) y Compras(2) --}}
                 {{-- ============================================ --}}
-                @if (Auth::user()->type_user == '1' || Auth::user()->type_user == '2')
+                @if (in_array('1', $__types_str) || in_array('2', $__types_str))
                     <!-- Separador visual naranja -->
                     <li class="sidebar-section-separator" style="--sep-color: #fd7e14;"></li>
 
@@ -186,7 +186,7 @@
                 {{-- ============================================ --}}
                 {{-- 🟣 ANÁLISIS DE TIENDAS - Admin(1) y Análisis(5) --}}
                 {{-- ============================================ --}}
-                @if (Auth::user()->type_user == '1' || Auth::user()->type_user == '5')
+                @if (in_array('1', $__types_str) || in_array('5', $__types_str))
                     <!-- Separador visual morado -->
                     <li class="sidebar-section-separator" style="--sep-color: #6f42c1;"></li>
 

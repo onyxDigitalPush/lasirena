@@ -69,23 +69,70 @@
                                                             <div class="widget-heading">
                                                                 {{ Auth::user()->name }}
                                                             </div>
-                                                            @if (Auth::user()->type_user == 1)
-                                                                <div class="widget-subheading opacity-8">
-                                                                    Administrador
-                                                                </div>
-                                                            @elseif (Auth::user()->type_user == 2)
-                                                                <div class="widget-subheading opacity-8">
-                                                                    Proveedores
-                                                                </div>
-                                                            @elseif (Auth::user()->type_user == 3)
-                                                                <div class="widget-subheading opacity-8">
-                                                                    Proyectos
-                                                                </div>
-                                                            @elseif (Auth::user()->type_user == 4)
-                                                                <div class="widget-subheading opacity-8">
-                                                                    Usuario
-                                                                </div>
-                                                            @endif
+                                                            @php
+                                                                // Normalize type_user_multi which can be a JSON string, comma separated string, integer or an array
+                                                                $typeRaw = Auth::user()->type_user_multi;
+                                                                $types = [];
+                                                                if (is_array($typeRaw)) {
+                                                                    $types = $typeRaw;
+                                                                } elseif (is_numeric($typeRaw)) {
+                                                                    $types = [(int) $typeRaw];
+                                                                } else {
+                                                                    // could be JSON "["1","2"]" or comma separated "1,2" or strings with quotes
+                                                                    // try json decode first
+                                                                    $decoded = json_decode($typeRaw, true);
+                                                                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                                                                        $types = $decoded;
+                                                                    } else {
+                                                                        // remove spaces and double quotes then split by comma
+                                                                        $clean = str_replace('"', '', $typeRaw);
+                                                                        $clean = str_replace('"', '', $clean);
+                                                                        $clean = str_replace(' ', '', $clean);
+                                                                        if ($clean === '') {
+                                                                            $types = [];
+                                                                        } else {
+                                                                            $types = explode(',', $clean);
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                                // normalize every item to int
+                                                                $types = array_filter(array_map(function ($v) {
+                                                                    if (is_numeric($v)) return (int) $v;
+                                                                    // if it's a quoted string like '"1"' try to strip quotes
+                                                                    $v = trim($v, "\"'");
+                                                                    return is_numeric($v) ? (int) $v : null;
+                                                                }, $types));
+
+                                                                $roleNamesMap = [
+                                                                    1 => 'Administrador',
+                                                                    2 => 'Proveedores',
+                                                                    3 => 'Proyectos',
+                                                                    4 => 'Usuario',
+                                                                    5 => 'Analisis Tiendas',
+                                                                ];
+
+                                                                $roleNames = array_values(array_map(function ($id) use ($roleNamesMap) {
+                                                                    return $roleNamesMap[$id] ?? (string) $id;
+                                                                }, $types));
+
+                                                                $display = '';
+                                                                $title = '';
+                                                                if (count($roleNames) === 0) {
+                                                                    $display = '—';
+                                                                } elseif (count($roleNames) === 1) {
+                                                                    $display = $roleNames[0];
+                                                                } else {
+                                                                    // show first two then +n
+                                                                    $first = array_slice($roleNames, 0, 2);
+                                                                    $remaining = count($roleNames) - count($first);
+                                                                    $display = implode(', ', $first) . ($remaining > 0 ? ' +' . $remaining : '');
+                                                                }
+                                                                $title = implode(', ', $roleNames);
+                                                            @endphp
+                                                            <div class="widget-subheading opacity-8" title="{{ $title }}">
+                                                                {{ $display }}
+                                                            </div>
 
                                                         </div>
 
@@ -119,23 +166,57 @@
                             <div class="widget-heading">
                                 {{ Auth::user()->name }}
                             </div>
-                            @if (Auth::user()->type_user == 1)
-                                <div class="widget-subheading opacity-8">
-                                    Administrador
-                                </div>
-                            @elseif (Auth::user()->type_user == 2)
-                                <div class="widget-subheading opacity-8">
-                                    Ofertas
-                                </div>
-                            @elseif (Auth::user()->type_user == 3)
-                                <div class="widget-subheading opacity-8">
-                                    Proyectos
-                                </div>
-                            @elseif (Auth::user()->type_user == 4)
-                                <div class="widget-subheading opacity-8">
-                                    Usuario
-                                </div>
-                            @endif
+                            @php
+                                // Reuse the same logic for the compact role display in header
+                                $typeRaw = Auth::user()->type_user_multi;
+                                $types = [];
+                                if (is_array($typeRaw)) {
+                                    $types = $typeRaw;
+                                } elseif (is_numeric($typeRaw)) {
+                                    $types = [(int) $typeRaw];
+                                } else {
+                                    $decoded = json_decode($typeRaw, true);
+                                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                                        $types = $decoded;
+                                    } else {
+                                        $clean = str_replace('"', '', $typeRaw);
+                                        $clean = str_replace(' ', '', $clean);
+                                        if ($clean === '') {
+                                            $types = [];
+                                        } else {
+                                            $types = explode(',', $clean);
+                                        }
+                                    }
+                                }
+                                $types = array_filter(array_map(function ($v) {
+                                    if (is_numeric($v)) return (int) $v;
+                                    $v = trim($v, "\"'");
+                                    return is_numeric($v) ? (int) $v : null;
+                                }, $types));
+                                $roleNamesMap = [
+                                    1 => 'Administrador',
+                                    2 => 'Proveedores',
+                                    3 => 'Proyectos',
+                                    4 => 'Usuario',
+                                    5 => 'Analisis Tiendas',
+                                ];
+                                $roleNames = array_values(array_map(function ($id) use ($roleNamesMap) {
+                                    return $roleNamesMap[$id] ?? (string) $id;
+                                }, $types));
+                                if (count($roleNames) === 0) {
+                                    $display = '—';
+                                } elseif (count($roleNames) === 1) {
+                                    $display = $roleNames[0];
+                                } else {
+                                    $first = array_slice($roleNames, 0, 2);
+                                    $remaining = count($roleNames) - count($first);
+                                    $display = implode(', ', $first) . ($remaining > 0 ? ' +' . $remaining : '');
+                                }
+                                $title = implode(', ', $roleNames);
+                            @endphp
+                            <div class="widget-subheading opacity-8" title="{{ $title }}">
+                                {{ $display }}
+                            </div>
                         </div>
 
                     </div>
