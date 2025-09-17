@@ -23,8 +23,11 @@
         <div class="page-title-actions text-white">
             <input type="hidden" value="0" name="tab_orders" id="tab_orders">
 
-            <a class="m-2 btn btn-success" href="#" data-toggle="modal" data-target="#importarArchivoModal">
+            <a class="m-2 btn btn-success" href="#" data-toggle="modal" data-target="#importarArchivoModal" data-import-type="general">
                 <i class="metismenu-icon fa fa-upload mr-2"></i>Importar Archivo
+            </a>
+            <a class="m-2 btn btn-info" href="#" data-toggle="modal" data-target="#importarArchivoModal" data-import-type="proveedores">
+                <i class="metismenu-icon fa fa-upload mr-2"></i>Importar Proveedores
             </a>
 
             <a class="m-2 btn btn-primary" href="#" data-toggle="modal" data-target="#createUserModal">
@@ -115,6 +118,7 @@
             <div class="modal-content">
                 <form method="POST" action="{{ route('importar.archivo') }}" enctype="multipart/form-data" id="importForm">
                     @csrf
+                    <input type="hidden" name="import_type" id="import_type_input" value="general">
                     <div class="modal-header">
                         <h4 class="modal-title" id="importarArchivoModalLabel">
                             <i class="fa fa-upload mr-2"></i>Importar Archivo CSV/XLSX
@@ -259,8 +263,12 @@
             }
 
             // Resetear modal al abrirlo (para casos donde pueda quedar en estado inconsistente)
-            $('#importarArchivoModal').on('show.bs.modal', function () {
+            $('#importarArchivoModal').on('show.bs.modal', function (event) {
                 resetModal();
+                // Determinar el tipo de importación según el botón que abrió el modal
+                var button = $(event.relatedTarget); // Button that triggered the modal
+                var importType = button.data('import-type') || 'general';
+                $('#import_type_input').val(importType);
             });// Script para manejar el loader durante la importación
             $('#importForm').on('submit', function(e) {
                 // Verificar que se haya seleccionado un archivo

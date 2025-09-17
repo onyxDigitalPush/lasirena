@@ -176,13 +176,116 @@ class ProveedorController extends Controller
             Log::info('Validación pasada correctamente');
 
         $path = $archivo->getRealPath();
-        Log::info('Ruta real del archivo: ' . $path);            $cabeceras = [];
+        Log::info('Ruta real del archivo: ' . $path);
+        $importType = $request->input('import_type', 'general');
+        Log::info('Tipo de importación solicitado: ' . $importType);
+        $cabeceras = [];
             $datos = [];
 
             // Detectar si es archivo XLSX o CSV
             $extension = strtolower($archivo->getClientOriginalExtension());
             Log::info('Procesando archivo: ' . $archivo->getClientOriginalName() . ' - Extensión: ' . $extension);
             
+            if ($importType === 'proveedores') {
+                // Importar solo proveedores desde la tercera hoja (LISTADO GENERAL) - columnas F (id) y G (nombre)
+                try {
+                    Log::info('Iniciando importación de proveedores desde XLSX/CSV');
+                    if ($extension === 'xlsx') {
+                        if (!file_exists($path) || !is_readable($path)) {
+                            throw new Exception("El archivo no existe o no es legible: " . $path);
+                        }
+                        $spreadsheet = IOFactory::load($path);
+                        // Intentar obtener por nombre de hoja, si no existe, usar índice 2 (tercera hoja)
+                        $worksheet = $spreadsheet->getSheetByName('LISTADO GENERAL');
+                        if (!$worksheet) {
+                            try {
+                                $worksheet = $spreadsheet->getSheet(2);
+                            } catch (Exception $e) {
+                                throw new Exception('No se encontró la hoja LISTADO GENERAL ni la tercera hoja del libro.');
+                            }
+                        }
+                        $highestRow = $worksheet->getHighestRow();
+                        $created = 0;
+                        $skipped = 0;
+                        // Empezar a leer a partir de la fila 10 (índice 10)
+                        for ($row = 10; $row <= $highestRow; $row++) {
+                            $provRaw = $worksheet->getCell('F' . $row)->getCalculatedValue();
+                            $nameRaw = $worksheet->getCell('G' . $row)->getCalculatedValue();
+                            $provId = trim((string) ($provRaw ?? ''));
+                            $provName = trim((string) ($nameRaw ?? ''));
+                            if ($provId === '' && $provName === '') continue;
+                            // Necesitamos un id numérico válido
+                            if (!is_numeric($provId)) {
+                                Log::warning("Fila {$row} ignorada: id_proveedor no numérico ('{$provId}')");
+                                $skipped++;
+                                continue;
+                            }
+                            $id = intval($provId);
+                            // Crear si no existe
+                            $exists = Proveedor::find($id);
+                            if ($exists) {
+                                $skipped++;
+                                continue;
+                            }
+                            Proveedor::firstOrCreate(
+                                ['id_proveedor' => $id],
+                                ['nombre_proveedor' => $provName]
+                            );
+                            $created++;
+                        }
+                        Log::info("Importación proveedores completada. Creados: {$created}, Omitidos: {$skipped}");
+                        return back()->with('success', "Importación proveedores completada. Creados: {$created}, Omitidos: {$skipped}");
+                    } else {
+                        // CSV/TXT fallback: leer columnas F (índice 5) y G (índice 6)
+                        $delimitadores = [',', ';', "\t"];
+                        $delimitadorDetectado = null;
+                        $lineas = [];
+                        $handle = fopen($path, 'r');
+                        if ($handle) {
+                            for ($i = 0; $i < 5; $i++) {
+                                $linea = fgets($handle);
+                                if ($linea === false) break;
+                                $lineas[] = $linea;
+                            }
+                            fclose($handle);
+                        }
+                        $linea4 = isset($lineas[3]) ? $lineas[3] : '';
+                        $maxCount = 0;
+                        foreach ($delimitadores as $delim) {
+                            $count = substr_count($linea4, $delim);
+                            if ($count > $maxCount) { $maxCount = $count; $delimitadorDetectado = $delim; }
+                        }
+                        if (!$delimitadorDetectado) {
+                            return back()->withErrors(['archivo' => 'No se pudo detectar el delimitador del archivo CSV/TXT.']);
+                        }
+                        if (($handle = fopen($path, 'r')) !== false) {
+                            $created = 0; $skipped = 0;
+                            $currentRow = 0;
+                            while (($linea = fgetcsv($handle, 1000, $delimitadorDetectado)) !== false) {
+                                $currentRow++;
+                                if ($currentRow < 10) continue; // empezar en la fila 10
+                                // Ignorar filas completamente vacías
+                                if (empty(array_filter($linea))) continue;
+                                $provId = isset($linea[5]) ? trim($linea[5]) : '';
+                                $provName = isset($linea[6]) ? trim($linea[6]) : '';
+                                if ($provId === '' && $provName === '') continue;
+                                if (!is_numeric($provId)) { $skipped++; continue; }
+                                $id = intval($provId);
+                                $exists = Proveedor::find($id);
+                                if ($exists) { $skipped++; continue; }
+                                Proveedor::firstOrCreate(['id_proveedor' => $id], ['nombre_proveedor' => $provName]);
+                                $created++;
+                            }
+                            fclose($handle);
+                            Log::info("Importación proveedores CSV completada. Creados: {$created}, Omitidos: {$skipped}");
+                            return back()->with('success', "Importación proveedores completada. Creados: {$created}, Omitidos: {$skipped}");
+                        }
+                    }
+                } catch (Exception $e) {
+                    Log::error('Error en importación de proveedores: ' . $e->getMessage());
+                    return back()->withErrors(['archivo' => 'Error al importar proveedores: ' . $e->getMessage()]);
+                }
+            }
             if ($extension === 'xlsx') {// Procesar archivo XLSX
             try {
                 Log::info('Iniciando procesamiento de archivo XLSX');

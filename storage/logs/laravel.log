@@ -211,3 +211,41 @@
 [2025-09-15 22:26:13] local.INFO: Parámetros recibidos: {"orden":null,"filtro":null} 
 [2025-09-15 22:26:13] local.INFO: Aplicando ordenamiento: {"orden":null} 
 [2025-09-15 22:26:13] local.INFO: SQL generado: {"sql":"select `gp_ls_material_kilos`.`id`, `gp_ls_material_kilos`.`total_kg`, `gp_ls_proveedores`.`nombre_proveedor`, `gp_ls_materiales`.`descripcion` as `nombre_material`, `gp_ls_material_kilos`.`ctd_emdev`, `gp_ls_material_kilos`.`umb`, `gp_ls_material_kilos`.`ce`, `gp_ls_material_kilos`.`valor_emdev`, `gp_ls_material_kilos`.`factor_conversion`, `gp_ls_material_kilos`.`codigo_material`, `gp_ls_material_kilos`.`mes`, `gp_ls_material_kilos`.`proveedor_id` from `gp_ls_material_kilos` inner join `gp_ls_proveedores` on `gp_ls_material_kilos`.`proveedor_id` = `gp_ls_proveedores`.`id_proveedor` inner join `gp_ls_materiales` on `gp_ls_material_kilos`.`codigo_material` = `gp_ls_materiales`.`codigo` order by `gp_ls_material_kilos`.`id` asc","bindings":[]} 
+[2025-09-17 20:49:12] local.INFO: === INICIO IMPORTAR ARCHIVO ===  
+[2025-09-17 20:49:12] local.INFO: Método: POST  
+[2025-09-17 20:49:12] local.INFO: Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryDR2vuxdia6oKzTNS  
+[2025-09-17 20:49:12] local.INFO: Archivos recibidos: {"archivo":{}}  
+[2025-09-17 20:49:12] local.INFO: Todos los inputs: {"_token":"wqrfiRBtdJhMWjBrlMksjpQYMdWB0gage3jKXBif","import_type":"proveedores","archivo":{}}  
+[2025-09-17 20:49:12] local.INFO: Configuración PHP:  
+[2025-09-17 20:49:12] local.INFO: - upload_max_filesize: 200M  
+[2025-09-17 20:49:12] local.INFO: - post_max_size: 200M  
+[2025-09-17 20:49:12] local.INFO: - max_file_uploads: 20  
+[2025-09-17 20:49:12] local.INFO: - memory_limit: 512M  
+[2025-09-17 20:49:12] local.INFO: - max_execution_time: 300  
+[2025-09-17 20:49:12] local.INFO: Detalles del archivo recibido:  
+[2025-09-17 20:49:12] local.INFO: - Nombre original: LSQM-XA-038_LISTADO_PROVEEDORES_FY26_AN25_Sin contraseña.xlsx  
+[2025-09-17 20:49:12] local.INFO: - Extensión: xlsx  
+[2025-09-17 20:49:12] local.INFO: - Tamaño: 4371025 bytes  
+[2025-09-17 20:49:12] local.INFO: - MIME type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet  
+[2025-09-17 20:49:12] local.INFO: - Es válido: true  
+[2025-09-17 20:49:12] local.INFO: Validación de extensión pasada: xlsx  
+[2025-09-17 20:49:12] local.INFO: Validación pasada correctamente  
+[2025-09-17 20:49:12] local.INFO: Ruta real del archivo: C:\xampp7\tmp\php64B4.tmp  
+[2025-09-17 20:49:12] local.INFO: Tipo de importación solicitado: proveedores  
+[2025-09-17 20:49:12] local.INFO: Procesando archivo: LSQM-XA-038_LISTADO_PROVEEDORES_FY26_AN25_Sin contraseña.xlsx - Extensión: xlsx  
+[2025-09-17 20:49:12] local.INFO: Iniciando importación de proveedores desde XLSX/CSV  
+[2025-09-17 20:49:18] local.WARNING: Fila 79 ignorada: id_proveedor no numérico ('')  
+[2025-09-17 20:49:18] local.WARNING: Fila 84 ignorada: id_proveedor no numérico ('')  
+[2025-09-17 20:49:19] local.WARNING: Fila 535 ignorada: id_proveedor no numérico ('')  
+[2025-09-17 20:49:19] local.WARNING: Fila 783 ignorada: id_proveedor no numérico ('')  
+[2025-09-17 20:49:19] local.WARNING: Fila 933 ignorada: id_proveedor no numérico ('')  
+[2025-09-17 20:49:19] local.WARNING: Fila 959 ignorada: id_proveedor no numérico ('')  
+[2025-09-17 20:49:19] local.WARNING: Fila 960 ignorada: id_proveedor no numérico ('')  
+[2025-09-17 20:49:19] local.WARNING: Fila 961 ignorada: id_proveedor no numérico ('')  
+[2025-09-17 20:49:19] local.WARNING: Fila 962 ignorada: id_proveedor no numérico ('')  
+[2025-09-17 20:49:19] local.WARNING: Fila 1087 ignorada: id_proveedor no numérico ('X')  
+[2025-09-17 20:49:19] local.WARNING: Fila 1109 ignorada: id_proveedor no numérico ('')  
+[2025-09-17 20:49:19] local.WARNING: Fila 1122 ignorada: id_proveedor no numérico ('')  
+[2025-09-17 20:49:19] local.WARNING: Fila 1225 ignorada: id_proveedor no numérico ('X')  
+[2025-09-17 20:49:19] local.WARNING: Fila 1287 ignorada: id_proveedor no numérico ('')  
+[2025-09-17 20:49:19] local.INFO: Importación proveedores completada. Creados: 333, Omitidos: 955  
