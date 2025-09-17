@@ -166,7 +166,7 @@
 
                     <div class="modal-footer" id="modalFooter">
                         <button type="submit" class="btn btn-success" id="submitBtn">
-                            <i class="fa fa-upload mr-2"></i>Importar Archivo
+                            <i class="fa fa-upload mr-2"></i>Importar Proveedores y Articulos
                         </button>
                         <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cancelBtn">Cancelar</button>
                     </div>
