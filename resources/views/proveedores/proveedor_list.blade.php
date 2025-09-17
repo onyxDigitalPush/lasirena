@@ -24,7 +24,7 @@
             <input type="hidden" value="0" name="tab_orders" id="tab_orders">
 
             <a class="m-2 btn btn-success" href="#" data-toggle="modal" data-target="#importarArchivoModal" data-import-type="general">
-                <i class="metismenu-icon fa fa-upload mr-2"></i>Importar Archivo
+                <i class="metismenu-icon fa fa-upload mr-2"></i>Importar Proveedores y Articulos
             </a>
             <a class="m-2 btn btn-info" href="#" data-toggle="modal" data-target="#importarArchivoModal" data-import-type="proveedores">
                 <i class="metismenu-icon fa fa-upload mr-2"></i>Importar Proveedores
@@ -166,7 +166,7 @@
 
                     <div class="modal-footer" id="modalFooter">
                         <button type="submit" class="btn btn-success" id="submitBtn">
-                            <i class="fa fa-upload mr-2"></i>Importar Proveedores y Articulos
+                            <i class="fa fa-upload mr-2"></i>Importar Archivo
                         </button>
                         <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cancelBtn">Cancelar</button>
                     </div>
