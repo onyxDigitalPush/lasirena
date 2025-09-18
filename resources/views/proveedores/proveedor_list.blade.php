@@ -140,9 +140,9 @@
                                     <i class="fa fa-info-circle"></i> 
                                     Formatos soportados: CSV, TXT, XLSX
                                     <br>
-                                    • Para CSV: Las cabeceras deben estar en la fila 4
+                                    • Para PROVEEDORES: Las cabeceras deben estar en la fila 10
                                     <br>
-                                    • Para XLSX: Las cabeceras deben estar en la fila 4
+                                    • Para PROVEEDORES Y ARTICULOS: Las cabeceras deben estar en la fila 4
                                 </small>
                             </div>
                         </div>
