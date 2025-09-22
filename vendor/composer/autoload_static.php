@@ -630,6 +630,7 @@ class ComposerStaticInit705fb73970ef4b361891267ba219e830
         'App\\Console\\Commands\\SincronizarMetricasProveedores' => __DIR__ . '/../..' . '/app/Console/Commands/SincronizarMetricasProveedores.php',
         'App\\Console\\Kernel' => __DIR__ . '/../..' . '/app/Console/Kernel.php',
         'App\\Exceptions\\Handler' => __DIR__ . '/../..' . '/app/Exceptions/Handler.php',
+        'App\\Http\\Controllers\\Api\\MaterialController' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/MaterialController.php',
         'App\\Http\\Controllers\\Auth\\ConfirmPasswordController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/ConfirmPasswordController.php',
         'App\\Http\\Controllers\\Auth\\ForgotPasswordController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/ForgotPasswordController.php',
         'App\\Http\\Controllers\\Auth\\LoginController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/LoginController.php',

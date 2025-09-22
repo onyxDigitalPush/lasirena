@@ -253,6 +253,11 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/evaluacion_analisis/obtener-datos', 'EvaluacionAnalisisController@obtenerDatosAnalisis')->name('evaluacion_analisis.obtener_datos');
     Route::post('/evaluacion_analisis/actualizar', 'EvaluacionAnalisisController@actualizarAnalisis')->name('evaluacion_analisis.actualizar');
     Route::delete('/evaluacion_analisis/eliminar', 'EvaluacionAnalisisController@eliminarAnalisis')->name('evaluacion_analisis.eliminar');
+    
+    // Rutas para gestión de archivos de analíticas
+    Route::post('/evaluacion_analisis/subir-archivo', 'EvaluacionAnalisisController@subirArchivo')->name('evaluacion_analisis.subir_archivo');
+    Route::delete('/evaluacion_analisis/eliminar-archivo', 'EvaluacionAnalisisController@eliminarArchivo')->name('evaluacion_analisis.eliminar_archivo');
+    Route::get('/evaluacion_analisis/descargar-archivo/{analiticaId}/{nombreArchivo}', 'EvaluacionAnalisisController@descargarArchivo')->name('evaluacion_analisis.descargar_archivo');
 
 
         

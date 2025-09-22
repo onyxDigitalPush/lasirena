@@ -110,6 +110,11 @@ class EvaluacionAnalisisController extends Controller
                 Log::info('guardarAnalitica - editar payload', $data);
                 $analitica->update($data);
                 
+                // Procesar archivos subidos en edición
+                if ($request->hasFile('archivos')) {
+                    $this->procesarArchivosSubidos($request, $analitica);
+                }
+                
                 // Si se solicita crear la siguiente analítica automáticamente
                 if ($request->filled('crear_siguiente') && $request->input('crear_siguiente') == '1') {
                     // Verificar si procede antes de crear la siguiente analítica
@@ -242,6 +247,11 @@ class EvaluacionAnalisisController extends Controller
             }
             Log::info('guardarAnalitica - crear payload', $data);
             $analitica = Analitica::create($data);
+            
+            // Procesar archivos subidos
+            if ($request->hasFile('archivos')) {
+                $this->procesarArchivosSubidos($request, $analitica);
+            }
             
             // Si se solicita crear la siguiente analítica automáticamente
             if ($request->filled('crear_siguiente') && $request->input('crear_siguiente') == '1') {
@@ -1036,6 +1046,10 @@ class EvaluacionAnalisisController extends Controller
                     $datos->detalle_tipo = $datos->detalle_tipo ?? null;
                     $datos->codigo_producto = $datos->codigo_producto ?? ($datos->codigo ?? null);
                     $datos->descripcion_producto = $datos->descripcion_producto ?? ($datos->descripcion ?? $datos->nombre_producto ?? $datos->product_description ?? $datos->nombre ?? null);
+                    
+                    // Agregar archivos de la analítica
+                    $datos->archivos = $datos->getArchivosArray();
+                    
                     return response()->json(['success' => true, 'analitica' => $datos]);
                 }
                 return response()->json(['success' => false, 'message' => 'Analítica no encontrada']);
@@ -1091,6 +1105,10 @@ class EvaluacionAnalisisController extends Controller
                         $datos->detalle_tipo = $datos->detalle_tipo ?? null;
                         $datos->codigo_producto = $datos->codigo_producto ?? ($datos->codigo ?? null);
                         $datos->descripcion_producto = $datos->descripcion_producto ?? ($datos->descripcion ?? $datos->nombre_producto ?? $datos->product_description ?? $datos->nombre ?? null);
+                        
+                        // Agregar archivos de la analítica
+                        $datos->archivos = $datos->getArchivosArray();
+                        
                     return response()->json(['success' => true, 'analitica' => $datos]);
                 }
 
@@ -1200,6 +1218,252 @@ class EvaluacionAnalisisController extends Controller
                 return response()->json(['success' => false, 'message' => 'Error interno al eliminar registro', 'error' => $e->getMessage()], 500);
             }
             return redirect()->back()->with('error', 'Error interno al eliminar registro');
+        }
+    }
+
+    // Método privado para procesar archivos subidos
+    private function procesarArchivosSubidos(Request $request, Analitica $analitica)
+    {
+        try {
+            $archivos = $request->file('archivos');
+            if (!$archivos) {
+                Log::info('No se encontraron archivos en la request');
+                return;
+            }
+
+            if (!is_array($archivos)) {
+                $archivos = [$archivos];
+            }
+
+            Log::info('Procesando archivos subidos', [
+                'analitica_id' => $analitica->id,
+                'cantidad_archivos' => count($archivos),
+                'archivos_existentes_antes' => count($analitica->getArchivosArray())
+            ]);
+
+            foreach ($archivos as $index => $archivo) {
+                if ($archivo && $archivo->isValid()) {
+                    Log::info('Procesando archivo', [
+                        'index' => $index,
+                        'nombre_original' => $archivo->getClientOriginalName(),
+                        'tamaño' => $archivo->getSize()
+                    ]);
+
+                    // Validar el archivo
+                    $extensionesPermitidas = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'gif'];
+                    $extension = strtolower($archivo->getClientOriginalExtension());
+                    
+                    if (!in_array($extension, $extensionesPermitidas)) {
+                        Log::warning('Extensión de archivo no permitida: ' . $extension);
+                        continue;
+                    }
+                    
+                    if ($archivo->getSize() > 10240 * 1024) { // 10MB
+                        Log::warning('Archivo demasiado grande: ' . $archivo->getSize());
+                        continue;
+                    }
+                    
+                    // Generar nombre único para el archivo
+                    $nombreOriginal = $archivo->getClientOriginalName();
+                    $nombreArchivo = time() . '_' . uniqid() . '.' . $extension;
+                    
+                    // Crear directorio si no existe
+                    $directorioArchivos = public_path('storage/analiticas');
+                    if (!file_exists($directorioArchivos)) {
+                        mkdir($directorioArchivos, 0755, true);
+                    }
+                    
+                    // Mover archivo
+                    $rutaArchivo = $directorioArchivos . '/' . $nombreArchivo;
+                    $archivo->move($directorioArchivos, $nombreArchivo);
+                    
+                    // Agregar información del archivo al modelo
+                    $infoArchivo = [
+                        'nombre' => $nombreArchivo,
+                        'nombre_original' => $nombreOriginal,
+                        'ruta' => '/storage/analiticas/' . $nombreArchivo,
+                        'tamano' => filesize($rutaArchivo),
+                        'tipo' => $archivo->getClientMimeType(),
+                        'fecha_subida' => now()->toDateTimeString()
+                    ];
+                    
+                    $analitica->addArchivo($infoArchivo);
+                    Log::info('Archivo agregado al modelo', $infoArchivo);
+                }
+            }
+            
+            $analitica->save();
+            Log::info('Archivos procesados correctamente', [
+                'analitica_id' => $analitica->id,
+                'archivos_finales' => count($analitica->getArchivosArray())
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error procesando archivos: ' . $e->getMessage());
+        }
+    }
+
+    // Métodos para manejar archivos de analíticas
+    public function subirArchivo(Request $request)
+    {
+        try {
+            $request->validate([
+                'analitica_id' => 'required|exists:analiticas,id',
+                'archivo' => 'required|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,gif'
+            ]);
+
+            $analitica = Analitica::find($request->analitica_id);
+            $archivo = $request->file('archivo');
+            
+            // Generar nombre único para el archivo
+            $nombreOriginal = $archivo->getClientOriginalName();
+            $extension = $archivo->getClientOriginalExtension();
+            $nombreArchivo = time() . '_' . uniqid() . '.' . $extension;
+            
+            // Crear directorio si no existe
+            $directorioArchivos = public_path('storage/analiticas');
+            if (!file_exists($directorioArchivos)) {
+                mkdir($directorioArchivos, 0755, true);
+            }
+            
+            // Mover archivo
+            $rutaArchivo = $directorioArchivos . '/' . $nombreArchivo;
+            $archivo->move($directorioArchivos, $nombreArchivo);
+            
+            // Agregar información del archivo al modelo
+            $infoArchivo = [
+                'nombre' => $nombreArchivo,
+                'nombre_original' => $nombreOriginal,
+                'ruta' => '/storage/analiticas/' . $nombreArchivo,
+                'tamano' => filesize($rutaArchivo),
+                'tipo' => $archivo->getClientMimeType(),
+                'fecha_subida' => now()->toDateTimeString()
+            ];
+            
+            $analitica->addArchivo($infoArchivo);
+            $analitica->save();
+            
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Archivo subido correctamente',
+                    'archivo' => $infoArchivo
+                ]);
+            }
+            
+            return redirect()->back()->with('success', 'Archivo subido correctamente');
+            
+        } catch (\Exception $e) {
+            Log::error('Error subiendo archivo: ' . $e->getMessage());
+            
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al subir el archivo: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return redirect()->back()->with('error', 'Error al subir el archivo');
+        }
+    }
+
+    public function eliminarArchivo(Request $request)
+    {
+        try {
+            $request->validate([
+                'analitica_id' => 'required|exists:analiticas,id',
+                'nombre_archivo' => 'required|string'
+            ]);
+
+            $analitica = Analitica::find($request->analitica_id);
+            $nombreArchivo = $request->nombre_archivo;
+            
+            // Buscar el archivo en la analítica
+            $archivos = $analitica->getArchivosArray();
+            $archivoEncontrado = null;
+            
+            foreach ($archivos as $archivo) {
+                if (is_array($archivo) && isset($archivo['nombre']) && $archivo['nombre'] === $nombreArchivo) {
+                    $archivoEncontrado = $archivo;
+                    break;
+                }
+            }
+            
+            if (!$archivoEncontrado) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Archivo no encontrado'
+                ], 404);
+            }
+            
+            // Eliminar archivo físico
+            $rutaCompleta = public_path('storage/analiticas/' . $nombreArchivo);
+            if (file_exists($rutaCompleta)) {
+                unlink($rutaCompleta);
+            }
+            
+            // Remover del modelo
+            $analitica->removeArchivo($nombreArchivo);
+            $analitica->save();
+            
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Archivo eliminado correctamente'
+                ]);
+            }
+            
+            return redirect()->back()->with('success', 'Archivo eliminado correctamente');
+            
+        } catch (\Exception $e) {
+            Log::error('Error eliminando archivo: ' . $e->getMessage());
+            
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al eliminar el archivo: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return redirect()->back()->with('error', 'Error al eliminar el archivo');
+        }
+    }
+
+    public function descargarArchivo(Request $request, $analiticaId, $nombreArchivo)
+    {
+        try {
+            $analitica = Analitica::find($analiticaId);
+            
+            if (!$analitica) {
+                abort(404, 'Analítica no encontrada');
+            }
+            
+            // Verificar que el archivo existe en los archivos de la analítica
+            $archivos = $analitica->getArchivosArray();
+            $archivoEncontrado = null;
+            
+            foreach ($archivos as $archivo) {
+                if (is_array($archivo) && isset($archivo['nombre']) && $archivo['nombre'] === $nombreArchivo) {
+                    $archivoEncontrado = $archivo;
+                    break;
+                }
+            }
+            
+            if (!$archivoEncontrado) {
+                abort(404, 'Archivo no encontrado');
+            }
+            
+            $rutaCompleta = public_path('storage/analiticas/' . $nombreArchivo);
+            
+            if (!file_exists($rutaCompleta)) {
+                abort(404, 'Archivo físico no encontrado');
+            }
+            
+            return response()->download($rutaCompleta, isset($archivoEncontrado['nombre_original']) ? $archivoEncontrado['nombre_original'] : $nombreArchivo);
+            
+        } catch (\Exception $e) {
+            Log::error('Error descargando archivo: ' . $e->getMessage());
+            abort(500, 'Error interno al descargar el archivo');
         }
     }
 }

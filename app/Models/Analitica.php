@@ -26,11 +26,13 @@ class Analitica extends Model
         'proveedor_no_procede',
         'estado_analitica',
         'fecha_cambio_estado',
+        'archivos',
     ];
 
 
     protected $casts = [
         'fecha_cambio_estado' => 'datetime',
+        'archivos' => 'array',
     ];
 
     // Constantes para los estados
@@ -85,5 +87,35 @@ class Analitica extends Model
     public function tendenciaMicro()
     {
         return $this->hasOne(\App\Models\TendenciaMicro::class);
+    }
+
+    // Métodos para manejar archivos
+    public function getArchivosArray()
+    {
+        return is_array($this->archivos) ? $this->archivos : [];
+    }
+
+    public function addArchivo($archivo)
+    {
+        $archivos = $this->getArchivosArray();
+        $archivos[] = $archivo;
+        $this->archivos = $archivos;
+        return $this;
+    }
+
+    public function removeArchivo($nombreArchivo)
+    {
+        $archivos = $this->getArchivosArray();
+        $archivos = array_filter($archivos, function($archivo) use ($nombreArchivo) {
+            return is_array($archivo) && isset($archivo['nombre']) && $archivo['nombre'] !== $nombreArchivo;
+        });
+        $this->archivos = array_values($archivos);
+        return $this;
+    }
+
+    public function hasArchivos()
+    {
+        $archivos = $this->getArchivosArray();
+        return !empty($archivos);
     }
 }
