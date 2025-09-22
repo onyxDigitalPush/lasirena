@@ -12,6 +12,13 @@
         </div>
     </div>
 @endsection
+@php
+    $tipoDisplay = [
+        'Resultados agua' => 'Analitica agua',
+        'Tendencias superficie' => 'Analitica de superficie',
+        'Tendencias micro' => 'Analitica de microbiologia'
+    ];
+@endphp
 {{-- Modal de Confirmación para Eliminar --}}
 <div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
@@ -111,15 +118,9 @@
                                     <label for="tipo_analitica">Tipo de Analítica</label>
                                     <select name="tipo_analitica" id="tipo_analitica" class="form-control">
                                         <option value="">-- Todos --</option>
-                                        <option value="Resultados agua"
-                                            {{ request('tipo_analitica') == 'Resultados agua' ? 'selected' : '' }}>
-                                            Resultados agua</option>
-                                        <option value="Tendencias superficie"
-                                            {{ request('tipo_analitica') == 'Tendencias superficie' ? 'selected' : '' }}>
-                                            Tendencias superficie</option>
-                                        <option value="Tendencias micro"
-                                            {{ request('tipo_analitica') == 'Tendencias micro' ? 'selected' : '' }}>
-                                            Tendencias micro</option>
+                                        <option value="Resultados agua" {{ request('tipo_analitica') == 'Resultados agua' ? 'selected' : '' }}>{{ $tipoDisplay['Resultados agua'] }}</option>
+                                        <option value="Tendencias superficie" {{ request('tipo_analitica') == 'Tendencias superficie' ? 'selected' : '' }}>{{ $tipoDisplay['Tendencias superficie'] }}</option>
+                                        <option value="Tendencias micro" {{ request('tipo_analitica') == 'Tendencias micro' ? 'selected' : '' }}>{{ $tipoDisplay['Tendencias micro'] }}</option>
                                     </select>
                                 </div>
                             </div>
@@ -234,7 +235,7 @@
                                 <td class="text-center">
                                     {{ $resultado->tienda_nombre ?? '-' }}
                                 </td>
-                            <td class="text-center">{{ $resultado->tipo_analitica }}</td>
+                            <td class="text-center">{{ $tipoDisplay[$resultado->tipo_analitica] ?? $resultado->tipo_analitica }}</td>
                             <td class="text-center">{{ $resultado->fecha_real_analitica }}</td>
                             <td class="text-center">
                                 @if($esRealizada)

@@ -6,8 +6,8 @@
             <div class="page-title-icon">
                 <i class="metismenu-icon fa fa-area-chart icon-gradient bg-secondary"></i>
             </div>
-            <div>Tendencias Superficie
-                <div class="page-title-subheading">Listado y creación de tendencias superficie</div>
+            <div>Analitica de superficie
+                <div class="page-title-subheading">Listado y creación de analitica de superficie</div>
             </div>
         </div>
     </div>
@@ -16,7 +16,7 @@
 @section('main_content')
     <div class="col-12 bg-white p-3">
         <div class="mb-3 d-flex justify-content-between align-items-center">
-            <h5>Tendencias Superficie</h5>
+            <h5>Analitica de superficie</h5>
             <button class="btn btn-primary" data-toggle="modal" data-target="#modal_tendencias_superficie">Agregar Tendencia</button>
         </div>
 

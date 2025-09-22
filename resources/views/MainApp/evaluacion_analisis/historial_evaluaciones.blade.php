@@ -75,9 +75,9 @@
                     <div class="form-group">
                         <label for="tipo_analitica">Tipo Analítica</label>
                         <select class="form-control" name="tipo_analitica" required>
-                            <option value="Resultados agua">Resultados agua</option>
-                            <option value="Tendencias superficie">Tendencias superficie</option>
-                            <option value="Tendencias micro">Tendencias micro</option>
+                            <option value="Resultados agua">Analitica agua</option>
+                            <option value="Tendencias superficie">Analitica de superficie</option>
+                            <option value="Tendencias micro">Analitica de microbiologia</option>
                         </select>
                     </div>
                 </div>
@@ -94,6 +94,13 @@
 
     <div class="page-title-wrapper">
         <div class="page-title-heading">
+@php
+    $tipoDisplay = [
+        'Resultados agua' => 'Analitica agua',
+        'Tendencias superficie' => 'Analitica de superficie',
+        'Tendencias micro' => 'Analitica de microbiologia'
+    ];
+@endphp
 <script>
     // Toggle text for Mostrar N más / Mostrar menos
     $(document).on('click', '.toggle-analiticas', function(e){
@@ -197,7 +204,7 @@
                                 @foreach($tienda->analiticas->take(2) as $analitica)
                                     <div class="d-flex justify-content-end align-items-center mb-1">
                                         <div class="mr-2 text-right" style="min-width:160px;">
-                                            <strong style="display:block">{{ $analitica->tipo_analitica }}</strong>
+                                            <strong style="display:block">{{ $tipoDisplay[$analitica->tipo_analitica] ?? $analitica->tipo_analitica }}</strong>
                                             <small style="display:block">{{ $analitica->fecha_real_analitica }}</small>
                                             @if(!empty($analitica->periodicidad_no_procede) && $analitica->periodicidad_no_procede == 1)
                                                 <small style="display:block"><span class="badge badge-secondary">No procede</span></small>
@@ -239,7 +246,7 @@
                                         @foreach($tienda->analiticas->slice(2) as $analitica)
                                             <div class="d-flex justify-content-end align-items-center mb-1">
                                                 <div class="mr-2 text-right" style="min-width:160px;">
-                                                    <strong style="display:block">{{ $analitica->tipo_analitica }}</strong>
+                                                    <strong style="display:block">{{ $tipoDisplay[$analitica->tipo_analitica] ?? $analitica->tipo_analitica }}</strong>
                                                     <small style="display:block">{{ $analitica->fecha_real_analitica }}</small>
                                                     @if(!empty($analitica->periodicidad_no_procede) && $analitica->periodicidad_no_procede == 1)
                                                         <small style="display:block"><span class="badge badge-secondary">No procede</span></small>
@@ -289,7 +296,7 @@
                                 @foreach($tienda->analiticas->take(2) as $anal)
                                     <div class="d-flex justify-content-end align-items-center mb-1">
                                         <div class="mr-2 text-right" style="min-width:140px;">
-                                            <small style="display:block">{{ $anal->tipo_analitica }}</small>
+                                            <small style="display:block">{{ $tipoDisplay[$anal->tipo_analitica] ?? $anal->tipo_analitica }}</small>
                                             <small style="display:block">{{ $anal->fecha_real_analitica }}</small>
                                         </div>
                                         <div class="text-right">
@@ -315,7 +322,7 @@
                                         @foreach($tienda->analiticas->slice(2) as $anal)
                                             <div class="d-flex justify-content-end align-items-center mb-1">
                                                 <div class="mr-2 text-right" style="min-width:140px;">
-                                                    <small style="display:block">{{ $anal->tipo_analitica }}</small>
+                                                    <small style="display:block">{{ $tipoDisplay[$anal->tipo_analitica] ?? $anal->tipo_analitica }}</small>
                                                     <small style="display:block">{{ $anal->fecha_real_analitica }}</small>
                                                 </div>
                                                 <div class="text-right">

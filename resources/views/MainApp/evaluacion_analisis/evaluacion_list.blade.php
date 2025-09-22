@@ -5,6 +5,13 @@
 @endsection
 
 <!-- Modals para cada tipo (2 columnas) -->
+@php
+    $tipoDisplay = [
+        'Resultados agua' => 'Analitica agua',
+        'Tendencias superficie' => 'Analitica de superficie',
+        'Tendencias micro' => 'Analitica de microbiologia'
+    ];
+@endphp
 @foreach (['Resultados agua' => 'modal_resultados_agua', 'Tendencias superficie' => 'modal_tendencias_superficie', 'Tendencias micro' => 'modal_tendencias_micro'] as $tipo => $modalId)
     <div class="modal fade" id="{{ $modalId }}" tabindex="-1" role="dialog"
         aria-labelledby="{{ $modalId }}Label">
@@ -23,7 +30,7 @@
                     <input type="hidden" name="asesor_externo_nombre_original" class="asesor_externo_nombre_original_input">
                     <input type="hidden" name="asesor_externo_empresa_original" class="asesor_externo_empresa_original_input">
                     <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title" id="{{ $modalId }}Label">Agregar Analítica - {{ $tipo }}
+                        <h5 class="modal-title" id="{{ $modalId }}Label">Agregar Analítica - {{ $tipoDisplay[$tipo] ?? $tipo }}
                         </h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                                 aria-hidden="true">&times;</span></button>
@@ -647,9 +654,9 @@
                                     <label for="tipo_analitica">Tipo de Analítica</label>
                                     <select name="tipo_analitica" id="tipo_analitica" class="form-control">
                                         <option value="">-- Todos --</option>
-                                        <option value="Resultados agua" {{ request('tipo_analitica') == 'Resultados agua' ? 'selected' : '' }}>Resultados agua</option>
-                                        <option value="Tendencias superficie" {{ request('tipo_analitica') == 'Tendencias superficie' ? 'selected' : '' }}>Tendencias superficie</option>
-                                        <option value="Tendencias micro" {{ request('tipo_analitica') == 'Tendencias micro' ? 'selected' : '' }}>Tendencias micro</option>
+                                        <option value="Resultados agua" {{ request('tipo_analitica') == 'Resultados agua' ? 'selected' : '' }}>{{ $tipoDisplay['Resultados agua'] }}</option>
+                                        <option value="Tendencias superficie" {{ request('tipo_analitica') == 'Tendencias superficie' ? 'selected' : '' }}>{{ $tipoDisplay['Tendencias superficie'] }}</option>
+                                        <option value="Tendencias micro" {{ request('tipo_analitica') == 'Tendencias micro' ? 'selected' : '' }}>{{ $tipoDisplay['Tendencias micro'] }}</option>
                                     </select>
                                 </div>
                             </div>
@@ -731,7 +738,7 @@
                         <td class="text-center">
                             {{ $a->tienda_nombre ?? (optional($a->tienda)->nombre_tienda ?? '-') }}
                         </td>
-                        <td class="text-center">{{ $a->tipo_analitica }}</td>
+                        <td class="text-center">{{ $tipoDisplay[$a->tipo_analitica] ?? $a->tipo_analitica }}</td>
                         <td class="text-center">{{ $a->fecha_real_analitica }}</td>
 
                         <!-- Estado: muestra el estado basado en el campo estado_analitica -->
