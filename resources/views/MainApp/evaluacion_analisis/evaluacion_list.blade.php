@@ -831,7 +831,7 @@
                                 @php
                                     $procedeCalculado = (($a->proveedor_no_procede ?? 0) || ($a->periodicidad_no_procede ?? 0)) ? 0 : 1;
                                 @endphp
-                                @if($procedeCalculado == 1)
+                                @if($procedeCalculado == 1 && ($a->estado_analitica ?? '') !== 'realizada')
                                     <a href="#" class="btn btn-sm btn-info btn-duplicar-analitica ml-1" 
                                         data-analitica-id="{{ $a->id }}">
                                         <i class="fa fa-clone mr-1"></i>Duplicar
