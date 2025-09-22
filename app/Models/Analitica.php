@@ -18,12 +18,16 @@ class Analitica extends Model
         'periodicidad',
         'periodicidad_no_procede',
         'tipo_analitica',
+        'detalle_tipo',
+        'codigo_producto',
+        'descripcion_producto',
         'procede',
         'proveedor_id',
         'proveedor_no_procede',
         'estado_analitica',
         'fecha_cambio_estado',
     ];
+
 
     protected $casts = [
         'fecha_cambio_estado' => 'datetime',

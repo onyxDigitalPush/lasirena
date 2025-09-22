@@ -18,10 +18,6 @@
                     <input type="hidden" name="modo_edicion" id="modo_edicion_modal" value="agregar">
                     <input type="hidden" name="id_registro" id="id_registro_modal">
                     <div class="form-group">
-                        <label for="asesor_externo_nombre">Asesor Externo - Nombre</label>
-                        <input type="text" class="form-control" name="asesor_externo_nombre" required>
-                    </div>
-                    <div class="form-group">
                         <label for="asesor_externo_empresa">Asesor Externo - Empresa</label>
                         <input type="text" class="form-control" name="asesor_externo_empresa" required>
                     </div>
@@ -52,6 +48,15 @@
                         </div>
                     </div>
                     <div class="form-group">
+                        <label for="tipo_analitica">Tipo Analítica</label>
+                        <select class="form-control" name="tipo_analitica" id="tipo_analitica_modal" required>
+                            <option value="">-- Seleccionar --</option>
+                            <option value="Resultados agua">Analitica agua</option>
+                            <option value="Tendencias superficie">Analitica de superficie</option>
+                            <option value="Tendencias micro">Analitica de microbiologia</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="proveedor_id">Proveedor Relacionado</label>
                         <div class="row">
                             <div class="col-9">
@@ -72,14 +77,37 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="tipo_analitica">Tipo Analítica</label>
-                        <select class="form-control" name="tipo_analitica" required>
-                            <option value="Resultados agua">Analitica agua</option>
-                            <option value="Tendencias superficie">Analitica de superficie</option>
-                            <option value="Tendencias micro">Analitica de microbiologia</option>
+
+                    <!-- Campos condicionales según tipo -->
+                    <div class="form-group d-none" id="detalle_agua_group">
+                        <label for="detalle_agua">Tipo (Resultados agua)</label>
+                        <select class="form-control" name="detalle_tipo" id="detalle_agua">
+                            <option value="">-- Seleccionar --</option>
+                            <option value="Grifo">Grifo</option>
+                            <option value="Lavabo">Lavabo</option>
                         </select>
                     </div>
+
+                    <div class="form-group d-none" id="detalle_superficie_group">
+                        <label for="detalle_superficie">Tipo (Analitica de superficie)</label>
+                        <select class="form-control" name="detalle_tipo" id="detalle_superficie">
+                            <option value="">-- Seleccionar --</option>
+                            <option value="Mesa">Mesa</option>
+                            <option value="Suelo">Suelo</option>
+                        </select>
+                    </div>
+
+                    <div id="micro_fields" class="d-none">
+                        <div class="form-group">
+                            <label for="codigo_producto">Código de producto</label>
+                            <input type="text" class="form-control" name="codigo_producto" id="codigo_producto_modal">
+                        </div>
+                        <div class="form-group">
+                            <label for="descripcion_producto">Descripción producto</label>
+                            <input type="text" class="form-control" name="descripcion_producto" id="descripcion_producto_modal" readonly>
+                        </div>
+                    </div>
+                    <input type="hidden" name="detalle_tipo" id="detalle_tipo_hidden" value="">
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Guardar Analítica</button>
@@ -144,6 +172,59 @@
             }
         });
     });
+</script>
+<script>
+    (function(){
+        // Mostrar/ocultar campos del modal según tipo
+        $(document).on('change', '#tipo_analitica_modal', function(){
+            var val = $(this).val();
+            // ocultar todos
+            $('#detalle_agua_group').addClass('d-none');
+            $('#detalle_superficie_group').addClass('d-none');
+            $('#micro_fields').addClass('d-none');
+            // habilitar proveedor por defecto
+            $('#proveedor_id_select').prop('required', true).prop('disabled', false);
+
+            if (val === 'Resultados agua') {
+                $('#detalle_agua_group').removeClass('d-none');
+            } else if (val === 'Tendencias superficie') {
+                $('#detalle_superficie_group').removeClass('d-none');
+            } else if (val === 'Tendencias micro') {
+                $('#micro_fields').removeClass('d-none');
+                // proveedor no obligatorio
+                $('#proveedor_id_select').prop('required', false).prop('disabled', false);
+            }
+        });
+
+        // Autocompletar descripcion producto al ingresar codigo (debounce simple)
+        var prodTimer = null;
+        // URL para buscar productos (usa url() para respetar host/basepath)
+        var productosBuscarUrl = '{{ url("api/productos/buscar") }}';
+        $(document).on('input', '#codigo_producto_modal', function(){
+            var codigo = $(this).val().trim();
+            clearTimeout(prodTimer);
+            $('#descripcion_producto_modal').val('');
+            if (!codigo) return;
+            prodTimer = setTimeout(function(){
+                $.ajax({
+                    url: productosBuscarUrl,
+                    method: 'GET',
+                    data: { codigo: codigo },
+                    success: function(resp){
+                        if (resp && resp.success && resp.descripcion) {
+                            $('#descripcion_producto_modal').val(resp.descripcion);
+                        } else {
+                            // permitir editar manualmente si no encontró
+                            $('#descripcion_producto_modal').val('');
+                        }
+                    },
+                    error: function(){
+                        $('#descripcion_producto_modal').val('');
+                    }
+                });
+            }, 400);
+        });
+    })();
 </script>
             <div class="page-title-icon">
                 <i class="metismenu-icon fa fa-flask icon-gradient bg-secondary"></i>
@@ -423,9 +504,31 @@
                     // Llenar el formulario con los datos para edición
                     console.log('=== LLENANDO FORMULARIO ===');
                     $('input[name="fecha_real_analitica"]').val(analitica.fecha_real_analitica);
-                    $('input[name="asesor_externo_nombre"]').val(analitica.asesor_externo_nombre);
                     $('input[name="asesor_externo_empresa"]').val(analitica.asesor_externo_empresa);
+                    // Tipo analítica y campos condicionales
                     $('select[name="tipo_analitica"]').val(analitica.tipo_analitica);
+                    // Rellenar valores específicos de detalle/código/descr para editar
+                    // detalle_tipo puede estar en cualquiera de los selects; asignamos ambos y mostramos el correcto
+                    if (analitica.detalle_tipo) {
+                        $('#detalle_agua').val(analitica.detalle_tipo);
+                        $('#detalle_superficie').val(analitica.detalle_tipo);
+                    } else {
+                        $('#detalle_agua').val('');
+                        $('#detalle_superficie').val('');
+                    }
+                    // Campos de microbiología: intentar varias propiedades que puedan venir según origen
+                    var codigoProd = analitica.codigo_producto || analitica.codigo || analitica.product_cod || analitica.codigo_producto || analitica.codigo_producto || '';
+                    var descripcionProd = analitica.descripcion_producto || analitica.nombre_producto || analitica.product_description || analitica.nombre || analitica.descripcion || '';
+                    $('#codigo_producto_modal').val(codigoProd);
+                    $('#descripcion_producto_modal').val(descripcionProd);
+                    // Disparar el change del select para que el comportamiento de mostrar/ocultar se aplique
+                    $('#tipo_analitica_modal').trigger('change');
+                    // Ajustar required del proveedor si corresponde
+                    if (analitica.tipo_analitica === 'Tendencias micro') {
+                        $('#proveedor_id_select').prop('required', false);
+                    } else {
+                        $('#proveedor_id_select').prop('required', true);
+                    }
                     
                     // Manejar proveedor y checkbox "no procede"
                     if (analitica.proveedor_no_procede == 1) {
@@ -444,6 +547,9 @@
                         $('#periodicidad_no_procede').prop('checked', false);
                         $('#periodicidad_select').prop('disabled', false).val(analitica.periodicidad);
                     }
+                    // Disparar cambios para aplicar lógica de habilitado/deshabilitado
+                    $('#proveedor_no_procede').trigger('change');
+                    $('#periodicidad_no_procede').trigger('change');
                     
                     $('#modalAgregarAnalitica').modal('show');
                 },
@@ -469,6 +575,22 @@
             } else {
                 $('#periodicidad_select').prop('disabled', false).prop('required', true);
             }
+        });
+
+        // Antes de enviar, asegurar que detalle_tipo se envíe correctamente
+        $('#formAgregarAnalitica').on('submit', function(e){
+            // Si el grupo agua está visible, tomar su valor
+            var detalle = '';
+            if (!$('#detalle_agua_group').hasClass('d-none')) {
+                detalle = $('#detalle_agua').val() || '';
+            } else if (!$('#detalle_superficie_group').hasClass('d-none')) {
+                detalle = $('#detalle_superficie').val() || '';
+            }
+            $('#detalle_tipo_hidden').val(detalle);
+
+            // Algunos campos pueden estar disabled; re-enable them so browsers submit their values
+            $(this).find(':disabled').prop('disabled', false);
+            return true; // continuar con el submit
         });
     }
 </script>

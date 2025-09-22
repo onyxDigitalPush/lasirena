@@ -17,3 +17,6 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+// Buscar material por código (devuelve descripcion)
+Route::get('/productos/buscar', [\App\Http\Controllers\Api\MaterialController::class, 'buscar']);

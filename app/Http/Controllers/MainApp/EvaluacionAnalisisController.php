@@ -74,7 +74,7 @@ class EvaluacionAnalisisController extends Controller
             // Actualizar registro existente
             $analitica = Analitica::find($request->id_registro);
             if ($analitica) {
-                $data = $request->except(['modo_edicion', 'id_registro', '_token', 'crear_siguiente', 'siguiente_fecha_teorica', 'siguiente_tipo', 'siguiente_proveedor_id', 'siguiente_periodicidad', 'siguiente_asesor_externo_nombre', 'siguiente_asesor_externo_empresa']);
+                $data = $request->except(['modo_edicion', 'id_registro', '_token', 'crear_siguiente', 'siguiente_fecha_teorica', 'siguiente_tipo', 'siguiente_proveedor_id', 'siguiente_periodicidad']);
                 
                 // Procesar checkboxes "no procede" y calcular el campo 'procede'
                 $proveedorNoProcede = $request->has('proveedor_no_procede') ? 1 : 0;
@@ -107,7 +107,7 @@ class EvaluacionAnalisisController extends Controller
                     $analitica->estado_analitica !== 'realizada') {
                     $data['fecha_cambio_estado'] = now();
                 }
-                
+                Log::info('guardarAnalitica - editar payload', $data);
                 $analitica->update($data);
                 
                 // Si se solicita crear la siguiente analítica automáticamente
@@ -127,11 +127,9 @@ class EvaluacionAnalisisController extends Controller
                                 'tipo_analitica' => $request->input('siguiente_tipo'),
                                 'fecha_real_analitica' => $request->input('siguiente_fecha_teorica'),
                                 'periodicidad' => $request->input('siguiente_periodicidad'),
-                                'proveedor_id' => $request->input('siguiente_proveedor_id'),
-                                'asesor_externo_nombre' => $request->input('siguiente_asesor_externo_nombre', ''),
-                                'asesor_externo_empresa' => $request->input('siguiente_asesor_externo_empresa', ''),
-                                'estado_analitica' => 'sin_iniciar',
-                                'observaciones' => 'Creada automáticamente al marcar la anterior como realizada'
+                                    'proveedor_id' => $request->input('siguiente_proveedor_id'),
+                                    'estado_analitica' => 'sin_iniciar',
+                                    'observaciones' => 'Creada automáticamente al marcar la anterior como realizada'
                             ];
                             
                             Analitica::create($siguienteData);
@@ -210,7 +208,7 @@ class EvaluacionAnalisisController extends Controller
 
         else {
             // Crear nuevo registro
-            $data = $request->except(['modo_edicion', 'id_registro', '_token', 'crear_siguiente', 'siguiente_fecha_teorica', 'siguiente_tipo', 'siguiente_proveedor_id', 'siguiente_periodicidad', 'siguiente_asesor_externo_nombre', 'siguiente_asesor_externo_empresa']);
+            $data = $request->except(['modo_edicion', 'id_registro', '_token', 'crear_siguiente', 'siguiente_fecha_teorica', 'siguiente_tipo', 'siguiente_proveedor_id', 'siguiente_periodicidad']);
             
             // Procesar checkboxes "no procede" y calcular el campo 'procede'
             $proveedorNoProcede = $request->has('proveedor_no_procede') ? 1 : 0;
@@ -242,7 +240,7 @@ class EvaluacionAnalisisController extends Controller
             if (isset($data['estado_analitica']) && $data['estado_analitica'] === 'realizada') {
                 $data['fecha_cambio_estado'] = now();
             }
-            
+            Log::info('guardarAnalitica - crear payload', $data);
             $analitica = Analitica::create($data);
             
             // Si se solicita crear la siguiente analítica automáticamente
@@ -263,8 +261,6 @@ class EvaluacionAnalisisController extends Controller
                             'fecha_real_analitica' => $request->input('siguiente_fecha_teorica'),
                             'periodicidad' => $request->input('siguiente_periodicidad'),
                             'proveedor_id' => $request->input('siguiente_proveedor_id'),
-                            'asesor_externo_nombre' => $request->input('siguiente_asesor_externo_nombre', ''),
-                            'asesor_externo_empresa' => $request->input('siguiente_asesor_externo_empresa', ''),
                             'estado_analitica' => 'sin_iniciar',
                             'observaciones' => 'Creada automáticamente al marcar la anterior como realizada'
                         ];
@@ -720,8 +716,6 @@ class EvaluacionAnalisisController extends Controller
                                 'fecha_real_analitica' => $request->input('siguiente_fecha_teorica'),
                                 'periodicidad' => $request->input('siguiente_periodicidad'),
                                 'proveedor_id' => $request->input('siguiente_proveedor_id'),
-                                'asesor_externo_nombre' => $request->input('siguiente_asesor_externo_nombre', ''),
-                                'asesor_externo_empresa' => $request->input('siguiente_asesor_externo_empresa', ''),
                                 'estado_analitica' => 'sin_iniciar',
                                 'observaciones' => 'Creada automáticamente al marcar la anterior como realizada desde Tendencias Superficie'
                             ];
@@ -776,8 +770,6 @@ class EvaluacionAnalisisController extends Controller
                             'fecha_real_analitica' => $request->input('siguiente_fecha_teorica'),
                             'periodicidad' => $request->input('siguiente_periodicidad'),
                             'proveedor_id' => $request->input('siguiente_proveedor_id'),
-                            'asesor_externo_nombre' => $request->input('siguiente_asesor_externo_nombre', ''),
-                            'asesor_externo_empresa' => $request->input('siguiente_asesor_externo_empresa', ''),
                             'estado_analitica' => 'sin_iniciar',
                             'observaciones' => 'Creada automáticamente al marcar la anterior como realizada desde Tendencias Superficie'
                         ];
@@ -899,8 +891,6 @@ class EvaluacionAnalisisController extends Controller
                                 'fecha_real_analitica' => $request->input('siguiente_fecha_teorica'),
                                 'periodicidad' => $request->input('siguiente_periodicidad'),
                                 'proveedor_id' => $request->input('siguiente_proveedor_id'),
-                                'asesor_externo_nombre' => $request->input('siguiente_asesor_externo_nombre', ''),
-                                'asesor_externo_empresa' => $request->input('siguiente_asesor_externo_empresa', ''),
                                 'estado_analitica' => 'sin_iniciar',
                                 'observaciones' => 'Creada automáticamente al marcar la anterior como realizada desde Tendencias Micro'
                             ];
@@ -961,8 +951,6 @@ class EvaluacionAnalisisController extends Controller
                             'fecha_real_analitica' => $request->input('siguiente_fecha_teorica'),
                             'periodicidad' => $request->input('siguiente_periodicidad'),
                             'proveedor_id' => $request->input('siguiente_proveedor_id'),
-                            'asesor_externo_nombre' => $request->input('siguiente_asesor_externo_nombre', ''),
-                            'asesor_externo_empresa' => $request->input('siguiente_asesor_externo_empresa', ''),
                             'estado_analitica' => 'sin_iniciar',
                             'observaciones' => 'Creada automáticamente al marcar la anterior como realizada desde Tendencias Micro'
                         ];
@@ -1044,6 +1032,10 @@ class EvaluacionAnalisisController extends Controller
                         $realizada = TendenciaSuperficie::where('analitica_id', $datos->id)->exists() || TendenciaMicro::where('analitica_id', $datos->id)->exists();
                     }
                     $datos->realizada = $realizada;
+                    // Asegurar que los campos nuevos estén presentes en el payload
+                    $datos->detalle_tipo = $datos->detalle_tipo ?? null;
+                    $datos->codigo_producto = $datos->codigo_producto ?? ($datos->codigo ?? null);
+                    $datos->descripcion_producto = $datos->descripcion_producto ?? ($datos->descripcion ?? $datos->nombre_producto ?? $datos->product_description ?? $datos->nombre ?? null);
                     return response()->json(['success' => true, 'analitica' => $datos]);
                 }
                 return response()->json(['success' => false, 'message' => 'Analítica no encontrada']);
@@ -1085,7 +1077,7 @@ class EvaluacionAnalisisController extends Controller
                 return response()->json(['success' => false]);
             }
 
-            if (isset($datos) && $datos) {
+                if (isset($datos) && $datos) {
                 // Si devolvimos una Analitica, añadir flag 'realizada'
                 if ($datos instanceof Analitica) {
                     $realizada = false;
@@ -1095,7 +1087,20 @@ class EvaluacionAnalisisController extends Controller
                         $realizada = TendenciaSuperficie::where('analitica_id', $datos->id)->exists() || TendenciaMicro::where('analitica_id', $datos->id)->exists();
                     }
                     $datos->realizada = $realizada;
+                        // Normalizar campos para modal: detalle_tipo, codigo_producto, descripcion_producto
+                        $datos->detalle_tipo = $datos->detalle_tipo ?? null;
+                        $datos->codigo_producto = $datos->codigo_producto ?? ($datos->codigo ?? null);
+                        $datos->descripcion_producto = $datos->descripcion_producto ?? ($datos->descripcion ?? $datos->nombre_producto ?? $datos->product_description ?? $datos->nombre ?? null);
                     return response()->json(['success' => true, 'analitica' => $datos]);
+                }
+
+                // Para TendenciaSuperficie / TendenciaMicro, mapear campos al formato esperado por el modal
+                if ($datos instanceof TendenciaSuperficie || $datos instanceof TendenciaMicro) {
+                    $mapped = $datos;
+                    $mapped->detalle_tipo = $mapped->detalle_tipo ?? null;
+                    $mapped->codigo_producto = $mapped->codigo_producto ?? ($mapped->codigo_producto ?? $mapped->codigo ?? null);
+                    $mapped->descripcion_producto = $mapped->descripcion_producto ?? ($mapped->descripcion ?? $mapped->nombre_producto ?? $mapped->product_description ?? $mapped->nombre ?? null);
+                    return response()->json(['success' => true, 'data' => $mapped]);
                 }
 
                 return response()->json(['success' => true, 'data' => $datos]);

@@ -27,7 +27,7 @@
                     <input type="hidden" name="periodicidad_original" class="periodicidad_original_input">
                     <input type="hidden" name="proveedor_id_original" class="proveedor_id_original_input">
                     <input type="hidden" name="tipo_analitica_original" class="tipo_analitica_original_input">
-                    <input type="hidden" name="asesor_externo_nombre_original" class="asesor_externo_nombre_original_input">
+                    <!-- removed asesor_externo_nombre_original (field no longer used) -->
                     <input type="hidden" name="asesor_externo_empresa_original" class="asesor_externo_empresa_original_input">
                     <div class="modal-header bg-primary text-white">
                         <h5 class="modal-title" id="{{ $modalId }}Label">Agregar Analítica - {{ $tipoDisplay[$tipo] ?? $tipo }}
@@ -526,10 +526,7 @@
                             <div class="container-fluid">
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>Asesor Externo - Nombre</label>
-                                            <input type="text" name="asesor_externo_nombre" class="form-control">
-                                        </div>
+                                        <!-- Asesor Externo - Nombre removed per request -->
                                         <div class="form-group">
                                             <label>Asesor Externo - Empresa</label>
                                             <input type="text" name="asesor_externo_empresa" class="form-control">
@@ -808,7 +805,6 @@
                                         data-prov-nombre="{{ optional($a->proveedor)->nombre_proveedor ?? '' }}"
                                         data-fecha-teorica="{{ $a->fecha_real_analitica }}"
                                         data-periodicidad="{{ $a->periodicidad }}"
-                                        data-asesor-externo-nombre="{{ $a->asesor_externo_nombre ?? '' }}"
                                         data-asesor-externo-empresa="{{ $a->asesor_externo_empresa ?? '' }}"
                                         data-procede="{{ $a->procede ?? '' }}"
                                         data-modo="editar">
@@ -824,7 +820,6 @@
                                         data-prov-nombre="{{ optional($a->proveedor)->nombre_proveedor ?? '' }}"
                                         data-fecha-teorica="{{ $a->fecha_real_analitica }}"
                                         data-periodicidad="{{ $a->periodicidad }}"
-                                        data-asesor-externo-nombre="{{ $a->asesor_externo_nombre ?? '' }}"
                                         data-asesor-externo-empresa="{{ $a->asesor_externo_empresa ?? '' }}"
                                         data-procede="{{ $a->procede ?? '' }}"
                                         data-modo="agregar">
@@ -921,7 +916,6 @@
             // Obtener datos adicionales desde los data attributes para la funcionalidad de auto-duplicar
             var fechaTeorica = $(this).data('fecha-teorica') || '';
             var periodicidad = $(this).data('periodicidad') || '';
-            var asesorExternoNombre = $(this).data('asesor-externo-nombre') || '';
             var asesorExternoEmpresa = $(this).data('asesor-externo-empresa') || '';
             var procede = $(this).data('procede') || '';
             
@@ -930,7 +924,6 @@
             console.log('- periodicidad:', periodicidad);
             console.log('- prov:', prov);
             console.log('- tipo:', tipo);
-            console.log('- asesorExternoNombre:', asesorExternoNombre);
             console.log('- asesorExternoEmpresa:', asesorExternoEmpresa);
             console.log('- procede:', procede);
             
@@ -959,14 +952,13 @@
             console.log('periodicidad:', periodicidad);
             console.log('prov:', prov);
             console.log('tipo:', tipo);
-            console.log('asesorExternoNombre:', asesorExternoNombre);
+            // asesorExternoNombre removed; only asesorExternoEmpresa is kept
             console.log('asesorExternoEmpresa:', asesorExternoEmpresa);
             
             $modal.find('.fecha_teorica_original_input').val(fechaTeorica);
             $modal.find('.periodicidad_original_input').val(periodicidad);
             $modal.find('.proveedor_id_original_input').val(prov);
             $modal.find('.tipo_analitica_original_input').val(tipo);
-            $modal.find('.asesor_externo_nombre_original_input').val(asesorExternoNombre);
             $modal.find('.asesor_externo_empresa_original_input').val(asesorExternoEmpresa);
             
             console.log('Verificando asignación:');
@@ -997,7 +989,7 @@
             } else {
                 // Limpiar formulario para modo agregar
                 // NO limpiar el _token CSRF ni el id_registro ni num_tienda ni el campo de modo ni los datos originales
-                $modal.find('input, select, textarea').not('.num_tienda_input, .modo_edicion_input, .id_registro_input, .analitica_id_input, .fecha_teorica_original_input, .periodicidad_original_input, .proveedor_id_original_input, .tipo_analitica_original_input, .asesor_externo_nombre_original_input, .asesor_externo_empresa_original_input, input[name="_token"]').val('');
+                $modal.find('input, select, textarea').not('.num_tienda_input, .modo_edicion_input, .id_registro_input, .analitica_id_input, .fecha_teorica_original_input, .periodicidad_original_input, .proveedor_id_original_input, .tipo_analitica_original_input, .asesor_externo_empresa_original_input, input[name="_token"]').val('');
                 // En modo "agregar" ocultar el select de "procede" y los checkboxes "No procede"
                 $modal.find('select[name="procede"]').closest('.form-group').hide();
                 // ocultar las columnas de form-check que contienen los checkboxes de "No procede"
@@ -1197,7 +1189,7 @@
                             $modal.find('.periodicidad_original_input').val(data.analitica.periodicidad || '');
                             $modal.find('.proveedor_id_original_input').val(data.analitica.proveedor_id || '');
                             $modal.find('.tipo_analitica_original_input').val(data.analitica.tipo_analitica || '');
-                            $modal.find('.asesor_externo_nombre_original_input').val(data.analitica.asesor_externo_nombre || '');
+                            // asesor_externo_nombre omitted (field removed)
                             $modal.find('.asesor_externo_empresa_original_input').val(data.analitica.asesor_externo_empresa || '');
                             
                             // También cargar el campo procede desde la analítica asociada
@@ -1275,7 +1267,7 @@
                         fechaTeorica: $form.find('.fecha_teorica_original_input').val(),
                         periodicidad: $form.find('.periodicidad_original_input').val(),
                         proveedorId: $form.find('.proveedor_id_original_input').val(),
-                        asesorExternoNombre: $form.find('.asesor_externo_nombre_original_input').val(),
+                        // asesorExternoNombre removed from payload
                         asesorExternoEmpresa: $form.find('.asesor_externo_empresa_original_input').val()
                     };
 
@@ -1288,8 +1280,8 @@
                                 $form.append('<input type="hidden" name="siguiente_tipo" value="' + datosOriginalesCambio.tipo + '">');
                                 $form.append('<input type="hidden" name="siguiente_proveedor_id" value="' + datosOriginalesCambio.proveedorId + '">');
                                 $form.append('<input type="hidden" name="siguiente_periodicidad" value="' + datosOriginalesCambio.periodicidad + '">');
-                                $form.append('<input type="hidden" name="siguiente_asesor_externo_nombre" value="' + datosOriginalesCambio.asesorExternoNombre + '">');
-                                $form.append('<input type="hidden" name="siguiente_asesor_externo_empresa" value="' + datosOriginalesCambio.asesorExternoEmpresa + '">');
+                                // siguiente_asesor_externo_nombre omitted (field removed)
+                                // siguiente_asesor_externo_* fields omitted (removed)
                                 console.log('Campos ocultos para crear siguiente agregados en cambio de estado. siguienteFecha:', siguienteFechaCambio);
                             } else {
                                 console.log('Campos para crear siguiente ya existen (en cambio de estado)');
@@ -1369,8 +1361,19 @@
 
         // --- Duplicar analítica ---
         // Modal DOM (append to body) -------------------------------------------------
-    var duplicarModalHtml = '\n<div class="modal fade" id="modalDuplicarAnalitica" tabindex="-1" role="dialog" aria-labelledby="modalDuplicarAnaliticaLabel">\n  <div class="modal-dialog" role="document">\n    <div class="modal-content">\n      <form id="formDuplicarAnalitica" method="POST" action="{{ route("evaluacion_analisis.guardar_analitica") }}">\n        @csrf\n        <input type="hidden" name="modo_edicion" value="duplicar">\n        <input type="hidden" name="id_registro" id="dup_id_registro">\n        <div class="modal-header">\n          <h5 class="modal-title" id="modalDuplicarAnaliticaLabel">Duplicar Analítica</h5>\n          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>\n        </div>\n        <div class="modal-body">\n          <div class="form-group">\n            <label>Origen: </label> <div id="dup_origen_info"></div>\n          </div>\n          <div class="form-row">\n            <div class="form-group col-md-6">\n              <label>Periodicidad origen</label>\n              <input type="text" id="dup_periodicidad" class="form-control" readonly>\n            </div>\n            <div class="form-group col-md-6">\n              <label>Tipo analítica origen</label>\n              <input type="text" id="dup_tipo_analitica" class="form-control" readonly>\n            </div>\n          </div>\n          <div class="form-row">\n            <div class="form-group col-md-6">\n              <label>Fecha real (opcional)</label>\n              <input type="date" name="fecha_real_analitica" id="dup_fecha_real_analitica" class="form-control">\n            </div>\n          </div>\n          <div class="form-row">\n            <div class="form-group col-md-6">\n              <label>Seleccionar Tienda destino</label>\n              <select name="num_tienda" id="dup_num_tienda" class="form-control">\n                <option value="">-- Seleccionar tienda --</option>\n                @foreach($tiendas as $t)\n                  <option value="{{ $t->num_tienda }}">{{ $t->num_tienda }} - {{ $t->nombre_tienda }}</option>\n                @endforeach\n              </select>\n            </div>\n            <div class="form-group col-md-6">\n              <label>Seleccionar Proveedor destino</label>\n              <select name="proveedor_id" id="dup_proveedor_id" class="form-control">\n                <option value="">-- Seleccionar proveedor --</option>\n                @foreach($proveedores as $p)\n                  <option value="{{ $p->id_proveedor }}">{{ $p->nombre_proveedor }}</option>\n                @endforeach\n              </select>\n            </div>\n          </div>\n          <p class="text-muted small">Se duplicarán los campos del formulario de analítica origen; podrá editar antes de guardar.</p>\n        </div>\n        <div class="modal-footer">\n          <button type="submit" class="btn btn-primary">Guardar Clon</button>\n          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>\n        </div>\n      </form>\n    </div>\n  </div>\n</div>';
+        // Prepare safe JSON data for tiendas/proveedores to populate selects without embedding raw names in a JS string
+        var jsTiendas = {!! collect($tiendas)->map(function($t){ return ['num_tienda'=>$t->num_tienda,'nombre_tienda'=>$t->nombre_tienda]; })->values()->toJson() !!};
+        var jsProveedores = {!! collect($proveedores)->map(function($p){ return ['id'=>$p->id_proveedor,'nombre'=>$p->nombre_proveedor]; })->values()->toJson() !!};
+
+        var duplicarModalHtml = '\n<div class="modal fade" id="modalDuplicarAnalitica" tabindex="-1" role="dialog" aria-labelledby="modalDuplicarAnaliticaLabel">\n  <div class="modal-dialog" role="document">\n    <div class="modal-content">\n      <form id="formDuplicarAnalitica" method="POST" action="{{ route('evaluacion_analisis.guardar_analitica') }}">\n        @csrf\n        <input type="hidden" name="modo_edicion" value="duplicar">\n        <input type="hidden" name="id_registro" id="dup_id_registro">\n        <div class="modal-header">\n          <h5 class="modal-title" id="modalDuplicarAnaliticaLabel">Duplicar Analítica</h5>\n          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>\n        </div>\n        <div class="modal-body">\n          <div class="form-group">\n            <label>Origen: </label> <div id="dup_origen_info"></div>\n          </div>\n          <div class="form-row">\n            <div class="form-group col-md-6">\n              <label>Periodicidad origen</label>\n              <input type="text" id="dup_periodicidad" class="form-control" readonly>\n            </div>\n            <div class="form-group col-md-6">\n              <label>Tipo analítica origen</label>\n              <input type="text" id="dup_tipo_analitica" class="form-control" readonly>\n            </div>\n          </div>\n          <div class="form-row">\n            <div class="form-group col-md-6">\n              <label>Fecha real (opcional)</label>\n              <input type="date" name="fecha_real_analitica" id="dup_fecha_real_analitica" class="form-control">\n            </div>\n          </div>\n          <div class="form-row">\n            <div class="form-group col-md-6">\n              <label>Seleccionar Tienda destino</label>\n              <select name="num_tienda" id="dup_num_tienda" class="form-control">\n                <option value="">-- Seleccionar tienda --</option>\n              </select>\n            </div>\n            <div class="form-group col-md-6">\n              <label>Seleccionar Proveedor destino</label>\n              <select name="proveedor_id" id="dup_proveedor_id" class="form-control">\n                <option value="">-- Seleccionar proveedor --</option>\n              </select>\n            </div>\n          </div>\n          <p class="text-muted small">Se duplicarán los campos del formulario de analítica origen; podrá editar antes de guardar.</p>\n        </div>\n        <div class="modal-footer">\n          <button type="submit" class="btn btn-primary">Guardar Clon</button>\n          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>\n        </div>\n      </form>\n    </div>\n  </div>\n</div>';
         $('body').append(duplicarModalHtml);
+        // Populate selects safely
+        jsTiendas.forEach(function(t){
+            $('#dup_num_tienda').append($('<option>').val(t.num_tienda).text(t.num_tienda + ' - ' + t.nombre_tienda));
+        });
+        jsProveedores.forEach(function(p){
+            $('#dup_proveedor_id').append($('<option>').val(p.id).text(p.nombre));
+        });
 
         $(document).on('click', '.btn-duplicar-analitica', function(e){
             e.preventDefault();
@@ -1487,7 +1490,7 @@
 
         // Debug del botón submit
         $(document).on('click', '#modal_resultados_agua button[type="submit"], #modal_tendencias_superficie button[type="submit"], #modal_tendencias_micro button[type="submit"]', function(e) {
-            console.log('🟡 BOTÓN SUBMIT CLICKEADO 🟡');
+            console.log('BOTÓN SUBMIT CLICKEADO');
             var $form = $(this).closest('form');
             var estado = $form.find('.estado_analitica_input').val();
             console.log('Estado actual:', estado);
@@ -1496,7 +1499,7 @@
 
         // Handler para interceptar el envío de formularios cuando se marca como "realizada"
         $(document).on('submit', '#modal_resultados_agua form, #modal_tendencias_superficie form, #modal_tendencias_micro form', function(e) {
-            console.log('🔥 EVENTO SUBMIT DETECTADO 🔥');
+            console.log('EVENTO SUBMIT DETECTADO');
             
             var $form = $(this);
             var estadoAnalitica = $form.find('.estado_analitica_input').val();
@@ -1518,20 +1521,33 @@
                 console.log('- proveedor_id_original_input:', $form.find('.proveedor_id_original_input').length, 'valor:', $form.find('.proveedor_id_original_input').val());
                 console.log('- tipo_analitica_original_input:', $form.find('.tipo_analitica_original_input').length, 'valor:', $form.find('.tipo_analitica_original_input').val());
                 
+                // Determinar si procede crear la siguiente analítica
+                var procedeFlag = 1;
+                // Si existe el select 'procede' y su valor es '0', no procede
+                var $procedeSelect = $form.find('select[name="procede"]');
+                if ($procedeSelect.length) {
+                    var selVal = $procedeSelect.val();
+                    if (selVal === '0' || selVal === 'false') procedeFlag = 0;
+                }
+                // Si alguno de los checkboxes 'no procede' está marcado, no procede
+                if ($form.find('input.proveedor_no_procede').is(':checked') || $form.find('input.periodicidad_no_procede').is(':checked')) {
+                    procedeFlag = 0;
+                }
+
                 var datosOriginales = {
                     tienda: $form.find('.num_tienda_input').val(),
                     tipo: $form.find('.tipo_analitica_original_input').val(),
                     fechaTeorica: $form.find('.fecha_teorica_original_input').val(),
                     periodicidad: $form.find('.periodicidad_original_input').val(),
                     proveedorId: $form.find('.proveedor_id_original_input').val(),
-                    asesorExternoNombre: $form.find('.asesor_externo_nombre_original_input').val(),
+                    // asesorExternoNombre removed from payload
                     asesorExternoEmpresa: $form.find('.asesor_externo_empresa_original_input').val()
                 };
                 
                 console.log('Datos originales capturados:', datosOriginales);
                 
-                // Verificar que tenemos los datos necesarios
-                if (datosOriginales.tienda && datosOriginales.tipo && datosOriginales.fechaTeorica && datosOriginales.periodicidad) {
+                // Verificar que tenemos los datos necesarios y que procede crear la siguiente
+                if (datosOriginales.tienda && datosOriginales.tipo && datosOriginales.fechaTeorica && datosOriginales.periodicidad && procedeFlag === 1) {
                     console.log('Datos suficientes para crear siguiente analítica - agregando datos al formulario');
                     
                     // Agregar datos de la siguiente analítica al formulario como campos ocultos
@@ -1545,8 +1561,7 @@
                             $form.append('<input type="hidden" name="siguiente_tipo" value="' + datosOriginales.tipo + '">');
                             $form.append('<input type="hidden" name="siguiente_proveedor_id" value="' + datosOriginales.proveedorId + '">');
                             $form.append('<input type="hidden" name="siguiente_periodicidad" value="' + datosOriginales.periodicidad + '">');
-                            $form.append('<input type="hidden" name="siguiente_asesor_externo_nombre" value="' + datosOriginales.asesorExternoNombre + '">');
-                            $form.append('<input type="hidden" name="siguiente_asesor_externo_empresa" value="' + datosOriginales.asesorExternoEmpresa + '">');
+                            // siguiente_asesor_externo_* fields omitted (removed)
                             
                             console.log('✅ Siguiente fecha calculada:', siguienteFecha);
                             console.log('✅ Campos ocultos agregados para crear siguiente analítica');
@@ -1558,14 +1573,14 @@
                         console.log('No se pudo calcular la siguiente fecha (fuera de rango de periodicidad)');
                     }
                 } else {
-                    console.log('Datos insuficientes para crear siguiente analítica:', datosOriginales);
+                    console.log('No se crear&aacute; siguiente anal&iacute;tica porque faltan datos o no procede. datosOriginales:', datosOriginales, 'procedeFlag:', procedeFlag);
                 }
             } else {
                 console.log('Estado no es "realizada", no se creará siguiente analítica');
             }
             
             console.log('=== FIN DEBUG SUBMIT ===');
-            console.log('🚀 Enviando formulario al servidor...');
+            console.log('Enviando formulario al servidor...');
         });
 
         // Manejar checkboxes "No procede" para proveedor
