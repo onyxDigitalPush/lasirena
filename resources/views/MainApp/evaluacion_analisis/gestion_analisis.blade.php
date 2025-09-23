@@ -192,19 +192,25 @@
                         <th class="text-center">Periodicidad</th>
                         <th class="text-center">Fecha Límite</th>
                         <th class="text-center">Días Restantes</th>
+                        <th class="text-center">Archivos</th>
                         <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($resultados as $resultado)
                             @php
-                            // Determinar si existe fecha de realización (resultado ya cargado)
-                            // Usamos la bandera `realizada` que calcula el controlador. No usamos
-                            // `fecha_real_analitica` como prueba de que está realizada porque
-                            // esa fecha es la fecha del análisis programado y puede existir
-                            // aunque no se haya cargado un resultado final.
-                            $fechaRealizacion = $resultado->fecha_realizacion ?? null;
-                            $esRealizada = (!empty($resultado->realizada) || !empty($fechaRealizacion));
+                            // Usar el campo estado_analitica de la base de datos en lugar de la bandera calculada
+                            $estadoAnalitica = $resultado->estado_analitica ?? 'sin_iniciar';
+                            $fechaRealizacion = null;
+                            
+                            // Si está marcada como realizada, buscar la fecha de cambio de estado
+                            if ($estadoAnalitica === 'realizada') {
+                                $fechaRealizacion = $resultado->fecha_cambio_estado ? 
+                                    \Carbon\Carbon::parse($resultado->fecha_cambio_estado)->format('Y-m-d') : 
+                                    ($resultado->fecha_real_analitica ?: null);
+                            }
+                            
+                            $esRealizada = ($estadoAnalitica === 'realizada');
                             // Mantener lógica de vencido/advertencia cuando NO está realizada
                             $estadoClase = 'success';
                             $estadoTexto = 'Vigente';
@@ -223,10 +229,21 @@
                         @endphp
                             <tr class="{{ $esRealizada ? 'table-success' : ($estadoClase === 'danger' ? 'table-danger' : ($estadoClase === 'warning' ? 'table-warning' : '')) }}">
                                 <td class="text-center">
-                                    @if($esRealizada)
-                                        <span class="badge badge-success"><i class="fa fa-check mr-1"></i>Realizada el {{ \Carbon\Carbon::parse($fechaRealizacion)->format('d/m/Y') }}</span>
+                                    @if($estadoAnalitica === 'realizada')
+                                        <span class="badge badge-success">
+                                            <i class="fa fa-check mr-1"></i>Realizada
+                                            @if($fechaRealizacion)
+                                                el {{ \Carbon\Carbon::parse($fechaRealizacion)->format('d/m/Y') }}
+                                            @endif
+                                        </span>
+                                    @elseif($estadoAnalitica === 'pendiente')
+                                        <span class="badge badge-warning">
+                                            <i class="fa fa-clock mr-1"></i>Pendiente
+                                        </span>
                                     @else
-                                        <span class="badge badge-{{ $estadoClase }}">{{ $estadoTexto }}</span>
+                                        <span class="badge badge-secondary">
+                                            <i class="fa fa-pause mr-1"></i>Sin Iniciar
+                                        </span>
                                     @endif
                                 </td>
                                 <td class="text-center">
@@ -238,7 +255,7 @@
                             <td class="text-center">{{ $tipoDisplay[$resultado->tipo_analitica] ?? $resultado->tipo_analitica }}</td>
                             <td class="text-center">{{ $resultado->fecha_real_analitica }}</td>
                             <td class="text-center">
-                                @if($esRealizada)
+                                @if($estadoAnalitica === 'realizada' && $fechaRealizacion)
                                     {{ \Carbon\Carbon::parse($fechaRealizacion)->format('d/m/Y') }}
                                 @else
                                     -
@@ -264,6 +281,53 @@
                                     -
                                 @endif
                             </td>
+                            
+                            {{-- Archivos de la analítica --}}
+                            <td class="text-center align-middle" style="min-width: 180px;">
+                                @php
+                                    $archivos = [];
+                                    if (!empty($resultado->archivos)) {
+                                        if (is_string($resultado->archivos)) {
+                                            $archivos = json_decode($resultado->archivos, true) ?: [];
+                                        } elseif (is_array($resultado->archivos)) {
+                                            $archivos = $resultado->archivos;
+                                        }
+                                    }
+                                @endphp
+                                @if(!empty($archivos))
+                                    <div class="text-left">
+                                        @foreach($archivos as $archivo)
+                                            @if(is_array($archivo) && isset($archivo['nombre']) && isset($archivo['nombre_original']))
+                                                <div class="d-flex justify-content-between align-items-center mb-1 p-1 bg-light rounded archivo-item">
+                                                    <small class="text-truncate-custom" title="{{ $archivo['nombre_original'] }}">
+                                                        <i class="fas fa-file text-primary"></i> {{ Str::limit($archivo['nombre_original'], 12) }}
+                                                    </small>
+                                                    <div class="btn-group">
+                                                        @php
+                                                            $analiticaIdParaArchivo = $resultado->analitica_id ?: $resultado->id;
+                                                        @endphp
+                                                        <a href="{{ route('evaluacion_analisis.descargar_archivo', ['analiticaId' => $analiticaIdParaArchivo, 'nombreArchivo' => $archivo['nombre']]) }}" 
+                                                           class="btn btn-xs btn-outline-primary" 
+                                                           title="Descargar {{ $archivo['nombre_original'] }}" 
+                                                           target="_blank">
+                                                            <i class="fas fa-download"></i>
+                                                        </a>
+                                                        <button type="button" class="btn btn-xs btn-outline-danger btn-eliminar-archivo"
+                                                                data-analitica-id="{{ $analiticaIdParaArchivo }}"
+                                                                data-nombre-archivo="{{ $archivo['nombre'] }}"
+                                                                title="Eliminar {{ $archivo['nombre_original'] }}">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <small class="text-muted">Sin archivos</small>
+                                @endif
+                            </td>
+                            
                             <td class="text-center">
                                 <div class="btn-group" role="group">
                                     <button type="button" class="btn btn-sm btn-primary btn-editar-analisis"
@@ -291,6 +355,33 @@
 @endsection
 
 @section('custom_footer')
+    <style>
+        /* Estilos para archivos */
+        .archivo-item {
+            border: 1px solid #dee2e6;
+            background-color: #f8f9fa;
+        }
+        
+        .text-truncate-custom {
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .btn-xs {
+            padding: .125rem .25rem;
+            font-size: .75rem;
+            line-height: 1.5;
+            border-radius: .15rem;
+        }
+        
+        .lista-archivos-seleccionados .list-group-item,
+        .lista-archivos-existentes .list-group-item {
+            font-size: 0.9rem;
+        }
+    </style>
+    
     <script>
         // Auto-dismiss flash messages
         $(function() {
@@ -327,6 +418,7 @@
             var tipoTexto = $(this).data('tipo-texto');
 
             $('#tipoEditar').text(tipoTexto);
+            analiticaIdActual = id; // Para funcionalidad de archivos
 
             // Cargar datos vía AJAX
             $.get("{{ route('evaluacion_analisis.obtener_datos') }}", {
@@ -357,7 +449,7 @@
                 return '';
             }
 
-            var html = '<form method="POST" action="{{ route('evaluacion_analisis.actualizar') }}">';
+            var html = '<form method="POST" action="{{ route('evaluacion_analisis.actualizar') }}" enctype="multipart/form-data">';
             html += '@csrf';
             html += '<input type="hidden" name="id" value="' + (datos.id || '') + '">';
             html += '<input type="hidden" name="tipo" value="' + tipo + '">';
@@ -454,6 +546,27 @@
                 html += '</div>';
             }
             html += '</div>';
+            
+            // Campo para subir archivos
+            html += '<div class="row mt-3">';
+            html += '<div class="col-md-12">';
+            html += '<div class="form-group">';
+            html += '<label for="archivos_analitica">Archivos Relacionados</label>';
+            html += '<div class="row">';
+            html += '<div class="col-9">';
+            html += '<input type="file" class="form-control-file" id="archivos_analitica" name="archivos[]" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">';
+            html += '<small class="form-text text-muted">Archivos permitidos: PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF (máx. 10MB cada uno)</small>';
+            html += '</div>';
+            html += '<div class="col-3">';
+            html += '<button type="button" class="btn btn-sm btn-info btn-previsualizar-archivos"><i class="fas fa-eye"></i> Ver Archivos</button>';
+            html += '</div>';
+            html += '</div>';
+            html += '<div class="lista-archivos-seleccionados mt-2"></div>';
+            html += '<div class="lista-archivos-existentes mt-2"></div>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+            
             html += '</div>';
             return html;
         }
@@ -570,6 +683,24 @@
             html += '<div class="form-group col-md-6"><label>Proveedor ID</label>';
             html += '<input type="number" name="proveedor_id" class="form-control" value="' + (datos.proveedor_id || '') +
                 '"></div>';
+            html += '</div>';
+            
+            // Campo para subir archivos
+            html += '<div class="form-row mt-3">';
+            html += '<div class="form-group col-md-12">';
+            html += '<label for="archivos_superficie">Archivos Relacionados</label>';
+            html += '<div class="row">';
+            html += '<div class="col-9">';
+            html += '<input type="file" class="form-control-file" id="archivos_superficie" name="archivos[]" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">';
+            html += '<small class="form-text text-muted">Archivos permitidos: PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF (máx. 10MB cada uno)</small>';
+            html += '</div>';
+            html += '<div class="col-3">';
+            html += '<button type="button" class="btn btn-sm btn-info btn-previsualizar-archivos"><i class="fas fa-eye"></i> Ver Archivos</button>';
+            html += '</div>';
+            html += '</div>';
+            html += '<div class="lista-archivos-seleccionados mt-2"></div>';
+            html += '<div class="lista-archivos-existentes mt-2"></div>';
+            html += '</div>';
             html += '</div>';
 
             html += '</div>';
@@ -722,9 +853,231 @@
             html += '</select></div>';
             html += '</div>';
 
+            // Campo para subir archivos
+            html += '<div class="form-row mt-3">';
+            html += '<div class="form-group col-md-12">';
+            html += '<label for="archivos_micro">Archivos Relacionados</label>';
+            html += '<div class="row">';
+            html += '<div class="col-9">';
+            html += '<input type="file" class="form-control-file" id="archivos_micro" name="archivos[]" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">';
+            html += '<small class="form-text text-muted">Archivos permitidos: PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF (máx. 10MB cada uno)</small>';
+            html += '</div>';
+            html += '<div class="col-3">';
+            html += '<button type="button" class="btn btn-sm btn-info btn-previsualizar-archivos"><i class="fas fa-eye"></i> Ver Archivos</button>';
+            html += '</div>';
+            html += '</div>';
+            html += '<div class="lista-archivos-seleccionados mt-2"></div>';
+            html += '<div class="lista-archivos-existentes mt-2"></div>';
+            html += '</div>';
+            html += '</div>';
+
             html += '</div>';
             html += '</div></div>';
             return html;
         }
+        
+        // ==== FUNCIONALIDAD DE ARCHIVOS ====
+        // Variables globales para manejo de archivos
+        var archivosSeleccionados = [];
+        var archivosExistentes = [];
+        var analiticaIdActual = null;
+
+        // Función para mostrar archivos seleccionados
+        function mostrarArchivosSeleccionados($modal) {
+            var container = $modal.find('.lista-archivos-seleccionados');
+            container.empty();
+            
+            if (archivosSeleccionados.length > 0) {
+                var html = '<div class="mt-2"><strong>Archivos seleccionados:</strong><ul class="list-group mt-1">';
+                archivosSeleccionados.forEach(function(archivo, index) {
+                    html += '<li class="list-group-item d-flex justify-content-between align-items-center py-1">';
+                    html += '<span><i class="fas fa-file"></i> ' + archivo.name + ' (' + formatFileSize(archivo.size) + ')</span>';
+                    html += '<button type="button" class="btn btn-sm btn-danger" onclick="removerArchivoSeleccionado(' + index + ')"><i class="fas fa-times"></i></button>';
+                    html += '</li>';
+                });
+                html += '</ul></div>';
+                container.html(html);
+            }
+        }
+
+        // Función para mostrar archivos existentes
+        function mostrarArchivosExistentes($modal) {
+            var container = $modal.find('.lista-archivos-existentes');
+            container.empty();
+            
+            if (archivosExistentes.length > 0) {
+                var html = '<div class="mt-2"><strong>Archivos existentes:</strong><ul class="list-group mt-1">';
+                archivosExistentes.forEach(function(archivo, index) {
+                    if (typeof archivo === 'object' && archivo.nombre_original && archivo.nombre && archivo.tamano) {
+                        html += '<li class="list-group-item d-flex justify-content-between align-items-center py-2">';
+                        html += '<div class="d-flex align-items-center">';
+                        html += '<i class="fas fa-file text-primary mr-2"></i>';
+                        html += '<div>';
+                        html += '<strong>' + archivo.nombre_original + '</strong><br>';
+                        html += '<small class="text-muted">' + formatFileSize(archivo.tamano) + ' - ' + (archivo.fecha_subida || 'Fecha desconocida') + '</small>';
+                        html += '</div>';
+                        html += '</div>';
+                        html += '<div class="btn-group">';
+                        html += '<a href="' + (archivo.ruta || '#') + '" target="_blank" class="btn btn-sm btn-info" title="Descargar"><i class="fas fa-download"></i></a>';
+                        html += '<button type="button" class="btn btn-sm btn-danger" onclick="eliminarArchivoExistente(\'' + archivo.nombre + '\')" title="Eliminar"><i class="fas fa-times"></i></button>';
+                        html += '</div>';
+                        html += '</li>';
+                    }
+                });
+                html += '</ul></div>';
+                container.html(html);
+            }
+        }
+
+        // Función para formatear tamaño de archivo
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            var k = 1024;
+            var sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            var i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Función para remover archivo seleccionado
+        function removerArchivoSeleccionado(index) {
+            archivosSeleccionados.splice(index, 1);
+            actualizarInputArchivos();
+            mostrarArchivosSeleccionados($('#modalEditar'));
+        }
+
+        // Función para actualizar el input de archivos
+        function actualizarInputArchivos() {
+            var input = $('#modalEditar').find('input[type="file"]')[0];
+            if (input) {
+                var dt = new DataTransfer();
+                archivosSeleccionados.forEach(function(archivo) {
+                    dt.items.add(archivo);
+                });
+                input.files = dt.files;
+            }
+        }
+
+        // Función para eliminar archivo existente
+        function eliminarArchivoExistente(nombreArchivo) {
+            if (!nombreArchivo || !analiticaIdActual) {
+                alert('Error: datos de archivo incompletos');
+                return;
+            }
+            
+            if (!confirm('¿Está seguro de eliminar este archivo?')) return;
+            
+            $.ajax({
+                url: '{{ route("evaluacion_analisis.eliminar_archivo") }}',
+                type: 'DELETE',
+                data: {
+                    analitica_id: analiticaIdActual,
+                    nombre_archivo: nombreArchivo,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        archivosExistentes = archivosExistentes.filter(function(archivo) {
+                            return archivo.nombre !== nombreArchivo;
+                        });
+                        mostrarArchivosExistentes($('#modalEditar'));
+                        alert('Archivo eliminado correctamente');
+                        // Recargar la página para actualizar la tabla
+                        location.reload();
+                    } else {
+                        alert('Error al eliminar archivo: ' + response.message);
+                    }
+                },
+                error: function(xhr) {
+                    alert('Error al eliminar archivo');
+                    console.error(xhr);
+                }
+            });
+        }
+
+        // Event listeners para archivos
+        $(document).on('change', 'input[type="file"][name="archivos[]"]', function() {
+            var files = Array.from(this.files);
+            archivosSeleccionados = files;
+            mostrarArchivosSeleccionados($('#modalEditar'));
+        });
+
+        // Botón para previsualizar archivos
+        $(document).on('click', '.btn-previsualizar-archivos', function() {
+            if (archivosSeleccionados.length === 0 && archivosExistentes.length === 0) {
+                alert('No hay archivos seleccionados o existentes');
+                return;
+            }
+            
+            var ventana = window.open('', '_blank', 'width=600,height=400');
+            var html = '<html><head><title>Archivos de Analítica</title></head><body>';
+            html += '<h3>Archivos Seleccionados</h3>';
+            html += $('#modalEditar').find('.lista-archivos-seleccionados').html();
+            html += '<h3>Archivos Existentes</h3>';
+            html += $('#modalEditar').find('.lista-archivos-existentes').html();
+            html += '</body></html>';
+            ventana.document.write(html);
+        });
+
+        // Botón para eliminar archivo desde la tabla
+        $(document).on('click', '.btn-eliminar-archivo', function() {
+            var analiticaId = $(this).data('analitica-id');
+            var nombreArchivo = $(this).data('nombre-archivo');
+            
+            if (!confirm('¿Está seguro de eliminar este archivo?')) return;
+            
+            $.ajax({
+                url: '{{ route("evaluacion_analisis.eliminar_archivo") }}',
+                type: 'DELETE',
+                data: {
+                    analitica_id: analiticaId,
+                    nombre_archivo: nombreArchivo,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert('Archivo eliminado correctamente');
+                        location.reload();
+                    } else {
+                        alert('Error al eliminar archivo: ' + response.message);
+                    }
+                },
+                error: function(xhr) {
+                    alert('Error al eliminar archivo');
+                    console.error(xhr);
+                }
+            });
+        });
+
+        // Cargar archivos existentes al abrir modal de edición
+        $(document).on('shown.bs.modal', '#modalEditar', function() {
+            if (analiticaIdActual) {
+                // Cargar archivos existentes
+                $.ajax({
+                    url: '{{ route("evaluacion_analisis.obtener_datos") }}',
+                    type: 'GET',
+                    data: { id: analiticaIdActual },
+                    success: function(response) {
+                        if (response.success && response.data && response.data.archivos) {
+                            archivosExistentes = response.data.archivos.filter(function(archivo) {
+                                return typeof archivo === 'object' && archivo.nombre && archivo.nombre_original;
+                            });
+                            mostrarArchivosExistentes($('#modalEditar'));
+                        }
+                    },
+                    error: function() {
+                        console.log('Error al cargar archivos existentes');
+                    }
+                });
+            }
+        });
+
+        // Limpiar archivos al cerrar modal
+        $(document).on('hidden.bs.modal', '#modalEditar', function() {
+            archivosSeleccionados = [];
+            archivosExistentes = [];
+            analiticaIdActual = null;
+        });
+
+        // ==== FIN FUNCIONALIDAD DE ARCHIVOS ====
     </script>
 @endsection

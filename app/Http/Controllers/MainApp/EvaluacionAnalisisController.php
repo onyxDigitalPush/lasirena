@@ -343,6 +343,11 @@ class EvaluacionAnalisisController extends Controller
                 'analiticas.tipo_analitica',
                 'analiticas.fecha_real_analitica',
                 'analiticas.periodicidad',
+                'analiticas.estado_analitica',
+                'analiticas.fecha_cambio_estado',
+                'analiticas.proveedor_no_procede',
+                'analiticas.periodicidad_no_procede',
+                'analiticas.archivos',
                 DB::raw('NULL as analitica_id'),
                 'analiticas.proveedor_id',
                 DB::raw("'analitica' as tabla_origen")
@@ -384,6 +389,11 @@ class EvaluacionAnalisisController extends Controller
                 DB::raw("'Tendencias superficie' as tipo_analitica"),
                 'tendencias_superficie.fecha_muestra as fecha_real_analitica',
                 'analiticas.periodicidad',
+                'tendencias_superficie.estado_analitica',
+                'tendencias_superficie.fecha_cambio_estado',
+                'analiticas.proveedor_no_procede',
+                'analiticas.periodicidad_no_procede',
+                'analiticas.archivos',
                 'tendencias_superficie.analitica_id as analitica_id',
                 'tendencias_superficie.proveedor_id',
                 DB::raw("'superficie' as tabla_origen")
@@ -398,6 +408,11 @@ class EvaluacionAnalisisController extends Controller
                 DB::raw("'Tendencias micro' as tipo_analitica"),
                 'tendencias_micro.fecha_toma_muestras as fecha_real_analitica',
                 'analiticas.periodicidad',
+                'tendencias_micro.estado_analitica',
+                'tendencias_micro.fecha_cambio_estado',
+                'analiticas.proveedor_no_procede',
+                'analiticas.periodicidad_no_procede',
+                'analiticas.archivos',
                 'tendencias_micro.analitica_id as analitica_id',
                 'tendencias_micro.proveedor_id',
                 DB::raw("'micro' as tabla_origen")
@@ -1241,6 +1256,7 @@ class EvaluacionAnalisisController extends Controller
                 'archivos_existentes_antes' => count($analitica->getArchivosArray())
             ]);
 
+            $archivosGuardados = 0;
             foreach ($archivos as $index => $archivo) {
                 if ($archivo && $archivo->isValid()) {
                     Log::info('Procesando archivo', [
@@ -1288,6 +1304,7 @@ class EvaluacionAnalisisController extends Controller
                     ];
                     
                     $analitica->addArchivo($infoArchivo);
+                    $archivosGuardados++;
                     Log::info('Archivo agregado al modelo', $infoArchivo);
                 }
             }
@@ -1295,11 +1312,13 @@ class EvaluacionAnalisisController extends Controller
             $analitica->save();
             Log::info('Archivos procesados correctamente', [
                 'analitica_id' => $analitica->id,
+                'archivos_guardados' => $archivosGuardados,
                 'archivos_finales' => count($analitica->getArchivosArray())
             ]);
             
         } catch (\Exception $e) {
             Log::error('Error procesando archivos: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
         }
     }
 
