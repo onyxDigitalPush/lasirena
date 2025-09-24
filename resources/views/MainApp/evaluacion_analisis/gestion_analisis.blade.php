@@ -192,7 +192,7 @@
                         <th class="text-center">Periodicidad</th>
                         <th class="text-center">Fecha Límite</th>
                         <th class="text-center">Días Restantes</th>
-                        <th class="text-center">Archivos</th>
+                        <!-- Columna de Archivos eliminada según petición -->
                         <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
@@ -282,51 +282,7 @@
                                 @endif
                             </td>
                             
-                            {{-- Archivos de la analítica --}}
-                            <td class="text-center align-middle" style="min-width: 180px;">
-                                @php
-                                    $archivos = [];
-                                    if (!empty($resultado->archivos)) {
-                                        if (is_string($resultado->archivos)) {
-                                            $archivos = json_decode($resultado->archivos, true) ?: [];
-                                        } elseif (is_array($resultado->archivos)) {
-                                            $archivos = $resultado->archivos;
-                                        }
-                                    }
-                                @endphp
-                                @if(!empty($archivos))
-                                    <div class="text-left">
-                                        @foreach($archivos as $archivo)
-                                            @if(is_array($archivo) && isset($archivo['nombre']) && isset($archivo['nombre_original']))
-                                                <div class="d-flex justify-content-between align-items-center mb-1 p-1 bg-light rounded archivo-item">
-                                                    <small class="text-truncate-custom" title="{{ $archivo['nombre_original'] }}">
-                                                        <i class="fas fa-file text-primary"></i> {{ Str::limit($archivo['nombre_original'], 12) }}
-                                                    </small>
-                                                    <div class="btn-group">
-                                                        @php
-                                                            $analiticaIdParaArchivo = $resultado->analitica_id ?: $resultado->id;
-                                                        @endphp
-                                                        <a href="{{ route('evaluacion_analisis.descargar_archivo', ['analiticaId' => $analiticaIdParaArchivo, 'nombreArchivo' => $archivo['nombre']]) }}" 
-                                                           class="btn btn-xs btn-outline-primary" 
-                                                           title="Descargar {{ $archivo['nombre_original'] }}" 
-                                                           target="_blank">
-                                                            <i class="fas fa-download"></i>
-                                                        </a>
-                                                        <button type="button" class="btn btn-xs btn-outline-danger btn-eliminar-archivo"
-                                                                data-analitica-id="{{ $analiticaIdParaArchivo }}"
-                                                                data-nombre-archivo="{{ $archivo['nombre'] }}"
-                                                                title="Eliminar {{ $archivo['nombre_original'] }}">
-                                                            <i class="fas fa-times"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            @endif
-                                        @endforeach
-                                    </div>
-                                @else
-                                    <small class="text-muted">Sin archivos</small>
-                                @endif
-                            </td>
+                            {{-- columna de archivos eliminada para simplificar tabla --}}
                             
                             <td class="text-center">
                                 <div class="btn-group" role="group">
@@ -419,6 +375,10 @@
 
             $('#tipoEditar').text(tipoTexto);
             analiticaIdActual = id; // Para funcionalidad de archivos
+            
+            // Convertir tipo de tabla a tipo de modelo para archivos
+            window.tipoModeloActual = tipo === 'analiticas' ? 'analitica' : 
+                                      (tipo === 'superficie' ? 'superficie' : 'micro');
 
             // Cargar datos vía AJAX
             $.get("{{ route('evaluacion_analisis.obtener_datos') }}", {
@@ -481,7 +441,8 @@
                         html += '</div>';
                         html += '</div>';
                         html += '<div>';
-                        html += '<a href="/evaluacion_analisis/descargar_archivo/' + window.analiticaIdActual + '/' + archivo.nombre + '" class="btn btn-sm btn-outline-primary mr-1" target="_blank" title="Descargar"><i class="fas fa-download"></i></a>';
+                        // Enlace directo al archivo en public storage
+                        html += '<a href="{{ asset('storage/analiticas') }}/' + archivo.nombre + '" class="btn btn-sm btn-outline-primary mr-1" target="_blank" title="Descargar"><i class="fas fa-download"></i></a>';
                         html += '<button type="button" class="btn btn-sm btn-danger" onclick="eliminarArchivoExistenteGestion(\'' + archivo.nombre + '\', ' + index + ')" title="Eliminar"><i class="fas fa-trash"></i></button>';
                         html += '</div>';
                         html += '</li>';
@@ -500,12 +461,16 @@
                     return;
                 }
 
+                // Determinar tipo de modelo desde el modal actual
+                var tipoModelo = window.tipoModeloActual || 'analitica';
+
                 $.ajax({
                     url: '/evaluacion_analisis/eliminar_archivo',
                     method: 'DELETE',
                     data: {
                         analiticaId: window.analiticaIdActual,
                         nombreArchivo: nombreArchivo,
+                        tipo_modelo: tipoModelo,
                         _token: $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function(response) {
@@ -1132,6 +1097,7 @@
         $(document).on('click', '.btn-eliminar-archivo', function() {
             var analiticaId = $(this).data('analitica-id');
             var nombreArchivo = $(this).data('nombre-archivo');
+            var tipoModelo = $(this).data('tipo-modelo') || 'analitica';
             
             if (!confirm('¿Está seguro de eliminar este archivo?')) return;
             
@@ -1139,8 +1105,9 @@
                 url: '{{ route("evaluacion_analisis.eliminar_archivo") }}',
                 type: 'DELETE',
                 data: {
-                    analitica_id: analiticaId,
-                    nombre_archivo: nombreArchivo,
+                    analiticaId: analiticaId,
+                    nombreArchivo: nombreArchivo,
+                    tipo_modelo: tipoModelo,
                     _token: '{{ csrf_token() }}'
                 },
                 success: function(response) {

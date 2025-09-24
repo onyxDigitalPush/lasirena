@@ -1,0 +1,175 @@
+
+<!doctype html>
+
+
+<head>
+    <title>LaSirena</title>
+    <meta name="description" content="">
+    <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta http-equiv="Content-Language" content="es">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="http://localhost/lasirena/public/_img/favicon.ico">
+<meta name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no" />
+
+<!-- Disable tap highlight on IE -->
+<meta name="msapplication-tap-highlight" content="no">
+
+<link href="http://localhost/lasirena/public/_css/main.css?v=16" rel="stylesheet">
+<link href="http://localhost/lasirena/public/_css/custom.css?v=16" rel="stylesheet">
+
+
+
+<!-- JQuery -->
+<script type="text/javascript"
+    src="http://localhost/lasirena/public/_js/jquery-3.4.1.min.js?v=16"></script>
+<!-- JQuery ui -->
+<script type="text/javascript" src="http://localhost/lasirena/public/_js/jquery-ui.min.js?v=16">
+</script>
+<!-- Metismenu -->
+<script type="text/javascript" src="http://localhost/lasirena/public/_js/metismenu.js?v=16">
+</script>
+
+
+<!-- Bootstrap -->
+<script type="text/javascript" src="http://localhost/lasirena/public/_js/popper.min.js?v=16">
+</script>
+<script type="text/javascript"
+    src="http://localhost/lasirena/public/_js/bootstrap.min.js?v=16"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+
+
+
+
+<!-- DateRangePicker http://www.daterangepicker.com/#examples -->
+<link href="http://localhost/lasirena/public/_css/daterangepicker.css?v=16" rel="stylesheet">
+<script type="text/javascript" src="http://localhost/lasirena/public/_js/moment.min.js?v=16">
+</script>
+<script type="text/javascript"
+    src="http://localhost/lasirena/public/_js/daterangepicker.min.js?v=16"></script>
+
+
+<!-- DatePicker  https://github.com/fengyuanchen/datepicker -->
+<link href="http://localhost/lasirena/public/_css/datepicker.min.css?v=16" rel="stylesheet">
+<script type="text/javascript"
+    src="http://localhost/lasirena/public/_js/datepicker.min.js?v=16"></script>
+<script type="text/javascript"
+    src="http://localhost/lasirena/public/_js/datepicker.es.min.js?v=16"></script>
+
+
+<!-- JQ confirm -->
+<link href="http://localhost/lasirena/public/_css/jquery-confirm.min.css?v=16"
+    rel="stylesheet">
+<script type="text/javascript"
+    src="http://localhost/lasirena/public/_js/jquery-confirm.min.js?v=16"></script>
+<script type="text/javascript"
+    src="http://localhost/lasirena/public/_js/jquery.validacion-formulario-bootstrap-3.5.js?v=16">
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Datatables -->
+<link href="http://localhost/lasirena/public/_css/dataTables.bootstrap4.min.css?v=16"
+    rel="stylesheet">
+<script type="text/javascript"
+    src="http://localhost/lasirena/public/_js/jquery.dataTables.min.js?v=16"></script>
+<script type="text/javascript"
+    src="http://localhost/lasirena/public/_js/dataTables.bootstrap4.min.js?v=16"></script>
+<script>
+    var http_web_root = 'http://localhost/lasirena/public/';
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+</head>
+
+<body>
+
+    <div class="app-container app-theme-white body-tabs-shadow fixed-sidebar fixed-header closed-sidebar h-100">
+        <div class="app-header bg-white text-dark">
+            <img src="http://localhost/lasirena/public/_img/logo-header-la-sirena.svg" class="logo">
+        </div>
+        <main>
+            <div class="app-main">
+                <div class="row w-100 ml-0 pt-5">
+                    <div class="col-sm-12 col-lg-4">
+                    </div>
+                    <div class="col-sm-12 col-lg-4 pt-3">
+                        <div class="pt-4 card bg-white mt-5">
+                            <form class="main_content pb-3 w-100" id="loginForm" method="POST" autocomplete="off"
+                                action="http://localhost/lasirena/public/login">
+                                <input type="hidden" name="_token" value="PZbZTUKtGTfY7I98ncP8k9BJTZgclpYvPTP9PF5l">                                <div class="card-header-title font-size-lg font-weight-normal float-left d-block w-100">
+                                    <p class="card-title w-100 text-center font-size-lg text-primary">Acceso al
+                                        backoffice de La Sirena</p>
+                                    <p class="description w-100 text-center">Porfavor facilite las credenciales para
+                                        poder acceder.</p>
+                                </div>
+                                <div class="card-body">
+                                    <div>
+                                        <label class="card-title">E-mail</label>
+                                        <input class="form-control" type="text" name="email"
+                                            data-validacion="obligatorio email" autocomplete="off">
+                                    </div>
+                                    <div class="mt-4 mb-2">
+                                        <label class="card-title">Contraseña</label>
+                                        <input class="form-control" type="password" name="password"
+                                            data-validacion="obligatorio" autocomplete="off">
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-md-12 offset-md-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="remember"
+                                                    id="remember" >
+
+                                                <label class="form-check-label" for="remember">
+                                                    Mantenerme conectado
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-6 text-left">
+                                            
+                                        </div>
+                                        <div class="col-6 text-right">
+                                            <a class="ml-1 mt-4 btn btn-primary" title="Acceder" id="send_form"
+                                                href="javascript:void(0);">ACCEDER</a>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-lg-4">
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script type="text/javascript" src="http://localhost/lasirena/public/_js/main.js?v=16">
+</script>
+<script type="text/javascript" src="http://localhost/lasirena/public/_js/bfbs.js?v=16">
+</script>
+
+<!--[if lt IE 9]><div id="nvg_ie_compat"></div><![endif]-->
+<script type="text/javascript"
+src="http://localhost/lasirena/public/_js/jquery-old-browser-detection.js?v=16"></script>
+    <script>
+        var form_login = $("#loginForm");
+        form_login.validacion();
+
+        $("#send_form").click(function(e) {
+
+            e.preventDefault();
+            if (!form_login.valida()) {
+                return false;
+            } else {
+                $("#loginForm").submit();
+            }
+        });
+    </script>
+</body>
+
+</html>

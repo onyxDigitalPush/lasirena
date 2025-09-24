@@ -142,25 +142,15 @@
                                 <div class="row mt-3">
                                     <div class="col-md-12">
                                         <div class="form-group">
-                                            <label for="archivos_analitica_agua">Archivos Relacionados</label>
-                                            <div class="row">
-                                                <div class="col-9">
-                                                    <input type="file" 
-                                                           class="form-control-file" 
-                                                           id="archivos_analitica_agua" 
-                                                           name="archivos[]" 
-                                                           multiple 
-                                                           accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
-                                                    <small class="form-text text-muted">
-                                                        Archivos permitidos: PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF (máx. 10MB cada uno)
-                                                    </small>
-                                                </div>
-                                                <div class="col-3">
-                                                    <button type="button" class="btn btn-sm btn-info btn-previsualizar-archivos">
-                                                        <i class="fas fa-eye"></i> Ver Archivos
-                                                    </button>
-                                                </div>
-                                            </div>
+                                            <input type="file" 
+                                                   class="form-control-file" 
+                                                   id="archivos_analitica_agua" 
+                                                   name="archivos[]" 
+                                                   multiple 
+                                                   accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
+                                            <small class="form-text text-muted">
+                                                Archivos permitidos: PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF (máx. 10MB cada uno)
+                                            </small>
                                             <!-- Lista de archivos seleccionados -->
                                             <div class="lista-archivos-seleccionados mt-2"></div>
                                             <!-- Lista de archivos existentes (en modo edición) -->
@@ -364,25 +354,7 @@
                                         <!-- Campo para subir archivos -->
                                         <div class="form-row mt-3">
                                             <div class="form-group col-md-12">
-                                                <label for="archivos_analitica_superficie">Archivos Relacionados</label>
-                                                <div class="row">
-                                                    <div class="col-9">
-                                                        <input type="file" 
-                                                               class="form-control-file" 
-                                                               id="archivos_analitica_superficie" 
-                                                               name="archivos[]" 
-                                                               multiple 
-                                                               accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
-                                                        <small class="form-text text-muted">
-                                                            Archivos permitidos: PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF (máx. 10MB cada uno)
-                                                        </small>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <button type="button" class="btn btn-sm btn-info btn-previsualizar-archivos">
-                                                            <i class="fas fa-eye"></i> Ver Archivos
-                                                        </button>
-                                                    </div>
-                                                </div>
+                                                
                                                 <!-- Lista de archivos seleccionados -->
                                                 <div class="lista-archivos-seleccionados mt-2"></div>
                                                 <!-- Lista de archivos existentes (en modo edición) -->
@@ -599,25 +571,15 @@
                                         <!-- Campo para subir archivos -->
                                         <div class="form-row mt-3">
                                             <div class="form-group col-md-12">
-                                                <label for="archivos_analitica_micro">Archivos Relacionados</label>
-                                                <div class="row">
-                                                    <div class="col-9">
-                                                        <input type="file" 
-                                                               class="form-control-file" 
-                                                               id="archivos_analitica_micro" 
-                                                               name="archivos[]" 
-                                                               multiple 
-                                                               accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
-                                                        <small class="form-text text-muted">
-                                                            Archivos permitidos: PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF (máx. 10MB cada uno)
-                                                        </small>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <button type="button" class="btn btn-sm btn-info btn-previsualizar-archivos">
-                                                            <i class="fas fa-eye"></i> Ver Archivos
-                                                        </button>
-                                                    </div>
-                                                </div>
+                                                <input type="file" 
+                                                       class="form-control-file" 
+                                                       id="archivos_analitica_micro" 
+                                                       name="archivos[]" 
+                                                       multiple 
+                                                       accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
+                                                <small class="form-text text-muted">
+                                                    Archivos permitidos: PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF (máx. 10MB cada uno)
+                                                </small>
                                                 <!-- Lista de archivos seleccionados -->
                                                 <div class="lista-archivos-seleccionados mt-2"></div>
                                                 <!-- Lista de archivos existentes (en modo edición) -->
@@ -722,25 +684,15 @@
                                 <div class="row mt-3">
                                     <div class="col-md-12">
                                         <div class="form-group">
-                                            <label for="archivos_analitica_default">Archivos Relacionados</label>
-                                            <div class="row">
-                                                <div class="col-9">
-                                                    <input type="file" 
-                                                           class="form-control-file" 
-                                                           id="archivos_analitica_default" 
-                                                           name="archivos[]" 
-                                                           multiple 
-                                                           accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
-                                                    <small class="form-text text-muted">
-                                                        Archivos permitidos: PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF (máx. 10MB cada uno)
-                                                    </small>
-                                                </div>
-                                                <div class="col-3">
-                                                    <button type="button" class="btn btn-sm btn-info btn-previsualizar-archivos">
-                                                        <i class="fas fa-eye"></i> Ver Archivos
-                                                    </button>
-                                                </div>
-                                            </div>
+                                            <input type="file" 
+                                                   class="form-control-file" 
+                                                   id="archivos_analitica_default" 
+                                                   name="archivos[]" 
+                                                   multiple 
+                                                   accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
+                                            <small class="form-text text-muted">
+                                                Archivos permitidos: PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF (máx. 10MB cada uno)
+                                            </small>
                                             <!-- Lista de archivos seleccionados -->
                                             <div class="lista-archivos-seleccionados mt-2"></div>
                                             <!-- Lista de archivos existentes (en modo edición) -->
@@ -855,7 +807,6 @@
                     <th class="text-center">Periodicidad</th>
                     <th class="text-center">Proveedor</th>
                     <th class="text-center">Procede</th>
-                    <th class="text-center">Archivos</th>
                     <th class="text-center">Acciones</th>
                 </tr>
             </thead>
@@ -959,31 +910,7 @@
                             @endif
                         </td>
 
-                        {{-- Archivos de la analítica --}}
-                        <td class="text-center align-middle" style="min-width: 180px;">
-                            @if($a->hasArchivos())
-                                @php $archivos = $a->getArchivosArray(); @endphp
-                                <div class="text-left">
-                                    @foreach($archivos as $archivo)
-                                        @if(is_array($archivo) && isset($archivo['nombre']) && isset($archivo['nombre_original']))
-                                            <div class="d-flex justify-content-between align-items-center mb-1 p-1 bg-light rounded archivo-item">
-                                                <small class="text-truncate-custom" title="{{ $archivo['nombre_original'] }}">
-                                                    <i class="fas fa-file text-primary"></i> {{ Str::limit($archivo['nombre_original'], 12) }}
-                                                </small>
-                                                <a href="{{ route('evaluacion_analisis.descargar_archivo', ['analiticaId' => $a->id, 'nombreArchivo' => $archivo['nombre']]) }}" 
-                                                   class="btn btn-xs btn-outline-primary" 
-                                                   title="Descargar {{ $archivo['nombre_original'] }}" 
-                                                   target="_blank">
-                                                    <i class="fas fa-download"></i>
-                                                </a>
-                                            </div>
-                                        @endif
-                                    @endforeach
-                                </div>
-                            @else
-                                <small class="text-muted">Sin archivos</small>
-                            @endif
-                        </td>
+                       
 
                         <!-- Acciones: Condicionadas según el estado -->
                         <td class="text-center">
@@ -1120,6 +1047,7 @@
     var archivosSeleccionados = [];
     var archivosExistentes = [];
     var analiticaIdActual = null;
+    var tipoModalActual = null;
 
     // Función para mostrar archivos seleccionados
     function mostrarArchivosSeleccionados(containerId) {
@@ -1157,8 +1085,47 @@
                     html += '</div>';
                     html += '</div>';
                     html += '<div>';
-                    html += '<a href="/evaluacion_analisis/descargar_archivo/' + analiticaIdActual + '/' + archivo.nombre + '" class="btn btn-sm btn-outline-primary mr-1" target="_blank" title="Descargar"><i class="fas fa-download"></i></a>';
+                    var tipoModelo = '';
+                    if (tipoModalActual === 'Tendencias superficie') tipoModelo = 'superficie';
+                    else if (tipoModalActual === 'Tendencias micro') tipoModelo = 'micro';
+                    else tipoModelo = 'analitica';
+                    var baseUrl = '{{ url("evaluacion_analisis/descargar-archivo") }}';
+                    html += '<a href="' + baseUrl + '/' + analiticaIdActual + '/' + archivo.nombre + '/' + tipoModelo + '" class="btn btn-sm btn-outline-primary mr-1" target="_blank" title="Descargar"><i class="fas fa-download"></i></a>';
                     html += '<button type="button" class="btn btn-sm btn-danger" onclick="eliminarArchivoExistente(\'' + archivo.nombre + '\', ' + index + ', \'' + containerId + '\')" title="Eliminar"><i class="fas fa-trash"></i></button>';
+                    html += '</div>';
+                    html += '</li>';
+                }
+            });
+            html += '</ul></div>';
+            container.html(html);
+        }
+    }
+
+    // Función para mostrar archivos existentes en modal específico
+    function mostrarArchivosExistentesEnModal($modal) {
+        var container = $modal.find('.lista-archivos-existentes');
+        container.empty();
+        
+        if (archivosExistentes.length > 0) {
+            var html = '<div class="mt-2"><strong>Archivos existentes:</strong><ul class="list-group mt-1">';
+            archivosExistentes.forEach(function(archivo, index) {
+                if (typeof archivo === 'object' && archivo.nombre_original && archivo.nombre && archivo.tamano) {
+                    html += '<li class="list-group-item d-flex justify-content-between align-items-center py-2">';
+                    html += '<div class="d-flex align-items-center">';
+                    html += '<i class="fas fa-file text-primary mr-2"></i>';
+                    html += '<div>';
+                    html += '<strong>' + archivo.nombre_original + '</strong><br>';
+                    html += '<small class="text-muted">' + formatFileSize(archivo.tamano) + '</small>';
+                    html += '</div>';
+                    html += '</div>';
+                    html += '<div>';
+                    var tipoModelo = '';
+                    if (tipoModalActual === 'Tendencias superficie') tipoModelo = 'superficie';
+                    else if (tipoModalActual === 'Tendencias micro') tipoModelo = 'micro';
+                    else tipoModelo = 'analitica';
+                    var baseUrl = '{{ url("evaluacion_analisis/descargar-archivo") }}';
+                    html += '<a href="' + baseUrl + '/' + analiticaIdActual + '/' + archivo.nombre + '/' + tipoModelo + '" class="btn btn-sm btn-outline-primary mr-1" target="_blank" title="Descargar"><i class="fas fa-download"></i></a>';
+                    html += '<button type="button" class="btn btn-sm btn-danger" onclick="eliminarArchivoExistente(\'' + archivo.nombre + '\', ' + index + ', \'lista-archivos-existentes\')" title="Eliminar"><i class="fas fa-trash"></i></button>';
                     html += '</div>';
                     html += '</li>';
                 }
@@ -1315,6 +1282,9 @@
             } else {
                 analiticaIdActual = null; // En modo agregar sin ID específico
             }
+            
+            // Establecer el tipo de modal actual para los enlaces de descarga
+            tipoModalActual = tipo;
             
             // Cambiar título del modal
             var nuevoTitulo = esEdicion ? 'Editar Analítica - ' + tipo : 'Agregar Analítica - ' + tipo;
@@ -1536,17 +1506,42 @@
                         // Si la respuesta incluye analitica_id, guardarlo en el campo oculto
                         if (data.analitica_id) {
                             $modal.find('.analitica_id_input').val(data.analitica_id);
-                            analiticaIdActual = data.analitica_id; // Para funcionalidad de archivos
                         }
                         
-                        // Cargar archivos existentes
-                        if (data.archivos && Array.isArray(data.archivos) && data.archivos.length > 0) {
-                            archivosExistentes = data.archivos.filter(function(archivo) {
-                                return typeof archivo === 'object' && archivo.nombre && archivo.nombre_original;
-                            });
-                            mostrarArchivosExistentes($modal);
+                        // Para funcionalidad de archivos, usar el ID correcto según el tipo
+                        if (tipo === 'Tendencias superficie' || tipo === 'Tendencias micro') {
+                            // Para tendencias, usar el ID de la propia tendencia, no el analitica_id
+                            analiticaIdActual = data.id;
                         } else {
-                            archivosExistentes = [];
+                            // Para resultados agua (analíticas principales), usar analitica_id
+                            analiticaIdActual = data.analitica_id;
+                        }
+                        
+                        // Cargar archivos existentes según el tipo
+                        if (tipo === 'Tendencias superficie' || tipo === 'Tendencias micro') {
+                            // Para tendencias, los archivos están en data.archivos
+                            if (data.archivos && Array.isArray(data.archivos) && data.archivos.length > 0) {
+                                archivosExistentes = data.archivos.filter(function(archivo) {
+                                    return typeof archivo === 'object' && archivo.nombre && archivo.nombre_original;
+                                });
+                            } else {
+                                archivosExistentes = [];
+                            }
+                        } else {
+                            // Para resultados agua (analíticas principales), los archivos están en data.analitica.archivos
+                            if (data.analitica && data.analitica.archivos && Array.isArray(data.analitica.archivos) && data.analitica.archivos.length > 0) {
+                                archivosExistentes = data.analitica.archivos.filter(function(archivo) {
+                                    return typeof archivo === 'object' && archivo.nombre && archivo.nombre_original;
+                                });
+                            } else {
+                                archivosExistentes = [];
+                            }
+                        }
+                        
+                        // Mostrar archivos existentes
+                        if (archivosExistentes.length > 0) {
+                            mostrarArchivosExistentesEnModal($modal);
+                        } else {
                             $modal.find('.lista-archivos-existentes').empty();
                         }
                         
@@ -1562,17 +1557,6 @@
                             // También cargar el campo procede desde la analítica asociada
                             if (data.analitica.procede !== undefined && data.analitica.procede !== null) {
                                 $modal.find('select[name="procede"]').val(data.analitica.procede.toString());
-                            }
-
-                            // Cargar archivos existentes si los hay
-                            if (data.analitica.archivos && data.analitica.archivos.length > 0) {
-                                archivosExistentes = data.analitica.archivos;
-                                var modalSuffix = tipo === 'Resultados agua' ? 'agua' : 
-                                                 tipo === 'Tendencias superficie' ? 'superficie' : 
-                                                 tipo === 'Tendencias micro' ? 'micro' : 'otros';
-                                mostrarArchivosExistentes('lista_archivos_existentes_' + modalSuffix);
-                            } else {
-                                archivosExistentes = [];
                             }
                         }
                     }
@@ -2309,8 +2293,9 @@
             
             archivosExistentes.forEach(function(archivo) {
                 var item = $('<div class="list-group-item d-flex justify-content-between align-items-center"></div>');
-                var link = '<a href="{{ route("evaluacion_analisis.descargar_archivo", ["analiticaId" => ":analitica_id", "nombreArchivo" => ":nombre"]) }}" target="_blank" class="text-decoration-none">';
-                link = link.replace(':analitica_id', analiticaIdActual).replace(':nombre', archivo.nombre);
+                // Usar enlace directo a public storage para evitar problemas de redirección/HTML
+                var link = '<a href="{{ asset('storage/analiticas') }}/:nombre" target="_blank" class="text-decoration-none">';
+                link = link.replace(':nombre', archivo.nombre);
                 item.append('<span>' + link + '<i class="fas fa-download mr-2"></i>' + archivo.nombre_original + '</a></span>');
                 item.append('<button type="button" class="btn btn-sm btn-danger" onclick="eliminarArchivoExistente(\'' + archivo.nombre + '\', $(this).closest(\'.modal\'))"><i class="fas fa-trash"></i></button>');
                 listGroup.append(item);

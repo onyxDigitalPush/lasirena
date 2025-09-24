@@ -44,7 +44,8 @@ class TendenciaMicro extends Model
         's_resultado',
         'salmonella_valor',
         'salmonella_resultado',
-        'archivos'
+        'archivos',
+        'procede'
     ];
 
     protected $dates = [
@@ -53,6 +54,7 @@ class TendenciaMicro extends Model
 
     protected $casts = [
         'fecha_cambio_estado' => 'datetime',
+        'archivos' => 'array',
     ];
 
     // Constantes para los estados
@@ -96,14 +98,40 @@ class TendenciaMicro extends Model
     // Método para obtener archivos como array
     public function getArchivosArray()
     {
-        if (empty($this->archivos)) {
+        if (is_null($this->archivos)) {
             return [];
         }
         
-        if (is_string($this->archivos)) {
-            return json_decode($this->archivos, true) ?: [];
-        }
-        
         return is_array($this->archivos) ? $this->archivos : [];
+    }
+
+    public function addArchivo($archivo)
+    {
+        $archivos = $this->getArchivosArray();
+        
+        // Filtrar arrays vacíos antes de agregar
+        $archivos = array_filter($archivos, function($item) {
+            return !empty($item) && is_array($item);
+        });
+        
+        $archivos[] = $archivo;
+        $this->archivos = array_values($archivos); // Reindexar
+        return $this;
+    }
+
+    public function removeArchivo($nombreArchivo)
+    {
+        $archivos = $this->getArchivosArray();
+        $archivos = array_filter($archivos, function($archivo) use ($nombreArchivo) {
+            return is_array($archivo) && isset($archivo['nombre']) && $archivo['nombre'] !== $nombreArchivo;
+        });
+        $this->archivos = array_values($archivos);
+        return $this;
+    }
+
+    public function hasArchivos()
+    {
+        $archivos = $this->getArchivosArray();
+        return !empty($archivos);
     }
 }

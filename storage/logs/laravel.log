@@ -1,0 +1,168 @@
+[2025-09-24 16:10:16] local.INFO: Procesando analítica (crear) con nuevos campos {"proveedor_no_procede":0,"periodicidad_no_procede":0,"procede_calculado":1} 
+[2025-09-24 16:10:16] local.INFO: guardarAnalitica - crear payload {"num_tienda":"5858","asesor_externo_empresa":"asesor empresa","fecha_real_analitica":"2025-09-24","periodicidad":"3 meses","tipo_analitica":"Tendencias superficie","proveedor_id":"112","detalle_tipo":"Mesa","codigo_producto":null,"descripcion_producto":null,"archivos":[{"Illuminate\\Http\\UploadedFile":"C:\\xampp7\\tmp\\php57FF.tmp"}],"proveedor_no_procede":0,"periodicidad_no_procede":0,"procede":1} 
+[2025-09-24 16:10:16] local.INFO: Procesando archivos subidos {"analitica_id":66,"cantidad_archivos":1,"archivos_existentes_antes":1} 
+[2025-09-24 16:10:16] local.INFO: Procesando archivo {"index":0,"nombre_original":"control.png","tamaño":73784} 
+[2025-09-24 16:10:16] local.INFO: Archivo agregado al modelo {"nombre":"1758723016_68d3fbc8851df.png","nombre_original":"control.png","ruta":"/storage/analiticas/1758723016_68d3fbc8851df.png","tamano":73784,"tipo":"image/png","fecha_subida":"2025-09-24 16:10:16"} 
+[2025-09-24 16:10:16] local.INFO: Archivos procesados correctamente {"analitica_id":66,"archivos_guardados":1,"archivos_finales":1} 
+[2025-09-24 16:11:07] local.INFO: Procesando archivos subidos para tendencias {"modelo_tipo":"TendenciaSuperficie","modelo_id":30,"cantidad_archivos":1,"archivos_existentes_antes":0} 
+[2025-09-24 16:11:07] local.INFO: Procesando archivo {"index":0,"nombre_original":"empleadosonyx.png","tamaño":91345} 
+[2025-09-24 16:11:07] local.INFO: Archivo agregado al modelo {"nombre":"1758723067_68d3fbfb137a1.png","nombre_original":"empleadosonyx.png","ruta":"/storage/analiticas/1758723067_68d3fbfb137a1.png","tamano":91345,"tipo":"image/png","fecha_subida":"2025-09-24 16:11:07"} 
+[2025-09-24 16:11:07] local.INFO: Archivos procesados correctamente para tendencias {"modelo_tipo":"TendenciaSuperficie","modelo_id":30,"archivos_guardados":1,"archivos_finales":1} 
+[2025-09-24 16:14:16] local.ERROR: Error descargando archivo: Archivo no encontrado  
+[2025-09-24 16:18:58] local.INFO: === INICIO IMPORTAR ARCHIVO ===  
+[2025-09-24 16:18:58] local.INFO: Método: POST  
+[2025-09-24 16:18:58] local.INFO: Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryXKo6bNdEo1ik1IOC  
+[2025-09-24 16:18:58] local.INFO: Archivos recibidos: {"archivo":{}}  
+[2025-09-24 16:18:58] local.INFO: Todos los inputs: {"_token":"RbfuwVXs9f7Hu5kekTYKEoAMnHI05TlKUEEn3kac","import_type":"general","archivo":{}}  
+[2025-09-24 16:18:58] local.INFO: Configuración PHP:  
+[2025-09-24 16:18:58] local.INFO: - upload_max_filesize: 200M  
+[2025-09-24 16:18:58] local.INFO: - post_max_size: 200M  
+[2025-09-24 16:18:58] local.INFO: - max_file_uploads: 20  
+[2025-09-24 16:18:58] local.INFO: - memory_limit: 512M  
+[2025-09-24 16:18:58] local.INFO: - max_execution_time: 300  
+[2025-09-24 16:18:58] local.INFO: Detalles del archivo recibido:  
+[2025-09-24 16:18:58] local.INFO: - Nombre original: LSQM-XA-088_Proveedores_entradas_productos_2025_20250902s.xlsx  
+[2025-09-24 16:18:58] local.INFO: - Extensión: xlsx  
+[2025-09-24 16:18:58] local.INFO: - Tamaño: 20588723 bytes  
+[2025-09-24 16:18:58] local.INFO: - MIME type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet  
+[2025-09-24 16:18:58] local.INFO: - Es válido: true  
+[2025-09-24 16:18:58] local.INFO: Validación de extensión pasada: xlsx  
+[2025-09-24 16:18:58] local.INFO: Validación pasada correctamente  
+[2025-09-24 16:18:58] local.INFO: Ruta real del archivo: C:\xampp7\tmp\php4DB9.tmp  
+[2025-09-24 16:18:58] local.INFO: Tipo de importación solicitado: general  
+[2025-09-24 16:18:58] local.INFO: Procesando archivo: LSQM-XA-088_Proveedores_entradas_productos_2025_20250902s.xlsx - Extensión: xlsx  
+[2025-09-24 16:18:58] local.INFO: Iniciando procesamiento de archivo XLSX  
+[2025-09-24 16:18:58] local.INFO: Tipo de archivo detectado: Xlsx  
+[2025-09-24 16:19:14] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 83886080 bytes) {"userId":9,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 83886080 bytes) at C:\\xampp7\\htdocs\\lasirena\\vendor\\phpoffice\\phpspreadsheet\\src\\PhpSpreadsheet\\Collection\\Memory.php:66)
+[stacktrace]
+#0 {main}
+"} 
+[2025-09-24 16:28:34] local.INFO: Procesando analítica (crear) con nuevos campos {"proveedor_no_procede":0,"periodicidad_no_procede":0,"procede_calculado":1} 
+[2025-09-24 16:28:34] local.INFO: guardarAnalitica - crear payload {"num_tienda":"5858","asesor_externo_empresa":"asesor empresa","fecha_real_analitica":"2025-09-24","periodicidad":"1 mes","tipo_analitica":"Tendencias superficie","proveedor_id":"12063","detalle_tipo":"Mesa","codigo_producto":null,"descripcion_producto":null,"proveedor_no_procede":0,"periodicidad_no_procede":0,"procede":1} 
+[2025-09-24 16:30:31] local.INFO: Procesando archivos subidos para tendencias {"modelo_tipo":"TendenciaSuperficie","modelo_id":31,"cantidad_archivos":1,"archivos_existentes_antes":0} 
+[2025-09-24 16:30:31] local.INFO: Procesando archivo {"index":0,"nombre_original":"Captura de pantalla 2024-08-13 110306.png","tamaño":47182} 
+[2025-09-24 16:30:31] local.INFO: Archivo agregado al modelo {"nombre":"1758724231_68d40087430c5.png","nombre_original":"Captura de pantalla 2024-08-13 110306.png","ruta":"/storage/analiticas/1758724231_68d40087430c5.png","tamano":47182,"tipo":"image/png","fecha_subida":"2025-09-24 16:30:31"} 
+[2025-09-24 16:30:31] local.INFO: Archivos procesados correctamente para tendencias {"modelo_tipo":"TendenciaSuperficie","modelo_id":31,"archivos_guardados":1,"archivos_finales":1} 
+[2025-09-24 16:30:36] local.ERROR: Error descargando archivo: Archivo no encontrado  
+[2025-09-24 16:31:48] local.ERROR: Error eliminando archivo: The given data was invalid.  
+[2025-09-24 16:32:03] local.INFO: Procesando analítica (crear) con nuevos campos {"proveedor_no_procede":0,"periodicidad_no_procede":0,"procede_calculado":1} 
+[2025-09-24 16:32:03] local.INFO: guardarAnalitica - crear payload {"num_tienda":"5858","asesor_externo_empresa":"asesor empresa","fecha_real_analitica":"2025-09-24","periodicidad":"6 meses","tipo_analitica":"Tendencias superficie","proveedor_id":"15886","detalle_tipo":"Mesa","codigo_producto":null,"descripcion_producto":null,"proveedor_no_procede":0,"periodicidad_no_procede":0,"procede":1} 
+[2025-09-24 16:32:13] local.INFO: Procesando archivos subidos para tendencias {"modelo_tipo":"TendenciaSuperficie","modelo_id":32,"cantidad_archivos":1,"archivos_existentes_antes":0} 
+[2025-09-24 16:32:13] local.INFO: Procesando archivo {"index":0,"nombre_original":"Captura de pantalla 2024-08-13 110306.png","tamaño":47182} 
+[2025-09-24 16:32:13] local.INFO: Archivo agregado al modelo {"nombre":"1758724333_68d400ed4b4ea.png","nombre_original":"Captura de pantalla 2024-08-13 110306.png","ruta":"/storage/analiticas/1758724333_68d400ed4b4ea.png","tamano":47182,"tipo":"image/png","fecha_subida":"2025-09-24 16:32:13"} 
+[2025-09-24 16:32:13] local.INFO: Archivos procesados correctamente para tendencias {"modelo_tipo":"TendenciaSuperficie","modelo_id":32,"archivos_guardados":1,"archivos_finales":1} 
+[2025-09-24 16:52:39] local.ERROR: Error descargando archivo: Archivo no encontrado  
+[2025-09-24 16:53:03] local.INFO: Procesando analítica (crear) con nuevos campos {"proveedor_no_procede":0,"periodicidad_no_procede":0,"procede_calculado":1} 
+[2025-09-24 16:53:03] local.INFO: guardarAnalitica - crear payload {"num_tienda":"5858","asesor_externo_empresa":"asesor empresa","fecha_real_analitica":"2025-09-24","periodicidad":"1 mes","tipo_analitica":"Tendencias superficie","proveedor_id":"14358","detalle_tipo":"Mesa","codigo_producto":null,"descripcion_producto":null,"proveedor_no_procede":0,"periodicidad_no_procede":0,"procede":1} 
+[2025-09-24 16:53:21] local.INFO: Procesando archivos subidos para tendencias {"modelo_tipo":"TendenciaSuperficie","modelo_id":33,"cantidad_archivos":1,"archivos_existentes_antes":0} 
+[2025-09-24 16:53:21] local.INFO: Procesando archivo {"index":0,"nombre_original":"Captura de pantalla 2024-08-13 110306.png","tamaño":47182} 
+[2025-09-24 16:53:21] local.INFO: Archivo agregado al modelo {"nombre":"1758725601_68d405e10ff4d.png","nombre_original":"Captura de pantalla 2024-08-13 110306.png","ruta":"/storage/analiticas/1758725601_68d405e10ff4d.png","tamano":47182,"tipo":"image/png","fecha_subida":"2025-09-24 16:53:21"} 
+[2025-09-24 16:53:21] local.INFO: Archivos procesados correctamente para tendencias {"modelo_tipo":"TendenciaSuperficie","modelo_id":33,"archivos_guardados":1,"archivos_finales":1} 
+[2025-09-24 16:53:24] local.ERROR: Error descargando archivo: Archivo no encontrado  
+[2025-09-24 17:02:34] local.ERROR: Error descargando archivo: Archivo no encontrado  
+[2025-09-24 17:13:31] local.INFO: Procesando archivos subidos para tendencias {"modelo_tipo":"TendenciaSuperficie","modelo_id":33,"cantidad_archivos":1,"archivos_existentes_antes":1} 
+[2025-09-24 17:13:31] local.INFO: Procesando archivo {"index":0,"nombre_original":"empleadosonyx.png","tamaño":91345} 
+[2025-09-24 17:13:31] local.INFO: Archivo agregado al modelo {"nombre":"1758726811_68d40a9b3e41a.png","nombre_original":"empleadosonyx.png","ruta":"/storage/analiticas/1758726811_68d40a9b3e41a.png","tamano":91345,"tipo":"image/png","fecha_subida":"2025-09-24 17:13:31"} 
+[2025-09-24 17:13:31] local.INFO: Archivos procesados correctamente para tendencias {"modelo_tipo":"TendenciaSuperficie","modelo_id":33,"archivos_guardados":1,"archivos_finales":2} 
+[2025-09-24 17:14:47] local.INFO: Procesando analítica (crear) con nuevos campos {"proveedor_no_procede":0,"periodicidad_no_procede":0,"procede_calculado":1} 
+[2025-09-24 17:14:47] local.INFO: guardarAnalitica - crear payload {"num_tienda":"5858","asesor_externo_empresa":"asesor empresa","fecha_real_analitica":"2025-09-24","periodicidad":"1 mes","tipo_analitica":"Tendencias superficie","proveedor_id":"14358","detalle_tipo":"Mesa","codigo_producto":null,"descripcion_producto":null,"proveedor_no_procede":0,"periodicidad_no_procede":0,"procede":1} 
+[2025-09-24 17:15:09] local.INFO: Procesando archivos subidos para tendencias {"modelo_tipo":"TendenciaSuperficie","modelo_id":34,"cantidad_archivos":1,"archivos_existentes_antes":0} 
+[2025-09-24 17:15:09] local.INFO: Procesando archivo {"index":0,"nombre_original":"Captura de pantalla 2024-08-13 110306.png","tamaño":47182} 
+[2025-09-24 17:15:09] local.INFO: Archivo agregado al modelo {"nombre":"1758726909_68d40afdc9ad5.png","nombre_original":"Captura de pantalla 2024-08-13 110306.png","ruta":"/storage/analiticas/1758726909_68d40afdc9ad5.png","tamano":47182,"tipo":"image/png","fecha_subida":"2025-09-24 17:15:09"} 
+[2025-09-24 17:15:09] local.INFO: Archivos procesados correctamente para tendencias {"modelo_tipo":"TendenciaSuperficie","modelo_id":34,"archivos_guardados":1,"archivos_finales":1} 
+[2025-09-24 17:28:26] local.ERROR: Target class [App\Http\Controllers\MainApp\MainApp\EvaluacionAnalisisController] does not exist. {"exception":"[object] (Illuminate\\Contracts\\Container\\BindingResolutionException(code: 0): Target class [App\\Http\\Controllers\\MainApp\\MainApp\\EvaluacionAnalisisController] does not exist. at C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php:879)
+[stacktrace]
+#0 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(758): Illuminate\\Container\\Container->build('App\\\\Http\\\\Contro...')
+#1 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(851): Illuminate\\Container\\Container->resolve('App\\\\Http\\\\Contro...', Array, true)
+#2 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(694): Illuminate\\Foundation\\Application->resolve('App\\\\Http\\\\Contro...', Array)
+#3 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(836): Illuminate\\Container\\Container->make('App\\\\Http\\\\Contro...', Array)
+#4 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(276): Illuminate\\Foundation\\Application->make('App\\\\Http\\\\Contro...')
+#5 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(1069): Illuminate\\Routing\\Route->getController()
+#6 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(1012): Illuminate\\Routing\\Route->controllerMiddleware()
+#7 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(734): Illuminate\\Routing\\Route->gatherMiddleware()
+#8 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(714): Illuminate\\Routing\\Router->gatherRouteMiddleware(Object(Illuminate\\Routing\\Route))
+#9 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(698): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#10 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(662): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#11 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(651): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#12 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(167): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#13 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(128): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#14 C:\\xampp7\\htdocs\\lasirena\\app\\Http\\Middleware\\HSTS.php(13): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#15 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): App\\Http\\Middleware\\HSTS->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#16 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#17 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#18 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#19 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#20 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(40): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#21 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#22 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#23 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#24 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(86): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#25 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#26 C:\\xampp7\\htdocs\\lasirena\\vendor\\fruitcake\\laravel-cors\\src\\HandleCors.php(38): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#27 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Fruitcake\\Cors\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#28 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(39): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#29 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#30 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(103): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#31 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(142): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#32 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(111): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#33 C:\\xampp7\\htdocs\\lasirena\\public\\index.php(52): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#34 {main}
+
+[previous exception] [object] (ReflectionException(code: -1): Class App\\Http\\Controllers\\MainApp\\MainApp\\EvaluacionAnalisisController does not exist at C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php:877)
+[stacktrace]
+#0 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(877): ReflectionClass->__construct('App\\\\Http\\\\Contro...')
+#1 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(758): Illuminate\\Container\\Container->build('App\\\\Http\\\\Contro...')
+#2 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(851): Illuminate\\Container\\Container->resolve('App\\\\Http\\\\Contro...', Array, true)
+#3 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(694): Illuminate\\Foundation\\Application->resolve('App\\\\Http\\\\Contro...', Array)
+#4 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(836): Illuminate\\Container\\Container->make('App\\\\Http\\\\Contro...', Array)
+#5 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(276): Illuminate\\Foundation\\Application->make('App\\\\Http\\\\Contro...')
+#6 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(1069): Illuminate\\Routing\\Route->getController()
+#7 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(1012): Illuminate\\Routing\\Route->controllerMiddleware()
+#8 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(734): Illuminate\\Routing\\Route->gatherMiddleware()
+#9 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(714): Illuminate\\Routing\\Router->gatherRouteMiddleware(Object(Illuminate\\Routing\\Route))
+#10 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(698): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#11 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(662): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#12 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(651): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#13 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(167): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#14 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(128): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#15 C:\\xampp7\\htdocs\\lasirena\\app\\Http\\Middleware\\HSTS.php(13): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#16 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): App\\Http\\Middleware\\HSTS->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#17 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#18 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#19 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#20 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#21 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(40): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#22 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#23 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#24 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#25 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(86): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#26 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#27 C:\\xampp7\\htdocs\\lasirena\\vendor\\fruitcake\\laravel-cors\\src\\HandleCors.php(38): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#28 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Fruitcake\\Cors\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#29 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(39): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#30 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#31 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(103): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#32 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(142): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#33 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(111): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#34 C:\\xampp7\\htdocs\\lasirena\\public\\index.php(52): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#35 {main}
+"} 
+[2025-09-24 17:36:06] local.INFO: Descarga solicitada {"analiticaId":"34","nombreArchivo":"1758726909_68d40afdc9ad5.png","tipoModelo":"superficie"} 
+[2025-09-24 17:36:06] local.INFO: Modelo encontrado {"modelo":"App\\Models\\TendenciaSuperficie","id":34} 
+[2025-09-24 17:55:56] local.INFO: Descarga solicitada {"analiticaId":"34","nombreArchivo":"1758726909_68d40afdc9ad5.png","tipoModelo":"superficie"} 
+[2025-09-24 17:55:56] local.INFO: Modelo encontrado {"modelo":"App\\Models\\TendenciaSuperficie","id":34} 
+[2025-09-24 17:55:56] local.INFO: Redirigiendo descarga al URL público {"url":"https://localhost/lasirena/public/storage/analiticas/1758726909_68d40afdc9ad5.png"} 
+[2025-09-24 17:56:01] local.INFO: Descarga solicitada {"analiticaId":"34","nombreArchivo":"1758726909_68d40afdc9ad5.png","tipoModelo":"superficie"} 
+[2025-09-24 17:56:01] local.INFO: Modelo encontrado {"modelo":"App\\Models\\TendenciaSuperficie","id":34} 
+[2025-09-24 17:56:01] local.INFO: Redirigiendo descarga al URL público {"url":"https://localhost/lasirena/public/storage/analiticas/1758726909_68d40afdc9ad5.png"} 
+[2025-09-24 17:56:22] local.INFO: Procesando archivos subidos para tendencias {"modelo_tipo":"TendenciaSuperficie","modelo_id":34,"cantidad_archivos":1,"archivos_existentes_antes":1} 
+[2025-09-24 17:56:22] local.INFO: Procesando archivo {"index":0,"nombre_original":"CV - Valeria  Morales Correa .docx","tamaño":120457} 
+[2025-09-24 17:56:22] local.INFO: Archivo agregado al modelo {"nombre":"1758729382_68d414a60d2bc.docx","nombre_original":"CV - Valeria  Morales Correa .docx","ruta":"/storage/analiticas/1758729382_68d414a60d2bc.docx","tamano":120457,"tipo":"application/vnd.openxmlformats-officedocument.wordprocessingml.document","fecha_subida":"2025-09-24 17:56:22"} 
+[2025-09-24 17:56:22] local.INFO: Archivos procesados correctamente para tendencias {"modelo_tipo":"TendenciaSuperficie","modelo_id":34,"archivos_guardados":1,"archivos_finales":2} 
+[2025-09-24 17:56:28] local.INFO: Descarga solicitada {"analiticaId":"34","nombreArchivo":"1758729382_68d414a60d2bc.docx","tipoModelo":"superficie"} 
+[2025-09-24 17:56:28] local.INFO: Modelo encontrado {"modelo":"App\\Models\\TendenciaSuperficie","id":34} 
+[2025-09-24 17:56:28] local.INFO: Redirigiendo descarga al URL público {"url":"https://localhost/lasirena/public/storage/analiticas/1758729382_68d414a60d2bc.docx"} 
+[2025-09-24 18:02:04] local.INFO: Procesando archivos subidos para tendencias {"modelo_tipo":"TendenciaSuperficie","modelo_id":34,"cantidad_archivos":1,"archivos_existentes_antes":2} 
+[2025-09-24 18:02:04] local.INFO: Procesando archivo {"index":0,"nombre_original":"empleadosonyx.png","tamaño":91345} 
+[2025-09-24 18:02:04] local.INFO: Archivo agregado al modelo {"nombre":"1758729724_68d415fc1a676.png","nombre_original":"empleadosonyx.png","ruta":"/storage/analiticas/1758729724_68d415fc1a676.png","tamano":91345,"tipo":"image/png","fecha_subida":"2025-09-24 18:02:04"} 
+[2025-09-24 18:02:04] local.INFO: Archivos procesados correctamente para tendencias {"modelo_tipo":"TendenciaSuperficie","modelo_id":34,"archivos_guardados":1,"archivos_finales":3} 
