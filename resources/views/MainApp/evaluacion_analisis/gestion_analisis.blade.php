@@ -192,6 +192,7 @@
                         <th class="text-center">Periodicidad</th>
                         <th class="text-center">Fecha Límite</th>
                         <th class="text-center">Días Restantes</th>
+                        <th class="text-center">Archivos</th>
                         <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
@@ -264,6 +265,33 @@
                                     -
                                 @endif
                             </td>
+
+                            {{-- Columna de archivos --}}
+                            <td class="text-center" style="min-width: 150px;">
+                                @if($resultado->analitica && $resultado->analitica->hasArchivos())
+                                    @php $archivos = $resultado->analitica->getArchivosArray(); @endphp
+                                    <div class="text-left">
+                                        @foreach($archivos as $archivo)
+                                            @if(is_array($archivo) && isset($archivo['nombre']) && isset($archivo['nombre_original']))
+                                                <div class="d-flex justify-content-between align-items-center mb-1 p-1 bg-light rounded archivo-item">
+                                                    <small class="text-truncate-custom" title="{{ $archivo['nombre_original'] }}">
+                                                        <i class="fas fa-file text-primary"></i> {{ Str::limit($archivo['nombre_original'], 10) }}
+                                                    </small>
+                                                    <a href="{{ route('evaluacion_analisis.descargar_archivo', ['analiticaId' => $resultado->analitica->id, 'nombreArchivo' => $archivo['nombre']]) }}" 
+                                                       class="btn btn-xs btn-outline-primary" 
+                                                       title="Descargar {{ $archivo['nombre_original'] }}" 
+                                                       target="_blank">
+                                                        <i class="fas fa-download"></i>
+                                                    </a>
+                                                </div>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <small class="text-muted">Sin archivos</small>
+                                @endif
+                            </td>
+
                             <td class="text-center">
                                 <div class="btn-group" role="group">
                                     <button type="button" class="btn btn-sm btn-primary btn-editar-analisis"
@@ -340,8 +368,29 @@
                         alert('No se encontraron datos para editar');
                         return;
                     }
+                    
+                    // Guardar analitica_id para manejo de archivos
+                    window.analiticaIdActual = payload.analitica_id || payload.id;
+                    
                     generarFormularioEdicion(payload, tipo);
                     $('#modalEditar').modal('show');
+                    
+                    // Cargar archivos existentes si los hay
+                    if (payload.archivos) {
+                        var archivos = payload.archivos;
+                        // Si archivos es un string JSON, convertirlo a array
+                        if (typeof archivos === 'string') {
+                            try {
+                                archivos = JSON.parse(archivos);
+                            } catch (e) {
+                                console.error('Error al parsear archivos JSON:', e);
+                                archivos = [];
+                            }
+                        }
+                        if (archivos && archivos.length > 0) {
+                            mostrarArchivosExistentesGestion(archivos);
+                        }
+                    }
                 } else {
                     alert('Error al cargar los datos');
                 }
@@ -350,6 +399,88 @@
             });
         });
 
+        // Función para mostrar archivos existentes en gestión
+        function mostrarArchivosExistentesGestion(archivos) {
+            var container = $('#lista_archivos_existentes_gestion');
+            container.empty();
+            
+            if (archivos && archivos.length > 0) {
+                var html = '<div class="mt-2"><strong>Archivos existentes:</strong><ul class="list-group mt-1">';
+                archivos.forEach(function(archivo, index) {
+                    if (typeof archivo === 'object' && archivo.nombre_original && archivo.nombre) {
+                        html += '<li class="list-group-item d-flex justify-content-between align-items-center py-2">';
+                        html += '<div class="d-flex align-items-center">';
+                        html += '<i class="fas fa-file text-primary mr-2"></i>';
+                        html += '<div>';
+                        html += '<strong>' + archivo.nombre_original + '</strong><br>';
+                        html += '<small class="text-muted">' + (archivo.tamano ? formatFileSize(archivo.tamano) : '') + '</small>';
+                        html += '</div>';
+                        html += '</div>';
+                        html += '<div>';
+                        html += '<a href="/evaluacion_analisis/descargar_archivo/' + window.analiticaIdActual + '/' + archivo.nombre + '" class="btn btn-sm btn-outline-primary mr-1" target="_blank" title="Descargar"><i class="fas fa-download"></i></a>';
+                        html += '<button type="button" class="btn btn-sm btn-danger" onclick="eliminarArchivoExistenteGestion(\'' + archivo.nombre + '\', ' + index + ')" title="Eliminar"><i class="fas fa-trash"></i></button>';
+                        html += '</div>';
+                        html += '</li>';
+                    }
+                });
+                html += '</ul></div>';
+                container.html(html);
+            }
+        }
+
+        // Función para eliminar archivo existente en gestión
+        function eliminarArchivoExistenteGestion(nombreArchivo, index) {
+            if (confirm('¿Estás seguro de que quieres eliminar este archivo?')) {
+                if (!window.analiticaIdActual) {
+                    alert('Error: ID de analítica no disponible');
+                    return;
+                }
+
+                $.ajax({
+                    url: '/evaluacion_analisis/eliminar_archivo',
+                    method: 'DELETE',
+                    data: {
+                        analiticaId: window.analiticaIdActual,
+                        nombreArchivo: nombreArchivo,
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Recargar archivos
+                            location.reload();
+                        } else {
+                            alert('Error al eliminar el archivo: ' + (response.message || 'Error desconocido'));
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error al eliminar archivo:', error);
+                        alert('Error al eliminar el archivo');
+                    }
+                });
+            }
+        }
+
+        // Función para formatear tamaño de archivo
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            var k = 1024;
+            var sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            var i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Función para generar sección de archivos
+        function generarSeccionArchivos() {
+            var html = '<hr><h6><i class="fas fa-paperclip mr-2"></i>Archivos</h6>';
+            html += '<div class="form-group">';
+            html += '<label>Subir archivos (PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF - Máx. 10MB)</label>';
+            html += '<input type="file" name="archivos[]" class="form-control-file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">';
+            html += '<small class="text-muted">Puedes seleccionar múltiples archivos</small>';
+            html += '</div>';
+            html += '<div id="lista_archivos_existentes_gestion"></div>';
+            return html;
+        }
+
         function generarFormularioEdicion(datos, tipo) {
             if (!datos || typeof datos !== 'object') {
                 console.error('generarFormularioEdicion: datos inválidos', datos);
@@ -357,7 +488,7 @@
                 return '';
             }
 
-            var html = '<form method="POST" action="{{ route('evaluacion_analisis.actualizar') }}">';
+            var html = '<form method="POST" action="{{ route('evaluacion_analisis.actualizar') }}" enctype="multipart/form-data">';
             html += '@csrf';
             html += '<input type="hidden" name="id" value="' + (datos.id || '') + '">';
             html += '<input type="hidden" name="tipo" value="' + tipo + '">';
@@ -455,6 +586,10 @@
             }
             html += '</div>';
             html += '</div>';
+            
+            // Agregar sección de archivos
+            html += generarSeccionArchivos();
+            
             return html;
         }
 
@@ -571,6 +706,9 @@
             html += '<input type="number" name="proveedor_id" class="form-control" value="' + (datos.proveedor_id || '') +
                 '"></div>';
             html += '</div>';
+
+            // Agregar sección de archivos
+            html += generarSeccionArchivos();
 
             html += '</div>';
             html += '</div></div>';
@@ -722,9 +860,38 @@
             html += '</select></div>';
             html += '</div>';
 
+            // Agregar sección de archivos
+            html += generarSeccionArchivos();
+
             html += '</div>';
             html += '</div></div>';
             return html;
         }
     </script>
+
+    {{-- Estilos adicionales para archivos --}}
+    <style>
+        .btn-xs {
+            padding: 0.125rem 0.25rem;
+            font-size: 0.75rem;
+            line-height: 1.2;
+            border-radius: 0.15rem;
+        }
+        
+        .archivo-item {
+            transition: background-color 0.2s;
+        }
+        
+        .archivo-item:hover {
+            background-color: #f8f9fa !important;
+        }
+        
+        .text-truncate-custom {
+            max-width: 80px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: inline-block;
+        }
+    </style>
 @endsection

@@ -1118,6 +1118,19 @@ class EvaluacionAnalisisController extends Controller
                     $mapped->detalle_tipo = $mapped->detalle_tipo ?? null;
                     $mapped->codigo_producto = $mapped->codigo_producto ?? ($mapped->codigo_producto ?? $mapped->codigo ?? null);
                     $mapped->descripcion_producto = $mapped->descripcion_producto ?? ($mapped->descripcion ?? $mapped->nombre_producto ?? $mapped->product_description ?? $mapped->nombre ?? null);
+                    
+                    // Agregar archivos
+                    if (method_exists($mapped, 'getArchivosArray')) {
+                        $mapped->archivos = $mapped->getArchivosArray();
+                    } else {
+                        // Si no tiene el método, procesar directamente
+                        $archivos = [];
+                        if ($mapped->archivos && is_string($mapped->archivos)) {
+                            $archivos = json_decode($mapped->archivos, true) ?: [];
+                        }
+                        $mapped->archivos = $archivos;
+                    }
+                    
                     return response()->json(['success' => true, 'data' => $mapped]);
                 }
 
@@ -1138,25 +1151,68 @@ class EvaluacionAnalisisController extends Controller
         $tipo = $request->tipo;
         $id = $request->id;
         
+        // Validar archivos si se envían
+        if ($request->hasFile('archivos')) {
+            $request->validate([
+                'archivos.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,gif|max:10240'
+            ]);
+        }
+        
         switch ($tipo) {
             case 'analitica':
                 $modelo = Analitica::find($id);
                 if ($modelo) {
-                    $modelo->update($request->except(['tipo', 'id']));
+                    $datos = $request->except(['tipo', 'id', 'archivos']);
+                    
+                    // Manejar archivos
+                    if ($request->hasFile('archivos')) {
+                        $archivosExistentes = [];
+                        if ($modelo->archivos && is_string($modelo->archivos)) {
+                            $archivosExistentes = json_decode($modelo->archivos, true) ?: [];
+                        }
+                        $nuevosArchivos = $this->procesarArchivos($request->file('archivos'), 'analiticas');
+                        $datos['archivos'] = json_encode(array_merge($archivosExistentes, $nuevosArchivos));
+                    }
+                    
+                    $modelo->update($datos);
                     return redirect()->back()->with('success', 'Analítica actualizada correctamente.');
                 }
                 break;
             case 'superficie':
                 $modelo = TendenciaSuperficie::find($id);
                 if ($modelo) {
-                    $modelo->update($request->except(['tipo', 'id']));
+                    $datos = $request->except(['tipo', 'id', 'archivos']);
+                    
+                    // Manejar archivos
+                    if ($request->hasFile('archivos')) {
+                        $archivosExistentes = [];
+                        if ($modelo->archivos && is_string($modelo->archivos)) {
+                            $archivosExistentes = json_decode($modelo->archivos, true) ?: [];
+                        }
+                        $nuevosArchivos = $this->procesarArchivos($request->file('archivos'), 'tendencias_superficie');
+                        $datos['archivos'] = json_encode(array_merge($archivosExistentes, $nuevosArchivos));
+                    }
+                    
+                    $modelo->update($datos);
                     return redirect()->back()->with('success', 'Tendencia superficie actualizada correctamente.');
                 }
                 break;
             case 'micro':
                 $modelo = TendenciaMicro::find($id);
                 if ($modelo) {
-                    $modelo->update($request->except(['tipo', 'id']));
+                    $datos = $request->except(['tipo', 'id', 'archivos']);
+                    
+                    // Manejar archivos
+                    if ($request->hasFile('archivos')) {
+                        $archivosExistentes = [];
+                        if ($modelo->archivos && is_string($modelo->archivos)) {
+                            $archivosExistentes = json_decode($modelo->archivos, true) ?: [];
+                        }
+                        $nuevosArchivos = $this->procesarArchivos($request->file('archivos'), 'tendencias_micro');
+                        $datos['archivos'] = json_encode(array_merge($archivosExistentes, $nuevosArchivos));
+                    }
+                    
+                    $modelo->update($datos);
                     return redirect()->back()->with('success', 'Tendencia micro actualizada correctamente.');
                 }
                 break;

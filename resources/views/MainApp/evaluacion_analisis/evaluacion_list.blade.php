@@ -137,6 +137,33 @@
                                         </div>
                                     @endforeach
                                 </div>
+
+                                {{-- Sección de archivos --}}
+                                <div class="row mt-3">
+                                    <div class="col-md-12">
+                                        <hr>
+                                        <h6><i class="fas fa-paperclip mr-2"></i>Archivos</h6>
+                                        
+                                        {{-- Campo para subir archivos (solo en modo agregar y editar) --}}
+                                        <div class="upload-section">
+                                            <div class="form-group">
+                                                <label>Subir archivos (PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF - Máx. 10MB)</label>
+                                                <input type="file" 
+                                                       name="archivos[]" 
+                                                       class="form-control-file archivos-input" 
+                                                       multiple 
+                                                       accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
+                                                <small class="text-muted">Puedes seleccionar múltiples archivos</small>
+                                            </div>
+                                            
+                                            {{-- Lista de archivos seleccionados --}}
+                                            <div id="lista_archivos_seleccionados_agua"></div>
+                                        </div>
+
+                                        {{-- Lista de archivos existentes (solo en modo editar) --}}
+                                        <div id="lista_archivos_existentes_agua" class="archivos-existentes"></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -304,6 +331,29 @@
                                                         </div>
                                                     </div>
                                                 </div>
+                                            </div>
+
+                                            {{-- Sección de archivos --}}
+                                            <div class="form-group">
+                                                <hr>
+                                                <h6><i class="fas fa-paperclip mr-2"></i>Archivos</h6>
+                                                
+                                                {{-- Campo para subir archivos (solo en modo agregar y editar) --}}
+                                                <div class="upload-section">
+                                                    <label>Subir archivos (PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF - Máx. 10MB)</label>
+                                                    <input type="file" 
+                                                           name="archivos[]" 
+                                                           class="form-control-file archivos-input" 
+                                                           multiple 
+                                                           accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
+                                                    <small class="text-muted">Puedes seleccionar múltiples archivos</small>
+                                                    
+                                                    {{-- Lista de archivos seleccionados --}}
+                                                    <div id="lista_archivos_seleccionados_superficie"></div>
+                                                </div>
+
+                                                {{-- Lista de archivos existentes (solo en modo editar) --}}
+                                                <div id="lista_archivos_existentes_superficie" class="archivos-existentes"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -512,6 +562,29 @@
                                                 </select>
                                             </div>
                                         </div>
+
+                                        {{-- Sección de archivos --}}
+                                        <div class="form-group">
+                                            <hr>
+                                            <h6><i class="fas fa-paperclip mr-2"></i>Archivos</h6>
+                                            
+                                            {{-- Campo para subir archivos (solo en modo agregar y editar) --}}
+                                            <div class="upload-section">
+                                                <label>Subir archivos (PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF - Máx. 10MB)</label>
+                                                <input type="file" 
+                                                       name="archivos[]" 
+                                                       class="form-control-file archivos-input" 
+                                                       multiple 
+                                                       accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
+                                                <small class="text-muted">Puedes seleccionar múltiples archivos</small>
+                                                
+                                                {{-- Lista de archivos seleccionados --}}
+                                                <div id="lista_archivos_seleccionados_micro"></div>
+                                            </div>
+
+                                            {{-- Lista de archivos existentes (solo en modo editar) --}}
+                                            <div id="lista_archivos_existentes_micro" class="archivos-existentes"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -579,6 +652,29 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                        </div>
+
+                                        {{-- Sección de archivos --}}
+                                        <div class="form-group">
+                                            <hr>
+                                            <h6><i class="fas fa-paperclip mr-2"></i>Archivos</h6>
+                                            
+                                            {{-- Campo para subir archivos (solo en modo agregar y editar) --}}
+                                            <div class="upload-section">
+                                                <label>Subir archivos (PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF - Máx. 10MB)</label>
+                                                <input type="file" 
+                                                       name="archivos[]" 
+                                                       class="form-control-file archivos-input" 
+                                                       multiple 
+                                                       accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
+                                                <small class="text-muted">Puedes seleccionar múltiples archivos</small>
+                                                
+                                                {{-- Lista de archivos seleccionados --}}
+                                                <div id="lista_archivos_seleccionados_otros"></div>
+                                            </div>
+
+                                            {{-- Lista de archivos existentes (solo en modo editar) --}}
+                                            <div id="lista_archivos_existentes_otros" class="archivos-existentes"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -689,6 +785,7 @@
                     <th class="text-center">Periodicidad</th>
                     <th class="text-center">Proveedor</th>
                     <th class="text-center">Procede</th>
+                    <th class="text-center">Archivos</th>
                     <th class="text-center">Acciones</th>
                 </tr>
             </thead>
@@ -789,6 +886,32 @@
                                 <span class="badge badge-success">Sí</span>
                             @else
                                 <span class="badge badge-danger">No</span>
+                            @endif
+                        </td>
+
+                        <!-- Archivos -->
+                        <td class="text-center" style="min-width: 150px;">
+                            @if($a->hasArchivos())
+                                @php $archivos = $a->getArchivosArray(); @endphp
+                                <div class="text-left">
+                                    @foreach($archivos as $archivo)
+                                        @if(is_array($archivo) && isset($archivo['nombre']) && isset($archivo['nombre_original']))
+                                            <div class="d-flex justify-content-between align-items-center mb-1 p-1 bg-light rounded archivo-item">
+                                                <small class="text-truncate-custom" title="{{ $archivo['nombre_original'] }}">
+                                                    <i class="fas fa-file text-primary"></i> {{ Str::limit($archivo['nombre_original'], 10) }}
+                                                </small>
+                                                <a href="{{ route('evaluacion_analisis.descargar_archivo', ['analiticaId' => $a->id, 'nombreArchivo' => $archivo['nombre']]) }}" 
+                                                   class="btn btn-xs btn-outline-primary" 
+                                                   title="Descargar {{ $archivo['nombre_original'] }}" 
+                                                   target="_blank">
+                                                    <i class="fas fa-download"></i>
+                                                </a>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            @else
+                                <small class="text-muted">Sin archivos</small>
                             @endif
                         </td>
 
@@ -894,10 +1017,156 @@
         .btn-group .btn:last-child {
             margin-right: 0;
         }
+
+        /* Estilos para archivos */
+        .btn-xs {
+            padding: 0.125rem 0.25rem;
+            font-size: 0.75rem;
+            line-height: 1.2;
+            border-radius: 0.15rem;
+        }
+        
+        .archivo-item {
+            transition: background-color 0.2s;
+        }
+        
+        .archivo-item:hover {
+            background-color: #f8f9fa !important;
+        }
+        
+        .text-truncate-custom {
+            max-width: 80px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: inline-block;
+        }
     </style>
     <script>
     var tendenciasGuardarUrl = "{{ route('evaluacion_analisis.tendencias_superficie.guardar') }}";
     var tiendaMap = {!! \App\Models\Tienda::pluck('id','num_tienda')->toJson() !!};
+
+    // Variables globales para manejo de archivos
+    var archivosSeleccionados = [];
+    var archivosExistentes = [];
+    var analiticaIdActual = null;
+
+    // Función para mostrar archivos seleccionados
+    function mostrarArchivosSeleccionados(containerId) {
+        var container = $('#' + containerId);
+        container.empty();
+        
+        if (archivosSeleccionados.length > 0) {
+            var html = '<div class="mt-2"><strong>Archivos seleccionados:</strong><ul class="list-group mt-1">';
+            archivosSeleccionados.forEach(function(archivo, index) {
+                html += '<li class="list-group-item d-flex justify-content-between align-items-center py-1">';
+                html += '<span><i class="fas fa-file"></i> ' + archivo.name + ' (' + formatFileSize(archivo.size) + ')</span>';
+                html += '<button type="button" class="btn btn-sm btn-danger" onclick="removerArchivoSeleccionado(' + index + ', \'' + containerId + '\')"><i class="fas fa-times"></i></button>';
+                html += '</li>';
+            });
+            html += '</ul></div>';
+            container.html(html);
+        }
+    }
+
+    // Función para mostrar archivos existentes
+    function mostrarArchivosExistentes(containerId) {
+        var container = $('#' + containerId);
+        container.empty();
+        
+        if (archivosExistentes.length > 0) {
+            var html = '<div class="mt-2"><strong>Archivos existentes:</strong><ul class="list-group mt-1">';
+            archivosExistentes.forEach(function(archivo, index) {
+                if (typeof archivo === 'object' && archivo.nombre_original && archivo.nombre && archivo.tamano) {
+                    html += '<li class="list-group-item d-flex justify-content-between align-items-center py-2">';
+                    html += '<div class="d-flex align-items-center">';
+                    html += '<i class="fas fa-file text-primary mr-2"></i>';
+                    html += '<div>';
+                    html += '<strong>' + archivo.nombre_original + '</strong><br>';
+                    html += '<small class="text-muted">' + formatFileSize(archivo.tamano) + '</small>';
+                    html += '</div>';
+                    html += '</div>';
+                    html += '<div>';
+                    html += '<a href="/evaluacion_analisis/descargar_archivo/' + analiticaIdActual + '/' + archivo.nombre + '" class="btn btn-sm btn-outline-primary mr-1" target="_blank" title="Descargar"><i class="fas fa-download"></i></a>';
+                    html += '<button type="button" class="btn btn-sm btn-danger" onclick="eliminarArchivoExistente(\'' + archivo.nombre + '\', ' + index + ', \'' + containerId + '\')" title="Eliminar"><i class="fas fa-trash"></i></button>';
+                    html += '</div>';
+                    html += '</li>';
+                }
+            });
+            html += '</ul></div>';
+            container.html(html);
+        }
+    }
+
+    // Función para formatear tamaño de archivo
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        var k = 1024;
+        var sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        var i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Función para remover archivo seleccionado
+    function removerArchivoSeleccionado(index, containerId) {
+        archivosSeleccionados.splice(index, 1);
+        mostrarArchivosSeleccionados(containerId);
+    }
+
+    // Función para eliminar archivo existente
+    function eliminarArchivoExistente(nombreArchivo, index, containerId) {
+        if (confirm('¿Estás seguro de que quieres eliminar este archivo?')) {
+            if (!analiticaIdActual) {
+                alert('Error: ID de analítica no disponible');
+                return;
+            }
+
+            $.ajax({
+                url: '/evaluacion_analisis/eliminar_archivo',
+                method: 'DELETE',
+                data: {
+                    analiticaId: analiticaIdActual,
+                    nombreArchivo: nombreArchivo,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.success) {
+                        archivosExistentes.splice(index, 1);
+                        mostrarArchivosExistentes(containerId);
+                        alert('Archivo eliminado correctamente');
+                    } else {
+                        alert('Error al eliminar el archivo: ' + (response.message || 'Error desconocido'));
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error al eliminar archivo:', error);
+                    alert('Error al eliminar el archivo');
+                }
+            });
+        }
+    }
+
+    // Event listener para cambio de archivos
+    $(document).on('change', '.archivos-input', function() {
+        var files = this.files;
+        var modalId = $(this).closest('.modal').attr('id');
+        var containerId = '';
+        
+        // Determinar el contenedor según el modal
+        if (modalId === 'modal_resultados_agua') {
+            containerId = 'lista_archivos_seleccionados_agua';
+        } else if (modalId === 'modal_tendencias_superficie') {
+            containerId = 'lista_archivos_seleccionados_superficie';
+        } else if (modalId === 'modal_tendencias_micro') {
+            containerId = 'lista_archivos_seleccionados_micro';
+        } else {
+            containerId = 'lista_archivos_seleccionados_otros';
+        }
+        
+        archivosSeleccionados = Array.from(files);
+        mostrarArchivosSeleccionados(containerId);
+    });
+
         // Evitar duplicar jQuery/Bootstrap: usar los cargados en includes/head_common.blade.php
         // Asegurar que los campos de procede / no_procede no sean required
         $(function() {
@@ -990,6 +1259,19 @@
                 // Limpiar formulario para modo agregar
                 // NO limpiar el _token CSRF ni el id_registro ni num_tienda ni el campo de modo ni los datos originales
                 $modal.find('input, select, textarea').not('.num_tienda_input, .modo_edicion_input, .id_registro_input, .analitica_id_input, .fecha_teorica_original_input, .periodicidad_original_input, .proveedor_id_original_input, .tipo_analitica_original_input, .asesor_externo_empresa_original_input, input[name="_token"]').val('');
+                
+                // Limpiar archivos
+                archivosSeleccionados = [];
+                archivosExistentes = [];
+                analiticaIdActual = null;
+                
+                // Limpiar contenedores de archivos
+                var modalSuffix = target === '#modal_resultados_agua' ? 'agua' : 
+                                 target === '#modal_tendencias_superficie' ? 'superficie' : 
+                                 target === '#modal_tendencias_micro' ? 'micro' : 'otros';
+                $('#lista_archivos_seleccionados_' + modalSuffix).empty();
+                $('#lista_archivos_existentes_' + modalSuffix).empty();
+                
                 // En modo "agregar" ocultar el select de "procede" y los checkboxes "No procede"
                 $modal.find('select[name="procede"]').closest('.form-group').hide();
                 // ocultar las columnas de form-check que contienen los checkboxes de "No procede"
@@ -1139,6 +1421,9 @@
 
         // Función para cargar datos existentes cuando se edita
         function cargarDatosExistentes($modal, tipo, tienda) {
+            var analiticaId = $modal.find('.analitica_id_input').val();
+            analiticaIdActual = analiticaId;
+            
             var endpoint = '';
             if (tipo === 'Resultados agua') {
                 endpoint = '{{ route("evaluacion_analisis.obtener_datos") }}';
@@ -1151,7 +1436,8 @@
             if (endpoint) {
                 $.get(endpoint, {
                     num_tienda: tienda,
-                    tipo: tipo
+                    tipo: tipo,
+                    analitica_id: analiticaId
                 }).done(function(response) {
                     if (response.success && response.data) {
                         var data = response.data;
@@ -1196,6 +1482,17 @@
                             if (data.analitica.procede !== undefined && data.analitica.procede !== null) {
                                 $modal.find('select[name="procede"]').val(data.analitica.procede.toString());
                             }
+
+                            // Cargar archivos existentes si los hay
+                            if (data.analitica.archivos && data.analitica.archivos.length > 0) {
+                                archivosExistentes = data.analitica.archivos;
+                                var modalSuffix = tipo === 'Resultados agua' ? 'agua' : 
+                                                 tipo === 'Tendencias superficie' ? 'superficie' : 
+                                                 tipo === 'Tendencias micro' ? 'micro' : 'otros';
+                                mostrarArchivosExistentes('lista_archivos_existentes_' + modalSuffix);
+                            } else {
+                                archivosExistentes = [];
+                            }
                         }
                     }
                 }).fail(function() {
@@ -1208,6 +1505,14 @@
         $(document).on('hidden.bs.modal', '.modal', function() {
             $('.modal-backdrop').remove();
             $('body').removeClass('modal-open');
+            
+            // Limpiar variables de archivos
+            archivosSeleccionados = [];
+            archivosExistentes = [];
+            analiticaIdActual = null;
+            
+            // Limpiar contenedores de archivos
+            $(this).find('[id^="lista_archivos_"]').empty();
             
             // Resetear formulario al cerrar
             $(this).find('.modo_edicion_input').val('agregar');

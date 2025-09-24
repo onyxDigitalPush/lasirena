@@ -43,7 +43,8 @@ class TendenciaMicro extends Model
         's_valor',
         's_resultado',
         'salmonella_valor',
-        'salmonella_resultado'
+        'salmonella_resultado',
+        'archivos'
     ];
 
     protected $dates = [
@@ -90,5 +91,19 @@ class TendenciaMicro extends Model
     public function analitica()
     {
         return $this->belongsTo(\App\Models\Analitica::class);
+    }
+
+    // Método para obtener archivos como array
+    public function getArchivosArray()
+    {
+        if (empty($this->archivos)) {
+            return [];
+        }
+        
+        if (is_string($this->archivos)) {
+            return json_decode($this->archivos, true) ?: [];
+        }
+        
+        return is_array($this->archivos) ? $this->archivos : [];
     }
 }

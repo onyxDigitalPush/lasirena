@@ -19,7 +19,7 @@ class TendenciaSuperficie extends Model
         'enterobacterias_valor','enterobacterias_result',
         'listeria_monocytogenes_valor','listeria_monocytogenes_result',
         'accion_correctiva','repeticion_n1','repeticion_n2',
-        'estado_analitica', 'fecha_cambio_estado'
+        'estado_analitica', 'fecha_cambio_estado', 'archivos'
     ];
 
     protected $casts = [
@@ -60,5 +60,19 @@ class TendenciaSuperficie extends Model
     public function analitica()
     {
         return $this->belongsTo(\App\Models\Analitica::class);
+    }
+
+    // Método para obtener archivos como array
+    public function getArchivosArray()
+    {
+        if (empty($this->archivos)) {
+            return [];
+        }
+        
+        if (is_string($this->archivos)) {
+            return json_decode($this->archivos, true) ?: [];
+        }
+        
+        return is_array($this->archivos) ? $this->archivos : [];
     }
 }
