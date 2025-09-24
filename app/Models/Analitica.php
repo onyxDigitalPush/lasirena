@@ -92,14 +92,29 @@ class Analitica extends Model
     // Métodos para manejar archivos
     public function getArchivosArray()
     {
+        if (is_null($this->archivos)) {
+            return [];
+        }
+        
+        if (is_string($this->archivos)) {
+            $decoded = json_decode($this->archivos, true);
+            return is_array($decoded) ? $decoded : [];
+        }
+        
         return is_array($this->archivos) ? $this->archivos : [];
     }
 
     public function addArchivo($archivo)
     {
         $archivos = $this->getArchivosArray();
+        
+        // Filtrar arrays vacíos antes de agregar
+        $archivos = array_filter($archivos, function($item) {
+            return !empty($item) && is_array($item);
+        });
+        
         $archivos[] = $archivo;
-        $this->archivos = $archivos;
+        $this->archivos = array_values($archivos); // Reindexar
         return $this;
     }
 
