@@ -11,7 +11,28 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\MainApp\Project;
 use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Reader\IReadFilter;
 use Exception;
+
+class ChunkReadFilter implements IReadFilter
+{
+    private $startRow;
+    private $endRow;
+
+    public function __construct($startRow, $endRow)
+    {
+        $this->startRow = $startRow;
+        $this->endRow = $endRow;
+    }
+
+    public function readCell($column, $row, $worksheetName = '')
+    {
+        if ($row >= $this->startRow && $row <= $this->endRow) {
+            return true;
+        }
+        return false;
+    }
+}
 
 class ProveedorController extends Controller
 {
@@ -109,9 +130,10 @@ class ProveedorController extends Controller
 
     public function importarArchivo(Request $request)
     {
-        // Aumentar límites para procesar archivos grandes
-        ini_set('memory_limit', '512M');
-        ini_set('max_execution_time', 300); // 5 minutos
+    // Aumentar límites para procesar archivos grandes
+    ini_set('memory_limit', '1024M');
+    // Quitar límite de tiempo para evitar errores con archivos grandes
+    ini_set('max_execution_time', 0); // 0 = ilimitado
         
         Log::info('=== INICIO IMPORTAR ARCHIVO ===');
         Log::info('Método: ' . $request->method());
@@ -175,7 +197,12 @@ class ProveedorController extends Controller
             
             Log::info('Validación pasada correctamente');
 
-        $path = $archivo->getRealPath();
+    $path = $archivo->getRealPath();
+    // Generar ID de import para seguimiento de progreso
+    $importId = uniqid('import_', true);
+    $progressPath = storage_path('app/import_progress_' . $importId . '.json');
+    // Inicializar progreso
+    file_put_contents($progressPath, json_encode(['status' => 'started', 'processed' => 0, 'total' => 0, 'percent' => 0, 'id' => $importId]));
         Log::info('Ruta real del archivo: ' . $path);
         $importType = $request->input('import_type', 'general');
         Log::info('Tipo de importación solicitado: ' . $importType);
@@ -194,44 +221,58 @@ class ProveedorController extends Controller
                         if (!file_exists($path) || !is_readable($path)) {
                             throw new Exception("El archivo no existe o no es legible: " . $path);
                         }
-                        $spreadsheet = IOFactory::load($path);
-                        // Intentar obtener por nombre de hoja, si no existe, usar índice 2 (tercera hoja)
-                        $worksheet = $spreadsheet->getSheetByName('LISTADO GENERAL');
-                        if (!$worksheet) {
-                            try {
-                                $worksheet = $spreadsheet->getSheet(2);
-                            } catch (Exception $e) {
-                                throw new Exception('No se encontró la hoja LISTADO GENERAL ni la tercera hoja del libro.');
+                        // Leer la hoja LISTADO GENERAL o la tercera hoja en chunks para evitar cargar todo en memoria
+                        $reader = IOFactory::createReader('Xlsx');
+                        $sheetIndex = null;
+                        // identificar hoja por nombre primero usando reader ligero
+                        $xlsxReader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+                        $sheetNames = $xlsxReader->listWorksheetNames($path);
+                        foreach ($sheetNames as $idx => $name) {
+                            if (trim(strtoupper($name)) === 'LISTADO GENERAL') {
+                                $sheetIndex = $idx;
+                                break;
                             }
                         }
-                        $highestRow = $worksheet->getHighestRow();
-                        $created = 0;
-                        $skipped = 0;
-                        // Empezar a leer a partir de la fila 10 (índice 10)
-                        for ($row = 10; $row <= $highestRow; $row++) {
-                            $provRaw = $worksheet->getCell('F' . $row)->getCalculatedValue();
-                            $nameRaw = $worksheet->getCell('G' . $row)->getCalculatedValue();
-                            $provId = trim((string) ($provRaw ?? ''));
-                            $provName = trim((string) ($nameRaw ?? ''));
-                            if ($provId === '' && $provName === '') continue;
-                            // Necesitamos un id numérico válido
-                            if (!is_numeric($provId)) {
-                                Log::warning("Fila {$row} ignorada: id_proveedor no numérico ('{$provId}')");
-                                $skipped++;
-                                continue;
+                        if ($sheetIndex === null) {
+                            $sheetIndex = 2; // tercera hoja por defecto
+                        }
+                        $sheetInfos = $xlsxReader->listWorksheetInfo($path);
+                        $highestRow = isset($sheetInfos[$sheetIndex]['totalRows']) ? $sheetInfos[$sheetIndex]['totalRows'] : ($sheetInfos[0]['totalRows'] ?? 0);
+
+                        $created = 0; $skipped = 0;
+                        $chunkSize = 500; // filas por chunk
+                        // actualizar total para progreso
+                        @file_put_contents($progressPath, json_encode(['status' => 'reading_providers', 'processed' => 0, 'total' => max(0, $highestRow - 9), 'percent' => 0, 'id' => $importId]));
+                        for ($start = 10; $start <= $highestRow; $start += $chunkSize) {
+                            $end = min($start + $chunkSize - 1, $highestRow);
+                            $chunkFilter = new ChunkReadFilter($start, $end);
+                            $reader->setReadFilter($chunkFilter);
+                            $reader->setReadDataOnly(true);
+                            $reader->setLoadSheetsOnly($sheetNames[$sheetIndex]);
+                            $spreadsheetChunk = $reader->load($path);
+                            $ws = $spreadsheetChunk->getActiveSheet();
+                            for ($row = $start; $row <= $end; $row++) {
+                                $provRaw = $ws->getCell('F' . $row)->getCalculatedValue();
+                                $nameRaw = $ws->getCell('G' . $row)->getCalculatedValue();
+                                $provId = trim((string) ($provRaw ?? ''));
+                                $provName = trim((string) ($nameRaw ?? ''));
+                                if ($provId === '' && $provName === '') continue;
+                                if (!is_numeric($provId)) { Log::warning("Fila {$row} ignorada: id_proveedor no numérico ('{$provId}')"); $skipped++; continue; }
+                                $id = intval($provId);
+                                $exists = Proveedor::find($id);
+                                if ($exists) { $skipped++; continue; }
+                                Proveedor::firstOrCreate(['id_proveedor' => $id], ['nombre_proveedor' => $provName]);
+                                $created++;
                             }
-                            $id = intval($provId);
-                            // Crear si no existe
-                            $exists = Proveedor::find($id);
-                            if ($exists) {
-                                $skipped++;
-                                continue;
-                            }
-                            Proveedor::firstOrCreate(
-                                ['id_proveedor' => $id],
-                                ['nombre_proveedor' => $provName]
-                            );
-                            $created++;
+                            $spreadsheetChunk->disconnectWorksheets();
+                            unset($spreadsheetChunk);
+                            gc_collect_cycles();
+                            // actualizar progreso por chunk
+                            $processedSoFar = min($end, $highestRow) - 9; // since we start at row 10
+                            $totalRows = max(0, $highestRow - 9);
+                            $percent = $totalRows > 0 ? intval(($processedSoFar / $totalRows) * 100) : 100;
+                            @file_put_contents($progressPath, json_encode(['status' => 'reading_providers', 'processed' => $processedSoFar, 'total' => $totalRows, 'percent' => $percent, 'id' => $importId]));
+                            Log::info("Import progress ({$importId}): {$processedSoFar}/{$totalRows} ({$percent}%)");
                         }
                         Log::info("Importación proveedores completada. Creados: {$created}, Omitidos: {$skipped}");
                         return back()->with('success', "Importación proveedores completada. Creados: {$created}, Omitidos: {$skipped}");
@@ -302,67 +343,81 @@ class ProveedorController extends Controller
                     throw new Exception("El archivo no es un XLSX válido. Tipo detectado: " . $inputFileType);
                 }
                 
-                $spreadsheet = IOFactory::load($path);
-                $worksheet = $spreadsheet->getActiveSheet();
-                $highestRow = $worksheet->getHighestRow();
-                $highestColumn = $worksheet->getHighestColumn();                Log::info("Archivo XLSX cargado - Filas: " . $highestRow . ", Columnas: " . $highestColumn);                
-                // Para XLSX, las cabeceras están en la fila 4
+                // Usar chunked reading para el archivo XLSX general
+                $reader = IOFactory::createReader('Xlsx');
+                $reader->setReadDataOnly(true);
+                $xlsxReaderInfo = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+                $sheetNames = $xlsxReaderInfo->listWorksheetNames($path);
+                $sheetToRead = $sheetNames[0] ?? null;
+                $sheetInfos = $xlsxReaderInfo->listWorksheetInfo($path);
+                $highestRow = isset($sheetInfos[0]['totalRows']) ? $sheetInfos[0]['totalRows'] : 0;
+                $highestColumn = isset($sheetInfos[0]['lastColumnLetter']) ? $sheetInfos[0]['lastColumnLetter'] : 'Z';
+                Log::info("Archivo XLSX detectado - Filas: " . $highestRow . ", Columnas: " . $highestColumn);
+
                 $cabeceras = [];
-                for ($col = 'A'; $col <= $highestColumn; $col++) {
-                    $valor = $worksheet->getCell($col . '4')->getCalculatedValue();
-                    if (!empty($valor)) {
-                        $cabeceras[] = $valor;
-                    }
-                }
+                $datos = [];
+                $chunkSize = 500;
+                // actualizar total para progreso general (fila 5 en adelante)
+                @file_put_contents($progressPath, json_encode(['status' => 'reading_xlsx', 'processed' => 0, 'total' => max(0, $highestRow - 4), 'percent' => 0, 'id' => $importId]));
+                for ($start = 5; $start <= $highestRow; $start += $chunkSize) {
+                    $end = min($start + $chunkSize - 1, $highestRow);
+                    $chunkFilter = new ChunkReadFilter($start, $end);
+                    $reader->setReadFilter($chunkFilter);
+                    $reader->setLoadSheetsOnly($sheetToRead);
+                    $spreadsheetChunk = $reader->load($path);
+                    $ws = $spreadsheetChunk->getActiveSheet();
 
-                Log::info('Cabeceras encontradas RAW: ' . json_encode($cabeceras));
-                Log::info('Número de cabeceras: ' . count($cabeceras));
-                Log::info('Columnas hasta: ' . $highestColumn);
-
-                // Limpiar cabeceras para XLSX igual que para CSV
-                $cabeceras_limpias = [];
-                foreach ($cabeceras as $header) {
-                    $header = trim($header);
-                    // Normalizar caracteres con tilde o especiales
-                    $header = strtr($header, [
-                        'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ñ' => 'n',
-                        'Á' => 'a', 'É' => 'e', 'Í' => 'i', 'Ó' => 'o', 'Ú' => 'u', 'Ñ' => 'n'
-                    ]);
-                    $header = strtolower($header);
-                    $header = preg_replace('/\s+/', '_', $header);       // Reemplaza espacios por _
-                    $header = preg_replace('/[^a-z0-9_]/', '', $header); // Elimina otros caracteres
-                    $cabeceras_limpias[] = $header;
-                }
-                $cabeceras = $cabeceras_limpias;
-
-                Log::info('Cabeceras procesadas: ' . json_encode($cabeceras));
-
-                // Verificar que tenemos cabeceras válidas
-                if (empty($cabeceras)) {
-                    throw new Exception("No se encontraron cabeceras válidas en la fila 4 del archivo XLSX");
-                }                // Leer datos desde la fila 5 en adelante
-                for ($row = 5; $row <= $highestRow; $row++) {
-                    $fila = [];
-                    $filaVacia = true;
-                    
-                    for ($col = 'A'; $col <= $highestColumn; $col++) {
-                        $valor = $worksheet->getCell($col . $row)->getCalculatedValue();
-                        $valor = trim($valor ?? '');
-                        if (!empty($valor)) {
-                            $filaVacia = false;
+                    // Si es el primer chunk, leer cabeceras en la fila 4
+                    if ($start <= 5) {
+                        for ($col = 'A'; $col <= $highestColumn; $col++) {
+                            $valor = $ws->getCell($col . '4')->getCalculatedValue();
+                            if (!empty($valor)) { $cabeceras[] = $valor; }
                         }
-                        $fila[] = $valor;
+                        // limpiar cabeceras
+                        $cabeceras_limpias = [];
+                        foreach ($cabeceras as $header) {
+                            $header = trim($header);
+                            $header = strtr($header, [
+                                'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ñ' => 'n',
+                                'Á' => 'a', 'É' => 'e', 'Í' => 'i', 'Ó' => 'o', 'Ú' => 'u', 'Ñ' => 'n'
+                            ]);
+                            $header = strtolower($header);
+                            $header = preg_replace('/\s+/', '_', $header);
+                            $header = preg_replace('/[^a-z0-9_]/', '', $header);
+                            $cabeceras_limpias[] = $header;
+                        }
+                        $cabeceras = $cabeceras_limpias;
                     }
 
-                    // Solo agregar si la fila no está vacía y tiene el mismo número de columnas que cabeceras
-                    if (!$filaVacia && count($fila) === count($cabeceras)) {
-                        $datos[] = array_combine($cabeceras, $fila);
+                    // Leer filas del chunk
+                    for ($row = $start; $row <= $end; $row++) {
+                        $fila = [];
+                        $filaVacia = true;
+                        for ($col = 'A'; $col <= $highestColumn; $col++) {
+                            $valor = $ws->getCell($col . $row)->getCalculatedValue();
+                            $valor = trim($valor ?? '');
+                            if (!empty($valor)) { $filaVacia = false; }
+                            $fila[] = $valor;
+                        }
+                        if (!$filaVacia && count($fila) === count($cabeceras)) {
+                            $datos[] = array_combine($cabeceras, $fila);
+                        }
                     }
+
+                    $spreadsheetChunk->disconnectWorksheets();
+                    unset($spreadsheetChunk);
+                    gc_collect_cycles();
+                    // actualizar progreso general
+                    $processedSoFar = max(0, $end - 4); // rows processed starting at 5
+                    $totalRows = max(0, $highestRow - 4);
+                    $percent = $totalRows > 0 ? intval(($processedSoFar / $totalRows) * 100) : 100;
+                    @file_put_contents($progressPath, json_encode(['status' => 'reading_xlsx', 'processed' => $processedSoFar, 'total' => $totalRows, 'percent' => $percent, 'id' => $importId]));
+                    Log::info("Import progress ({$importId}): {$processedSoFar}/{$totalRows} ({$percent}%)");
                 }
-
                 Log::info('Total de filas de datos procesadas: ' . count($datos));} catch (Exception $e) {
                 Log::error('Error al procesar archivo XLSX: ' . $e->getMessage());
                 Log::error('Stack trace: ' . $e->getTraceAsString());
+                @file_put_contents($progressPath, json_encode(['status' => 'error', 'message' => $e->getMessage(), 'id' => $importId]));
                 return back()->withErrors(array('archivo' => 'Error al procesar el archivo XLSX: ' . $e->getMessage()));
             }        } else {
             // Procesar archivo CSV (lógica original)
@@ -534,6 +589,9 @@ class ProveedorController extends Controller
                 );
                 
                 $procesadas++;
+                // actualizar progreso de inserción en disco
+                $percentInsert = isset($procesadas) && isset($totalRows) && $totalRows>0 ? intval(($procesadas / $totalRows) * 100) : 0;
+                @file_put_contents($progressPath, json_encode(['status' => 'inserting', 'processed' => $procesadas, 'total' => $totalRows ?? count($datos), 'percent' => $percentInsert, 'id' => $importId]));
                 
             } catch (Exception $e) {
                 $errores++;
@@ -543,8 +601,10 @@ class ProveedorController extends Controller
         }
           Log::info("Procesamiento completado. Filas procesadas: {$procesadas}, Errores: {$errores}");
         
-        Log::info('=== FIN IMPORTAR ARCHIVO EXITOSO ===');
-        return back()->with('success', "Archivo importado correctamente. Filas procesadas: {$procesadas}");
+    // marcar completado y limpiar archivo de progreso
+    @file_put_contents($progressPath, json_encode(['status' => 'completed', 'processed' => $procesadas, 'total' => $totalRows ?? count($datos), 'percent' => 100, 'id' => $importId]));
+    Log::info('=== FIN IMPORTAR ARCHIVO EXITOSO ===');
+    return back()->with('success', "Archivo importado correctamente. Filas procesadas: {$procesadas}")->with('import_id', $importId);
         
         } catch (Exception $e) {
             Log::error('Error general en importarArchivo: ' . $e->getMessage());
@@ -583,5 +643,24 @@ class ProveedorController extends Controller
             'status' => 'ok',
             'message' => 'Check logs for details'
         ]);
+    }
+
+    // Endpoint para consultar progreso de import
+    public function importProgress(Request $request)
+    {
+        $importId = $request->query('import_id');
+        if (!$importId) {
+            return response()->json(['error' => 'import_id required'], 400);
+        }
+        $progressPath = storage_path('app/import_progress_' . $importId . '.json');
+        if (!file_exists($progressPath)) {
+            return response()->json(['status' => 'not_found'], 404);
+        }
+        $content = @file_get_contents($progressPath);
+        if ($content === false) {
+            return response()->json(['status' => 'error_reading'], 500);
+        }
+        $data = json_decode($content, true);
+        return response()->json($data ?: ['status' => 'unknown']);
     }
 }
