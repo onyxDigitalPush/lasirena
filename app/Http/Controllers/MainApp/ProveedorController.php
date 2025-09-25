@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\MainApp\Project;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\IReadFilter;
 use Exception;
@@ -417,9 +418,27 @@ class ProveedorController extends Controller
                 Log::info("Cabeceras leídas de fila 4: " . json_encode($cabeceras));
                 Log::info("Cabeceras ahora son únicas - Longitud: " . count($cabeceras));
                 
-                // PASO 2: Leer datos desde la fila 5
-                $chunkSize = 500;
+                // PASO 2: OPTIMIZACIÓN - Leer y procesar datos directamente por chunks sin almacenar todo en memoria
+                $chunkSize = 1000; // Aumentado para mejor rendimiento
                 @file_put_contents($progressPath, json_encode(['status' => 'reading_xlsx', 'processed' => 0, 'total' => max(0, $highestRow - 4), 'percent' => 0, 'id' => $importId]));
+                
+                // Procesamiento directo sin almacenar todo el array $datos en memoria
+                $procesadas = 0;
+                $errores = 0;
+                $año = date('Y');
+                $batchSize = 500; // Reducido para evitar lock timeouts
+                
+                // Cache para proveedores y materiales (SIN verificar duplicados en MaterialKilo)
+                $proveedoresCache = Proveedor::pluck('nombre_proveedor', 'id_proveedor')->toArray();
+                $materialesCache = Material::pluck('id', 'codigo')->toArray();
+                
+                // Arrays para lotes
+                $proveedoresLote = [];
+                $materialesLote = [];
+                $materialesKilosLote = [];
+                
+                $startTime = microtime(true);
+                $lastLogTime = $startTime;
                 
                 for ($start = 5; $start <= $highestRow; $start += $chunkSize) {
                     $end = min($start + $chunkSize - 1, $highestRow);
@@ -429,7 +448,7 @@ class ProveedorController extends Controller
                     $spreadsheetChunk = $reader->load($path);
                     $ws = $spreadsheetChunk->getActiveSheet();
 
-                    // Leer filas del chunk (ya estamos desde fila 5 en adelante)
+                    // PROCESAMIENTO DIRECTO FILA POR FILA - SIN ALMACENAR EN MEMORIA
                     for ($row = $start; $row <= $end; $row++) {
                         $fila = [];
                         $filaVacia = true;
@@ -440,32 +459,46 @@ class ProveedorController extends Controller
                             $fila[] = $valor;
                         }
                         
-                        if (!$filaVacia) {
-                            // Ajustar el tamaño del array si es necesario
+                        if (!$filaVacia && count($cabeceras) > 0) {
+                            // Ajustar tamaño del array
                             if (count($fila) < count($cabeceras)) {
                                 $fila = array_pad($fila, count($cabeceras), '');
                             } elseif (count($fila) > count($cabeceras)) {
                                 $fila = array_slice($fila, 0, count($cabeceras));
                             }
                             
-                            if (count($cabeceras) > 0) {
-                                $datos[] = array_combine($cabeceras, $fila);
-                                // Datos agregados silenciosamente para mejor rendimiento
-                            }
+                            $filaData = array_combine($cabeceras, $fila);
+                            
+                            // PROCESAMIENTO INMEDIATO (sin almacenar en array $datos)
+                            $this->procesarFilaDirecta($filaData, $proveedoresCache, $materialesCache, 
+                                                     $materialesKilosExistenteCache, $proveedoresLote, 
+                                                     $materialesLote, $materialesKilosLote, $año, 
+                                                     $procesadas, $batchSize, $progressPath, $importId, 
+                                                     $startTime, $lastLogTime, $highestRow);
                         }
                     }
 
                     $spreadsheetChunk->disconnectWorksheets();
                     unset($spreadsheetChunk);
                     gc_collect_cycles();
-                    // actualizar progreso general
-                    $processedSoFar = max(0, $end - 4); // rows processed starting at 5
+                    
+                    // Actualizar progreso de lectura
+                    $processedSoFar = max(0, $end - 4);
                     $totalRows = max(0, $highestRow - 4);
                     $percent = $totalRows > 0 ? intval(($processedSoFar / $totalRows) * 100) : 100;
                     @file_put_contents($progressPath, json_encode(['status' => 'reading_xlsx', 'processed' => $processedSoFar, 'total' => $totalRows, 'percent' => $percent, 'id' => $importId]));
-                    Log::info("Import progress ({$importId}): {$processedSoFar}/{$totalRows} ({$percent}%)");
                 }
-                Log::info('Total de filas de datos procesadas: ' . count($datos));} catch (Exception $e) {
+                
+                // Insertar lote final si queda algún registro
+                $this->insertarLoteFinal($proveedoresLote, $materialesLote, $materialesKilosLote, $startTime);
+                
+                Log::info('XLSX procesado directamente. Total filas procesadas: ' . $procesadas);
+                
+                // Marcar completado y salir con éxito
+                @file_put_contents($progressPath, json_encode(['status' => 'completed', 'processed' => $procesadas, 'total' => $procesadas, 'percent' => 100, 'id' => $importId]));
+                return back()->with('success', "Archivo XLSX importado con procesamiento optimizado. Filas procesadas: {$procesadas}")->with('import_id', $importId);
+                
+            } catch (Exception $e) {
                 Log::error('Error al procesar archivo XLSX: ' . $e->getMessage());
                 Log::error('Stack trace: ' . $e->getTraceAsString());
                 @file_put_contents($progressPath, json_encode(['status' => 'error', 'message' => $e->getMessage(), 'id' => $importId]));
@@ -593,12 +626,39 @@ class ProveedorController extends Controller
             }
         }
 
-        // 3. Procesar e insertar los datos en la base de datos
-        Log::info('Iniciando procesamiento de ' . count($datos) . ' filas de datos');
+        // 3. OPTIMIZACIÓN: Procesar e insertar los datos en lotes para máximo rendimiento
+        Log::info('Iniciando procesamiento optimizado de ' . count($datos) . ' filas de datos');
         
         $procesadas = 0;
         $errores = 0;
-          foreach ($datos as $index => $fila) {
+        $año = date('Y');
+        $batchSize = 500; // Reducido para evitar lock wait timeout
+        
+        // Cache para proveedores y materiales existentes para evitar consultas repetitivas
+        $proveedoresCache = [];
+        $materialesCache = [];
+        $materialesKilosExistenteCache = [];
+        
+        // Arrays para lotes de inserción
+        $proveedoresLote = [];
+        $materialesLote = [];
+        $materialesKilosLote = [];
+        
+        // Precarga de todos los proveedores existentes
+        $proveedoresExistentes = Proveedor::pluck('nombre_proveedor', 'id_proveedor')->toArray();
+        $proveedoresCache = $proveedoresExistentes;
+        
+        // Precarga de todos los materiales existentes  
+        $materialesExistentes = Material::pluck('id', 'codigo')->toArray();
+        $materialesCache = $materialesExistentes;
+        
+        Log::info("Cache inicializado: " . count($proveedoresCache) . " proveedores, " . 
+                  count($materialesCache) . " materiales. PERMITIENDO DUPLICADOS EN MaterialKilo");
+        
+        $startTime = microtime(true);
+        $lastLogTime = $startTime;
+        
+        foreach ($datos as $index => $fila) {
             try {
                 // Obtener datos usando posiciones directas del array para mayor confiabilidad
                 $filaArray = array_values($fila);
@@ -610,152 +670,223 @@ class ProveedorController extends Controller
                 $proveedorId = isset($filaArray[3]) ? trim($filaArray[3]) : ''; // Columna D
                 $nombreProveedor = isset($filaArray[4]) ? trim($filaArray[4]) : ''; // Columna E
                 
-                // CORREGIDO: Obtener el mes de la posición 11 (columna L - segundo "mes")
-                $mes = isset($filaArray[11]) ? trim($filaArray[11]) : ''; // Posición 11 - MES CORRECTO
-                
-                // Fallback: usar nombres de cabeceras si las posiciones fallan
-                if (empty($proveedorId)) {
-                    $proveedorId = isset($fila['proveedor']) ? trim($fila['proveedor']) : '';
-                }
-                if (empty($nombreProveedor)) {
-                    $nombreProveedor = isset($fila['nombre_del_proveedor']) ? trim($fila['nombre_del_proveedor']) : '';
-                }
-                if (empty($materialCodigo)) {
-                    $materialCodigo = isset($fila['material']) ? trim($fila['material']) : '';
-                }
-                if (empty($jerarquia)) {
-                    $jerarquia = isset($fila['jerarqua_product']) ? trim($fila['jerarqua_product']) : '';
-                }
-                if (empty($descripcionMaterial)) {
-                    $descripcionMaterial = isset($fila['descripcin_de_material']) ? trim($fila['descripcin_de_material']) : '';
-                }
-                
-                // Debug eliminado para mejor rendimiento en archivos grandes
-                
-                // Fallback: buscar por nombre de cabecera si la posición directa no funciona
-                if (empty($mes) && isset($cabeceras[11]) && isset($fila[$cabeceras[11]])) {
-                    $mes = trim($fila[$cabeceras[11]]);
-                }
-                
-                // Log básico de procesamiento
-                // Procesando fila silenciosamente
-                
-                // Obtener otros campos por posición
-                $ce = isset($filaArray[5]) ? trim($filaArray[5]) : ''; // Columna F
-                $ctd_emdev = isset($filaArray[7]) ? trim($filaArray[7]) : ''; // Columna H
-                $umb = isset($filaArray[8]) ? trim($filaArray[8]) : ''; // Columna I
-                $valor_emdev = isset($filaArray[9]) ? trim($filaArray[9]) : ''; // Columna J
-                $factor_conversin = isset($filaArray[12]) ? trim($filaArray[12]) : ''; // Columna M
-                $totalKgRaw = isset($filaArray[13]) ? trim($filaArray[13]) : ''; // Posición 13 - Columna N (Total kg)
+                $mes = isset($filaArray[11]) ? trim($filaArray[11]) : ''; // Posición 11 - MES
                 
                 // Fallbacks usando nombres de cabeceras
-                if (empty($totalKgRaw)) {
-                    $totalKgRaw = isset($fila['total_kg']) ? trim($fila['total_kg']) : '';
-                }
-                if (empty($ctd_emdev)) {
-                    $ctd_emdev = isset($fila['ctd_emdev']) ? trim($fila['ctd_emdev']) : '';
-                }
-                if (empty($umb)) {
-                    $umb = isset($fila['umb']) ? trim($fila['umb']) : '';
-                }
-                if (empty($ce)) {
-                    $ce = isset($fila['ce']) ? trim($fila['ce']) : '';
-                }
-                if (empty($valor_emdev)) {
-                    $valor_emdev = isset($fila['valor_emdev']) ? trim($fila['valor_emdev']) : '';
-                }
-                if (empty($factor_conversin)) {
-                    $factor_conversin = isset($fila['factor_conversin']) ? trim($fila['factor_conversin']) : '';
-                }
+                if (empty($proveedorId)) $proveedorId = isset($fila['proveedor']) ? trim($fila['proveedor']) : '';
+                if (empty($nombreProveedor)) $nombreProveedor = isset($fila['nombre_del_proveedor']) ? trim($fila['nombre_del_proveedor']) : '';
+                if (empty($materialCodigo)) $materialCodigo = isset($fila['material']) ? trim($fila['material']) : '';
+                if (empty($jerarquia)) $jerarquia = isset($fila['jerarqua_product']) ? trim($fila['jerarqua_product']) : '';
+                if (empty($descripcionMaterial)) $descripcionMaterial = isset($fila['descripcin_de_material']) ? trim($fila['descripcin_de_material']) : '';
+                if (empty($mes) && isset($cabeceras[11]) && isset($fila[$cabeceras[11]])) $mes = trim($fila[$cabeceras[11]]);
+                
+                // Obtener otros campos por posición
+                $ce = isset($filaArray[5]) ? trim($filaArray[5]) : '';
+                $ctd_emdev = isset($filaArray[7]) ? trim($filaArray[7]) : '';
+                $umb = isset($filaArray[8]) ? trim($filaArray[8]) : '';
+                $valor_emdev = isset($filaArray[9]) ? trim($filaArray[9]) : '';
+                $factor_conversin = isset($filaArray[12]) ? trim($filaArray[12]) : '';
+                $totalKgRaw = isset($filaArray[13]) ? trim($filaArray[13]) : '';
+                
+                // Fallbacks adicionales
+                if (empty($totalKgRaw)) $totalKgRaw = isset($fila['total_kg']) ? trim($fila['total_kg']) : '';
+                if (empty($ctd_emdev)) $ctd_emdev = isset($fila['ctd_emdev']) ? trim($fila['ctd_emdev']) : '';
+                if (empty($umb)) $umb = isset($fila['umb']) ? trim($fila['umb']) : '';
+                if (empty($ce)) $ce = isset($fila['ce']) ? trim($fila['ce']) : '';
+                if (empty($valor_emdev)) $valor_emdev = isset($fila['valor_emdev']) ? trim($fila['valor_emdev']) : '';
+                if (empty($factor_conversin)) $factor_conversin = isset($fila['factor_conversin']) ? trim($fila['factor_conversin']) : '';
 
-                // Convertir total_kg a float (soportar coma decimal y punto miles)
+                // Conversiones de formato optimizadas
                 $totalKg = floatval(str_replace(',', '.', str_replace('.', '', $totalKgRaw)));
-                
-                // Validación crítica con logging detallado
-                if (empty($proveedorId) || empty($materialCodigo)) {
-                  //  Log::warning("FILA {$index} SALTADA - Proveedor: '{$proveedorId}' | Material: '{$materialCodigo}' - FALTAN DATOS CRÍTICOS");
+                $valor_emdev_final = floatval(str_replace(',', '.', str_replace('.', '', $valor_emdev)));
+                $factor_conversin_final = floatval(str_replace(',', '.', str_replace('.', '', $factor_conversin)));
+                $ctd_emdev_final = floatval(str_replace(',', '.', str_replace('.', '', $ctd_emdev)));
+
+                // Validación crítica
+                if (empty($proveedorId) || empty($materialCodigo) || empty($mes)) {
                     continue;
                 }
+
+                // PERMITIR DUPLICADOS: Agregar TODOS los registros sin verificar existencia
                 
-                if (empty($mes)) {
-                 //   Log::warning("FILA {$index} SALTADA - Mes vacío: '{$mes}'");
-                    continue;
+                // Agregar al lote de proveedores si no existe
+                if (!isset($proveedoresCache[$proveedorId])) {
+                    $proveedoresLote[$proveedorId] = [
+                        'id_proveedor' => $proveedorId,
+                        'nombre_proveedor' => $nombreProveedor,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ];
+                    $proveedoresCache[$proveedorId] = $nombreProveedor;
                 }
-                
-                // Fila válida - procesando silenciosamente
 
-                // Buscar o crear proveedor
-                $proveedor = Proveedor::firstOrCreate(
-                    ['id_proveedor' => $proveedorId],
-                    ['nombre_proveedor' => $nombreProveedor]
-                );
-
-                // Buscar o crear material
-                $material = Material::firstOrCreate(
-                    ['codigo' => $materialCodigo],
-                    [
+                // Agregar al lote de materiales si no existe
+                if (!isset($materialesCache[$materialCodigo])) {
+                    $materialesLote[$materialCodigo] = [
+                        'codigo' => $materialCodigo,
                         'jerarquia' => $jerarquia,
                         'descripcion' => $descripcionMaterial,
-                        'proveedor_id' => $proveedor->id_proveedor,
-                    ]
-                );
-               // Log::info("Material procesado: Código={$material->codigo}");
-
-                $año = date('Y');
-              //  Log::info("Preparando para MaterialKilo: material={$materialCodigo}, proveedor={$proveedor->id_proveedor}, mes={$mes}, año={$año}");
-
-                //limpiar valores decimales
-                $valor_emdev_decimales = str_replace('.', '', $valor_emdev); 
-                //  Reemplazar la coma por punto (separador decimal)
-                $valor_emdev_convertido = str_replace(',', '.', $valor_emdev_decimales); 
-                $valor_emdev_final = (float) $valor_emdev_convertido; 
-
-                //valor de factor conversion
-                $factor_conversin_decimales = str_replace('.', '', $factor_conversin);
-                //  Reemplazar la coma por punto (separador decimal)
-                $factor_conversin_convertido = str_replace(',', '.', $factor_conversin_decimales);
-                $factor_conversin = (float) $factor_conversin_convertido;
-
-                //valor de ctd_emdev
-                $ctd_emdev_decimales = str_replace('.', '', $ctd_emdev);
-                //  Reemplazar la coma por punto (separador decimal)
-                $ctd_emdev_convertido = str_replace(',', '.', $ctd_emdev_decimales);
-                $ctd_emdev = (float) $ctd_emdev_convertido;
-
-                // Verificar si ya existe un registro con el mismo codigo_material, mes y año
-                $existingMaterialKilo = MaterialKilo::where('codigo_material', $materialCodigo)
-                    ->where('mes', $mes)
-                    ->where('año', $año)
-                    ->first();
-
-                // Solo crear si no existe un registro con el mismo material, mes y año
-                if (!$existingMaterialKilo) {
-                    MaterialKilo::Create([
-                        'codigo_material' => $materialCodigo,
-                        'proveedor_id' => $proveedor->id_proveedor,
-                        'mes' => $mes,
-                        'año' => $año,
-                        'total_kg' => $totalKg,
-                        'ctd_emdev' => $ctd_emdev,
-                        'umb' => $umb,
-                        'ce' => $ce,
-                        'valor_emdev' => $valor_emdev_final,
-                        'factor_conversion' => $factor_conversin,
-                    ]);
-                //    Log::info("MaterialKilo creado: material={$materialCodigo}, mes={$mes}, año={$año}");
-                } else {
-                  //  Log::info("MaterialKilo ya existe: material={$materialCodigo}, mes={$mes}, año={$año} - Omitido");
+                        'proveedor_id' => $proveedorId,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ];
+                    $materialesCache[$materialCodigo] = true;
                 }
+
+                // SIEMPRE agregar al lote de MaterialKilo (SIN verificar duplicados)
+                $materialesKilosLote[] = [
+                    'codigo_material' => $materialCodigo,
+                    'proveedor_id' => $proveedorId,
+                    'mes' => $mes,
+                    'año' => $año,
+                    'total_kg' => $totalKg,
+                    'ctd_emdev' => $ctd_emdev_final,
+                    'umb' => $umb,
+                    'ce' => $ce,
+                    'valor_emdev' => $valor_emdev_final,
+                    'factor_conversion' => $factor_conversin_final,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ];
                 
                 $procesadas++;
-                // actualizar progreso de inserción en disco
-                $percentInsert = isset($procesadas) && isset($totalRows) && $totalRows>0 ? intval(($procesadas / $totalRows) * 100) : 0;
-                @file_put_contents($progressPath, json_encode(['status' => 'inserting', 'processed' => $procesadas, 'total' => $totalRows ?? count($datos), 'percent' => $percentInsert, 'id' => $importId]));
+
+                // INSERCIÓN EN LOTES CADA 500 REGISTROS CON LOGGING DETALLADO
+                if (count($materialesKilosLote) >= $batchSize) {
+                    // Configurar timeout para evitar lock wait timeout
+                    DB::statement('SET SESSION innodb_lock_wait_timeout = 300');
+                    
+                    $maxRetries = 3;
+                    $attempt = 0;
+                    
+                    while ($attempt < $maxRetries) {
+                        try {
+                            DB::beginTransaction();
+                        // Insertar proveedores en lote
+                        if (!empty($proveedoresLote)) {
+                            DB::table('proveedores')->insertOrIgnore(array_values($proveedoresLote));
+                            $proveedoresLote = [];
+                        }
+
+                        // Insertar materiales en lote
+                        if (!empty($materialesLote)) {
+                            DB::table('materiales')->insertOrIgnore(array_values($materialesLote));
+                        }
+
+                        // Insertar material kilos en lote (PERMITIR DUPLICADOS)
+                        if (!empty($materialesKilosLote)) {
+                            DB::table('material_kilos')->insert($materialesKilosLote);
+                            $materialesKilosLote = [];
+                        }
+
+                        DB::commit();
+                        
+                        // LOGGING DETALLADO CADA 3000 INSERCIONES COMO SOLICITÓ EL USUARIO
+                        $currentTime = microtime(true);
+                        $elapsedTime = $currentTime - $startTime;
+                        $batchTime = $currentTime - $lastLogTime;
+                        $avgTimePerRecord = $elapsedTime / $procesadas;
+                        $remainingRecords = count($datos) - $procesadas;
+                        $estimatedTimeRemaining = $remainingRecords * $avgTimePerRecord;
+                        $percentage = round(($procesadas / count($datos)) * 100, 2);
+                        
+                        Log::info("=== PROGRESO DE IMPORTACIÓN ===");
+                        Log::info("Registros procesados: {$procesadas} de " . count($datos) . " ({$percentage}%)");
+                        Log::info("Tiempo transcurrido: " . round($elapsedTime, 2) . " segundos");
+                        Log::info("Tiempo del último lote: " . round($batchTime, 2) . " segundos");
+                        Log::info("Promedio por registro: " . round($avgTimePerRecord * 1000, 2) . " ms");
+                        Log::info("Tiempo estimado restante: " . round($estimatedTimeRemaining / 60, 1) . " minutos");
+                        Log::info("Memoria utilizada: " . round(memory_get_usage(true) / 1024 / 1024, 1) . " MB");
+                        Log::info("===============================");
+                        
+                        $lastLogTime = $currentTime;
+                        
+                        // Actualizar progreso en archivo
+                        $percentInsert = intval($percentage);
+                        @file_put_contents($progressPath, json_encode([
+                            'status' => 'inserting', 
+                            'processed' => $procesadas, 
+                            'total' => count($datos), 
+                            'percent' => $percentInsert,
+                            'estimated_remaining_minutes' => round($estimatedTimeRemaining / 60, 1),
+                            'records_per_second' => round(500 / max($batchTime, 0.001), 1),
+                            'id' => $importId
+                        ]));
+                        
+                            DB::commit();
+                            break; // Salir del bucle si fue exitoso
+                            
+                        } catch (Exception $e) {
+                            DB::rollBack();
+                            $attempt++;
+                            
+                            // Si es un error de lock timeout o deadlock, reintentar
+                            if (($e->getCode() == 1205 || $e->getCode() == 1213) && $attempt < $maxRetries) {
+                                Log::warning("Lock timeout/deadlock detectado. Intento {$attempt}/{$maxRetries}. Reintentando en 2 segundos...");
+                                sleep(2); // Esperar 2 segundos antes de reintentar
+                                continue;
+                            }
+                            
+                            Log::error("Error en inserción de lote (intento {$attempt}/{$maxRetries}): " . $e->getMessage());
+                            throw $e;
+                        }
+                    }
+                }
                 
             } catch (Exception $e) {
                 $errores++;
-              //  Log::error("Error procesando fila {$index}: " . $e->getMessage());
-              //  Log::error("Datos de la fila: " . json_encode($fila));
+                Log::error("Error procesando fila {$index}: " . $e->getMessage());
+            }
+        }
+
+        // Insertar lote final si queda algún registro (con manejo de deadlocks)
+        if (!empty($materialesKilosLote) || !empty($proveedoresLote) || !empty($materialesLote)) {
+            DB::statement('SET SESSION innodb_lock_wait_timeout = 300');
+            
+            $maxRetries = 3;
+            $attempt = 0;
+            
+            while ($attempt < $maxRetries) {
+                try {
+                    DB::beginTransaction();
+                    
+                    if (!empty($proveedoresLote)) {
+                        DB::table('proveedores')->insertOrIgnore(array_values($proveedoresLote));
+                    }
+                    if (!empty($materialesLote)) {
+                        DB::table('materiales')->insertOrIgnore(array_values($materialesLote));
+                    }
+                    if (!empty($materialesKilosLote)) {
+                        DB::table('material_kilos')->insert($materialesKilosLote);
+                    }
+                    
+                    DB::commit();
+                    
+                    // Log final
+                    $finalTime = microtime(true);
+                    $totalTime = $finalTime - $startTime;
+                    Log::info("=== LOTE FINAL INSERTADO ===");
+                    Log::info("Registros en lote final: " . count($materialesKilosLote));
+                    Log::info("Tiempo total: " . round($totalTime, 2) . " segundos");
+                    Log::info("Promedio final: " . round($totalTime / max($procesadas, 1), 4) . " seg/registro");
+                    Log::info("============================");
+                    
+                    break; // Salir si fue exitoso
+                    
+                } catch (Exception $e) {
+                    DB::rollBack();
+                    $attempt++;
+                    
+                    // Reintentar en caso de deadlock
+                    if (($e->getCode() == 1205 || $e->getCode() == 1213) && $attempt < $maxRetries) {
+                        Log::warning("Lock timeout/deadlock en lote final CSV. Intento {$attempt}/{$maxRetries}. Reintentando...");
+                        sleep(2);
+                        continue;
+                    }
+                    
+                    Log::error("Error en inserción de lote final CSV (intento {$attempt}/{$maxRetries}): " . $e->getMessage());
+                    throw $e;
+                }
             }
         }
           Log::info("Procesamiento completado. Filas procesadas: {$procesadas}, Errores: {$errores}");
@@ -821,5 +952,249 @@ class ProveedorController extends Controller
         }
         $data = json_decode($content, true);
         return response()->json($data ?: ['status' => 'unknown']);
+    }
+
+    /**
+     * Procesa una fila de datos directamente sin almacenarla en memoria
+     * OPTIMIZACIÓN CRÍTICA para archivos grandes
+     */
+    private function procesarFilaDirecta($filaData, &$proveedoresCache, &$materialesCache, 
+                                      &$materialesKilosExistenteCache, &$proveedoresLote, 
+                                      &$materialesLote, &$materialesKilosLote, $año, 
+                                      &$procesadas, $batchSize, $progressPath, $importId, 
+                                      $startTime, &$lastLogTime, $totalRows)
+    {
+        try {
+            $filaArray = array_values($filaData);
+            
+            // Extraer datos de la fila
+            $materialCodigo = isset($filaArray[1]) ? trim($filaArray[1]) : '';
+            $proveedorId = isset($filaArray[3]) ? trim($filaArray[3]) : '';
+            $nombreProveedor = isset($filaArray[4]) ? trim($filaArray[4]) : '';
+            $mes = isset($filaArray[11]) ? trim($filaArray[11]) : '';
+            
+            // Fallbacks usando nombres de cabeceras si están disponibles
+            if (empty($proveedorId)) $proveedorId = isset($filaData['proveedor']) ? trim($filaData['proveedor']) : '';
+            if (empty($nombreProveedor)) $nombreProveedor = isset($filaData['nombre_del_proveedor']) ? trim($filaData['nombre_del_proveedor']) : '';
+            if (empty($materialCodigo)) $materialCodigo = isset($filaData['material']) ? trim($filaData['material']) : '';
+            if (empty($mes)) $mes = isset($filaData['mes']) ? trim($filaData['mes']) : '';
+            
+            // Validación crítica
+            if (empty($proveedorId) || empty($materialCodigo) || empty($mes)) {
+                return;
+            }
+            
+            // Obtener resto de campos
+            $jerarquia = isset($filaArray[0]) ? trim($filaArray[0]) : '';
+            $descripcionMaterial = isset($filaArray[2]) ? trim($filaArray[2]) : '';
+            $ce = isset($filaArray[5]) ? trim($filaArray[5]) : '';
+            $ctd_emdev = isset($filaArray[7]) ? trim($filaArray[7]) : '';
+            $umb = isset($filaArray[8]) ? trim($filaArray[8]) : '';
+            $valor_emdev = isset($filaArray[9]) ? trim($filaArray[9]) : '';
+            $factor_conversin = isset($filaArray[12]) ? trim($filaArray[12]) : '';
+            $totalKgRaw = isset($filaArray[13]) ? trim($filaArray[13]) : '';
+            
+            // Conversiones de formato optimizadas
+            $totalKg = floatval(str_replace(',', '.', str_replace('.', '', $totalKgRaw)));
+            $valor_emdev_final = floatval(str_replace(',', '.', str_replace('.', '', $valor_emdev)));
+            $factor_conversin_final = floatval(str_replace(',', '.', str_replace('.', '', $factor_conversin)));
+            $ctd_emdev_final = floatval(str_replace(',', '.', str_replace('.', '', $ctd_emdev)));
+
+            // PERMITIR DUPLICADOS: Procesar TODOS los registros sin verificar existencia
+            
+            // Agregar al lote de proveedores si no existe
+            if (!isset($proveedoresCache[$proveedorId])) {
+                $proveedoresLote[$proveedorId] = [
+                    'id_proveedor' => $proveedorId,
+                    'nombre_proveedor' => $nombreProveedor,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ];
+                $proveedoresCache[$proveedorId] = $nombreProveedor;
+            }
+
+            // Agregar al lote de materiales si no existe
+            if (!isset($materialesCache[$materialCodigo])) {
+                $materialesLote[$materialCodigo] = [
+                    'codigo' => $materialCodigo,
+                    'jerarquia' => $jerarquia,
+                    'descripcion' => $descripcionMaterial,
+                    'proveedor_id' => $proveedorId,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ];
+                $materialesCache[$materialCodigo] = true;
+            }
+
+            // SIEMPRE agregar al lote de MaterialKilo (PERMITIR DUPLICADOS)
+            $materialesKilosLote[] = [
+                'codigo_material' => $materialCodigo,
+                'proveedor_id' => $proveedorId,
+                'mes' => $mes,
+                'año' => $año,
+                'total_kg' => $totalKg,
+                'ctd_emdev' => $ctd_emdev_final,
+                'umb' => $umb,
+                'ce' => $ce,
+                'valor_emdev' => $valor_emdev_final,
+                'factor_conversion' => $factor_conversin_final,
+                'created_at' => now(),
+                'updated_at' => now()
+            ];
+            
+            $procesadas++;
+
+            // INSERCIÓN EN LOTES CADA 3000 REGISTROS
+            if (count($materialesKilosLote) >= $batchSize) {
+                $this->insertarLote($proveedoresLote, $materialesLote, $materialesKilosLote, 
+                                  $procesadas, $totalRows, $startTime, $lastLogTime, 
+                                  $progressPath, $importId);
+            }
+            
+        } catch (Exception $e) {
+            Log::error("Error procesando fila directa: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Inserta un lote de registros con logging optimizado
+     */
+    private function insertarLote(&$proveedoresLote, &$materialesLote, &$materialesKilosLote, 
+                                $procesadas, $totalRows, $startTime, &$lastLogTime, 
+                                $progressPath, $importId)
+    {
+        // Configurar timeout más largo para evitar lock wait timeout
+        DB::statement('SET SESSION innodb_lock_wait_timeout = 300'); // 5 minutos
+        
+        $maxRetries = 3;
+        $attempt = 0;
+        
+        while ($attempt < $maxRetries) {
+            try {
+                DB::beginTransaction();
+            // Insertar proveedores en lote
+            if (!empty($proveedoresLote)) {
+                DB::table('proveedores')->insertOrIgnore(array_values($proveedoresLote));
+                $proveedoresLote = [];
+            }
+
+            // Insertar materiales en lote
+            if (!empty($materialesLote)) {
+                DB::table('materiales')->insertOrIgnore(array_values($materialesLote));
+                $materialesLote = [];
+            }
+
+            // Insertar material kilos en lote (PERMITIR DUPLICADOS)
+            if (!empty($materialesKilosLote)) {
+                DB::table('material_kilos')->insert($materialesKilosLote);
+                $materialesKilosLote = [];
+            }
+
+            DB::commit();
+            
+            // LOGGING DETALLADO CADA 3000 INSERCIONES
+            $currentTime = microtime(true);
+            $elapsedTime = $currentTime - $startTime;
+            $batchTime = $currentTime - $lastLogTime;
+            $avgTimePerRecord = $elapsedTime / max($procesadas, 1);
+            $remainingRecords = $totalRows - $procesadas;
+            $estimatedTimeRemaining = $remainingRecords * $avgTimePerRecord;
+            $percentage = round(($procesadas / max($totalRows, 1)) * 100, 2);
+            
+            Log::info("=== PROGRESO DE IMPORTACIÓN ===");
+            Log::info("Registros procesados: {$procesadas} de {$totalRows} ({$percentage}%)");
+            Log::info("Tiempo transcurrido: " . round($elapsedTime, 2) . " segundos");
+            Log::info("Tiempo del último lote: " . round($batchTime, 2) . " segundos");
+            Log::info("Promedio por registro: " . round($avgTimePerRecord * 1000, 2) . " ms");
+            Log::info("Tiempo estimado restante: " . round($estimatedTimeRemaining / 60, 1) . " minutos");
+            Log::info("Memoria utilizada: " . round(memory_get_usage(true) / 1024 / 1024, 1) . " MB");
+            Log::info("===============================");
+            
+            $lastLogTime = $currentTime;
+            
+            // Actualizar progreso en archivo
+            @file_put_contents($progressPath, json_encode([
+                'status' => 'inserting', 
+                'processed' => $procesadas, 
+                'total' => $totalRows, 
+                'percent' => intval($percentage),
+                'estimated_remaining_minutes' => round($estimatedTimeRemaining / 60, 1),
+                'records_per_second' => round(500 / max($batchTime, 0.001), 1),
+                'id' => $importId
+            ]));
+            
+                DB::commit();
+                break; // Salir del bucle si fue exitoso
+                
+            } catch (Exception $e) {
+                DB::rollBack();
+                $attempt++;
+                
+                // Si es un error de lock timeout o deadlock, reintentar
+                if (($e->getCode() == 1205 || $e->getCode() == 1213) && $attempt < $maxRetries) {
+                    Log::warning("Lock timeout/deadlock detectado. Intento {$attempt}/{$maxRetries}. Reintentando en 2 segundos...");
+                    sleep(2); // Esperar 2 segundos antes de reintentar
+                    continue;
+                }
+                
+                Log::error("Error en inserción de lote (intento {$attempt}/{$maxRetries}): " . $e->getMessage());
+                throw $e;
+            }
+        }
+    }
+
+    /**
+     * Inserta el lote final de registros
+     */
+    private function insertarLoteFinal($proveedoresLote, $materialesLote, $materialesKilosLote, $startTime)
+    {
+        if (!empty($materialesKilosLote) || !empty($proveedoresLote) || !empty($materialesLote)) {
+            // Configurar timeout más largo
+            DB::statement('SET SESSION innodb_lock_wait_timeout = 300');
+            
+            $maxRetries = 3;
+            $attempt = 0;
+            
+            while ($attempt < $maxRetries) {
+                try {
+                    DB::beginTransaction();
+                if (!empty($proveedoresLote)) {
+                    DB::table('proveedores')->insertOrIgnore(array_values($proveedoresLote));
+                }
+                if (!empty($materialesLote)) {
+                    DB::table('materiales')->insertOrIgnore(array_values($materialesLote));
+                }
+                if (!empty($materialesKilosLote)) {
+                    DB::table('material_kilos')->insert($materialesKilosLote);
+                }
+                DB::commit();
+                
+                // Log final
+                $finalTime = microtime(true);
+                $totalTime = $finalTime - $startTime;
+                Log::info("=== LOTE FINAL INSERTADO ===");
+                Log::info("Registros en lote final: " . count($materialesKilosLote));
+                Log::info("Tiempo total de importación: " . round($totalTime, 2) . " segundos");
+                Log::info("============================");
+                
+                    DB::commit();
+                    break; // Salir si fue exitoso
+                    
+                } catch (Exception $e) {
+                    DB::rollBack();
+                    $attempt++;
+                    
+                    // Reintentar en caso de deadlock
+                    if (($e->getCode() == 1205 || $e->getCode() == 1213) && $attempt < $maxRetries) {
+                        Log::warning("Lock timeout/deadlock en lote final. Intento {$attempt}/{$maxRetries}. Reintentando...");
+                        sleep(2);
+                        continue;
+                    }
+                    
+                    Log::error("Error en inserción de lote final (intento {$attempt}/{$maxRetries}): " . $e->getMessage());
+                    throw $e;
+                }
+            }
+        }
     }
 }
