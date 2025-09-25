@@ -211,7 +211,20 @@ class ProveedorController extends Controller
 
             // Detectar si es archivo XLSX o CSV
             $extension = strtolower($archivo->getClientOriginalExtension());
-            Log::info('Procesando archivo: ' . $archivo->getClientOriginalName() . ' - Extensión: ' . $extension);
+            $mimeType = $archivo->getMimeType();
+            
+            // Verificar si es un Excel con extensión incorrecta
+            $excelMimeTypes = [
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/vnd.ms-excel'
+            ];
+            
+            if (in_array($mimeType, $excelMimeTypes) && $extension === 'csv') {
+                Log::warning('Archivo con extensión .csv pero MIME type de Excel detectado. Procesando como Excel.');
+                $extension = 'xlsx'; // Forzar procesamiento como Excel
+            }
+            
+            Log::info('Procesando archivo: ' . $archivo->getClientOriginalName() . ' - Extensión: ' . $extension . ' - MIME: ' . $mimeType);
             
             if ($importType === 'proveedores') {
                 // Importar solo proveedores desde la tercera hoja (LISTADO GENERAL) - columnas F (id) y G (nombre)
@@ -356,9 +369,58 @@ class ProveedorController extends Controller
 
                 $cabeceras = [];
                 $datos = [];
+                
+                // PASO 1: Leer cabeceras de la fila 4 por separado
+                $headerFilter = new ChunkReadFilter(4, 4);
+                $reader->setReadFilter($headerFilter);
+                $reader->setLoadSheetsOnly($sheetToRead);
+                $headerSpreadsheet = $reader->load($path);
+                $headerWs = $headerSpreadsheet->getActiveSheet();
+                
+                for ($col = 'A'; $col <= $highestColumn; $col++) {
+                    $valor = $headerWs->getCell($col . '4')->getCalculatedValue();
+                    if (!empty($valor)) { $cabeceras[] = $valor; }
+                }
+                
+                // Limpiar cabeceras
+                $cabeceras_limpias = [];
+                foreach ($cabeceras as $header) {
+                    $header = trim($header);
+                    $header = strtr($header, [
+                        'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ñ' => 'n',
+                        'Á' => 'a', 'É' => 'e', 'Í' => 'i', 'Ó' => 'o', 'Ú' => 'u', 'Ñ' => 'n'
+                    ]);
+                    $header = strtolower($header);
+                    $header = preg_replace('/\s+/', '_', $header);
+                    $header = preg_replace('/[^a-z0-9_]/', '', $header);
+                    $cabeceras_limpias[] = $header;
+                }
+                $cabeceras = $cabeceras_limpias;
+                
+                // CORRECCIÓN CRÍTICA: Hacer cabeceras únicas para evitar pérdida de datos en array_combine
+                $cabeceras_unicas = [];
+                $contador = [];
+                foreach ($cabeceras as $cabecera) {
+                    if (!isset($contador[$cabecera])) {
+                        $contador[$cabecera] = 0;
+                        $cabeceras_unicas[] = $cabecera;
+                    } else {
+                        $contador[$cabecera]++;
+                        $cabeceras_unicas[] = $cabecera . '_' . $contador[$cabecera];
+                    }
+                }
+                $cabeceras = $cabeceras_unicas;
+                
+                $headerSpreadsheet->disconnectWorksheets();
+                unset($headerSpreadsheet);
+                
+                Log::info("Cabeceras leídas de fila 4: " . json_encode($cabeceras));
+                Log::info("Cabeceras ahora son únicas - Longitud: " . count($cabeceras));
+                
+                // PASO 2: Leer datos desde la fila 5
                 $chunkSize = 500;
-                // actualizar total para progreso general (fila 5 en adelante)
                 @file_put_contents($progressPath, json_encode(['status' => 'reading_xlsx', 'processed' => 0, 'total' => max(0, $highestRow - 4), 'percent' => 0, 'id' => $importId]));
+                
                 for ($start = 5; $start <= $highestRow; $start += $chunkSize) {
                     $end = min($start + $chunkSize - 1, $highestRow);
                     $chunkFilter = new ChunkReadFilter($start, $end);
@@ -367,29 +429,7 @@ class ProveedorController extends Controller
                     $spreadsheetChunk = $reader->load($path);
                     $ws = $spreadsheetChunk->getActiveSheet();
 
-                    // Si es el primer chunk, leer cabeceras en la fila 4
-                    if ($start <= 5) {
-                        for ($col = 'A'; $col <= $highestColumn; $col++) {
-                            $valor = $ws->getCell($col . '4')->getCalculatedValue();
-                            if (!empty($valor)) { $cabeceras[] = $valor; }
-                        }
-                        // limpiar cabeceras
-                        $cabeceras_limpias = [];
-                        foreach ($cabeceras as $header) {
-                            $header = trim($header);
-                            $header = strtr($header, [
-                                'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ñ' => 'n',
-                                'Á' => 'a', 'É' => 'e', 'Í' => 'i', 'Ó' => 'o', 'Ú' => 'u', 'Ñ' => 'n'
-                            ]);
-                            $header = strtolower($header);
-                            $header = preg_replace('/\s+/', '_', $header);
-                            $header = preg_replace('/[^a-z0-9_]/', '', $header);
-                            $cabeceras_limpias[] = $header;
-                        }
-                        $cabeceras = $cabeceras_limpias;
-                    }
-
-                    // Leer filas del chunk
+                    // Leer filas del chunk (ya estamos desde fila 5 en adelante)
                     for ($row = $start; $row <= $end; $row++) {
                         $fila = [];
                         $filaVacia = true;
@@ -399,8 +439,19 @@ class ProveedorController extends Controller
                             if (!empty($valor)) { $filaVacia = false; }
                             $fila[] = $valor;
                         }
-                        if (!$filaVacia && count($fila) === count($cabeceras)) {
-                            $datos[] = array_combine($cabeceras, $fila);
+                        
+                        if (!$filaVacia) {
+                            // Ajustar el tamaño del array si es necesario
+                            if (count($fila) < count($cabeceras)) {
+                                $fila = array_pad($fila, count($cabeceras), '');
+                            } elseif (count($fila) > count($cabeceras)) {
+                                $fila = array_slice($fila, 0, count($cabeceras));
+                            }
+                            
+                            if (count($cabeceras) > 0) {
+                                $datos[] = array_combine($cabeceras, $fila);
+                                // Datos agregados silenciosamente para mejor rendimiento
+                            }
                         }
                     }
 
@@ -421,46 +472,79 @@ class ProveedorController extends Controller
                 return back()->withErrors(array('archivo' => 'Error al procesar el archivo XLSX: ' . $e->getMessage()));
             }        } else {
             // Procesar archivo CSV (lógica original)
-            $delimitadores = [',', ';', "\t"];
-            $delimitadorDetectado = null;
-            
-            // 1. Leer la línea 4 para detectar el delimitador
-            $lineas = [];
-            $handle = fopen($path, 'r');
-            if ($handle) {
+            try {
+                Log::info('Iniciando procesamiento de archivo CSV');
+                $delimitadores = [',', ';', "\t"];
+                $delimitadorDetectado = null;
+                
+                // 1. Leer la línea 4 para detectar el delimitador
+                $lineas = [];
+                $handle = fopen($path, 'r');
+                if (!$handle) {
+                    throw new Exception("No se pudo abrir el archivo CSV: " . $path);
+                }
+                
+                Log::info('Leyendo primeras 5 líneas para detectar delimitador');
                 for ($i = 0; $i < 5; $i++) {
                     $linea = fgets($handle);
                     if ($linea === false) break;
                     $lineas[] = $linea;
+                    Log::info("Línea " . ($i + 1) . ": " . substr($linea, 0, 100) . "...");
                 }
                 fclose($handle);
-            }
 
-            $linea4 = isset($lineas[3]) ? $lineas[3] : '';
+                $linea4 = isset($lineas[3]) ? $lineas[3] : '';
+                Log::info("Línea 4 para detección de delimitador: " . substr($linea4, 0, 200));
 
-            // Detectar delimitador con más ocurrencias en la línea 4
-            $maxCount = 0;
-            foreach ($delimitadores as $delim) {
-                $count = substr_count($linea4, $delim);
-                if ($count > $maxCount) {
-                    $maxCount = $count;
-                    $delimitadorDetectado = $delim;
+                // Detectar delimitador con más ocurrencias en la línea 4
+                $maxCount = 0;
+                foreach ($delimitadores as $delim) {
+                    $count = substr_count($linea4, $delim);
+                    Log::info("Delimitador '" . addslashes($delim) . "': {$count} ocurrencias");
+                    if ($count > $maxCount) {
+                        $maxCount = $count;
+                        $delimitadorDetectado = $delim;
+                    }
                 }
-            }            if (!$delimitadorDetectado) {
-                return back()->withErrors(array('archivo' => 'No se pudo detectar el delimitador del archivo.'));
+                
+                Log::info("Delimitador detectado: '" . addslashes($delimitadorDetectado) . "' con {$maxCount} ocurrencias");
+
+                if (!$delimitadorDetectado) {
+                    Log::error('No se pudo detectar el delimitador del archivo CSV');
+                    return back()->withErrors(array('archivo' => 'No se pudo detectar el delimitador del archivo CSV.'));
+                }
+            } catch (Exception $e) {
+                Log::error('Error en procesamiento inicial de CSV: ' . $e->getMessage());
+                return back()->withErrors(array('archivo' => 'Error al procesar archivo CSV: ' . $e->getMessage()));
             }
 
             // 2. Leer el archivo CSV con el delimitador detectado
-            if (($handle = fopen($path, 'r')) !== false) {
+            try {
+                Log::info('Abriendo archivo para lectura completa con delimitador: ' . addslashes($delimitadorDetectado));
+                $handle = fopen($path, 'r');
+                if (!$handle) {
+                    throw new Exception("No se pudo abrir el archivo para lectura completa");
+                }
+                
                 $fila = 0;
+                $totalFilas = 0;
                 while (($linea = fgetcsv($handle, 1000, $delimitadorDetectado)) !== false) {
                     $fila++;
+                    $totalFilas++;
 
                     // Saltar filas vacías
                     if (empty(array_filter($linea))) {
+                        Log::info("Fila {$fila} vacía, saltando");
                         continue;
-                    }                    if ($fila == 4) {
+                    }
+                    
+                    if ($fila <= 5) {
+                        Log::info("Fila {$fila} - primeras 5 columnas: " . json_encode(array_slice($linea, 0, 5)));
+                    }
+
+                    if ($fila == 4) {
                         $cabeceras = $linea;
+                        Log::info("Cabeceras encontradas en fila 4: " . json_encode($cabeceras));
                         // Limpiar cabeceras para evitar problemas con caracteres especiales
                         $cabeceras_limpias = array();
                         foreach ($cabeceras as $header) {
@@ -476,6 +560,12 @@ class ProveedorController extends Controller
                             $cabeceras_limpias[] = $header;
                         }
                         $cabeceras = $cabeceras_limpias;
+                        
+                        // Debug: mostrar las cabeceras detectadas
+                        Log::info("Cabeceras detectadas en fila 4:");
+                        foreach ($cabeceras as $index => $header) {
+                            Log::info("  Posición {$index}: '{$header}'");
+                        }
 
                         continue;
                     }                    // Leer datos solo si ya tenemos cabeceras y las columnas coinciden
@@ -495,47 +585,104 @@ class ProveedorController extends Controller
                     }
                 }
                 fclose($handle);
+                Log::info("Archivo CSV procesado. Total filas leídas: {$totalFilas}, Filas de datos: " . count($datos));
+                
+            } catch (Exception $e) {
+                Log::error('Error leyendo archivo CSV: ' . $e->getMessage());
+                return back()->withErrors(array('archivo' => 'Error al leer archivo CSV: ' . $e->getMessage()));
             }
-        }        // 3. Procesar e insertar los datos en la base de datos
+        }
+
+        // 3. Procesar e insertar los datos en la base de datos
         Log::info('Iniciando procesamiento de ' . count($datos) . ' filas de datos');
         
         $procesadas = 0;
         $errores = 0;
           foreach ($datos as $index => $fila) {
-            try {                $proveedorId = isset($fila['proveedor']) ? $fila['proveedor'] : '';
-                $nombreProveedor = isset($fila['nombre_del_proveedor']) ? $fila['nombre_del_proveedor'] : '';
-                $materialCodigo = isset($fila['material']) ? $fila['material'] : '';
-                $jerarquia = isset($fila['jerarqua_product']) ? $fila['jerarqua_product'] : '';
-                $descripcionMaterial = isset($fila['descripcin_de_material']) ? $fila['descripcin_de_material'] : '';
+            try {
+                // Obtener datos usando posiciones directas del array para mayor confiabilidad
+                $filaArray = array_values($fila);
                 
-                // Buscar el mes de manera más segura
-                $mes = '';
-                if (isset($cabeceras[11]) && isset($fila[$cabeceras[11]])) {
-                    $mes = $fila[$cabeceras[11]];
-                } else {
-                    // Buscar por nombres alternativos de mes
-                    foreach ($fila as $key => $value) {
-                        if (strpos(strtolower($key), 'mes') !== false) {
-                            $mes = $value;
-                            break;
-                        }
-                    }
+                // Mapear columnas por posición según la estructura proporcionada
+                $jerarquia = isset($filaArray[0]) ? trim($filaArray[0]) : ''; // Columna A
+                $materialCodigo = isset($filaArray[1]) ? trim($filaArray[1]) : ''; // Columna B
+                $descripcionMaterial = isset($filaArray[2]) ? trim($filaArray[2]) : ''; // Columna C
+                $proveedorId = isset($filaArray[3]) ? trim($filaArray[3]) : ''; // Columna D
+                $nombreProveedor = isset($filaArray[4]) ? trim($filaArray[4]) : ''; // Columna E
+                
+                // CORREGIDO: Obtener el mes de la posición 11 (columna L - segundo "mes")
+                $mes = isset($filaArray[11]) ? trim($filaArray[11]) : ''; // Posición 11 - MES CORRECTO
+                
+                // Fallback: usar nombres de cabeceras si las posiciones fallan
+                if (empty($proveedorId)) {
+                    $proveedorId = isset($fila['proveedor']) ? trim($fila['proveedor']) : '';
                 }
-                  $totalKgRaw = isset($fila['total_kg']) ? $fila['total_kg'] : '';
-                $ctd_emdev = isset($fila['ctd_emdev']) ? $fila['ctd_emdev'] : '';
-                $umb = isset($fila['umb']) ? $fila['umb'] : '';
-                $ce = isset($fila['ce']) ? $fila['ce'] : '';
-                $valor_emdev = isset($fila['valor_emdev']) ? $fila['valor_emdev'] : '';
-                $factor_conversin = isset($fila['factor_conversin']) ? $fila['factor_conversin'] : '';
+                if (empty($nombreProveedor)) {
+                    $nombreProveedor = isset($fila['nombre_del_proveedor']) ? trim($fila['nombre_del_proveedor']) : '';
+                }
+                if (empty($materialCodigo)) {
+                    $materialCodigo = isset($fila['material']) ? trim($fila['material']) : '';
+                }
+                if (empty($jerarquia)) {
+                    $jerarquia = isset($fila['jerarqua_product']) ? trim($fila['jerarqua_product']) : '';
+                }
+                if (empty($descripcionMaterial)) {
+                    $descripcionMaterial = isset($fila['descripcin_de_material']) ? trim($fila['descripcin_de_material']) : '';
+                }
+                
+                // Debug eliminado para mejor rendimiento en archivos grandes
+                
+                // Fallback: buscar por nombre de cabecera si la posición directa no funciona
+                if (empty($mes) && isset($cabeceras[11]) && isset($fila[$cabeceras[11]])) {
+                    $mes = trim($fila[$cabeceras[11]]);
+                }
+                
+                // Log básico de procesamiento
+                // Procesando fila silenciosamente
+                
+                // Obtener otros campos por posición
+                $ce = isset($filaArray[5]) ? trim($filaArray[5]) : ''; // Columna F
+                $ctd_emdev = isset($filaArray[7]) ? trim($filaArray[7]) : ''; // Columna H
+                $umb = isset($filaArray[8]) ? trim($filaArray[8]) : ''; // Columna I
+                $valor_emdev = isset($filaArray[9]) ? trim($filaArray[9]) : ''; // Columna J
+                $factor_conversin = isset($filaArray[12]) ? trim($filaArray[12]) : ''; // Columna M
+                $totalKgRaw = isset($filaArray[13]) ? trim($filaArray[13]) : ''; // Posición 13 - Columna N (Total kg)
+                
+                // Fallbacks usando nombres de cabeceras
+                if (empty($totalKgRaw)) {
+                    $totalKgRaw = isset($fila['total_kg']) ? trim($fila['total_kg']) : '';
+                }
+                if (empty($ctd_emdev)) {
+                    $ctd_emdev = isset($fila['ctd_emdev']) ? trim($fila['ctd_emdev']) : '';
+                }
+                if (empty($umb)) {
+                    $umb = isset($fila['umb']) ? trim($fila['umb']) : '';
+                }
+                if (empty($ce)) {
+                    $ce = isset($fila['ce']) ? trim($fila['ce']) : '';
+                }
+                if (empty($valor_emdev)) {
+                    $valor_emdev = isset($fila['valor_emdev']) ? trim($fila['valor_emdev']) : '';
+                }
+                if (empty($factor_conversin)) {
+                    $factor_conversin = isset($fila['factor_conversin']) ? trim($fila['factor_conversin']) : '';
+                }
 
                 // Convertir total_kg a float (soportar coma decimal y punto miles)
                 $totalKg = floatval(str_replace(',', '.', str_replace('.', '', $totalKgRaw)));
                 
+                // Validación crítica con logging detallado
                 if (empty($proveedorId) || empty($materialCodigo)) {
-                    // Saltar filas sin info crítica
-                    Log::warning("Fila {$index} saltada: falta proveedor o material");
+                  //  Log::warning("FILA {$index} SALTADA - Proveedor: '{$proveedorId}' | Material: '{$materialCodigo}' - FALTAN DATOS CRÍTICOS");
                     continue;
                 }
+                
+                if (empty($mes)) {
+                 //   Log::warning("FILA {$index} SALTADA - Mes vacío: '{$mes}'");
+                    continue;
+                }
+                
+                // Fila válida - procesando silenciosamente
 
                 // Buscar o crear proveedor
                 $proveedor = Proveedor::firstOrCreate(
@@ -552,8 +699,10 @@ class ProveedorController extends Controller
                         'proveedor_id' => $proveedor->id_proveedor,
                     ]
                 );
+               // Log::info("Material procesado: Código={$material->codigo}");
 
                 $año = date('Y');
+              //  Log::info("Preparando para MaterialKilo: material={$materialCodigo}, proveedor={$proveedor->id_proveedor}, mes={$mes}, año={$año}");
 
                 //limpiar valores decimales
                 $valor_emdev_decimales = str_replace('.', '', $valor_emdev); 
@@ -573,8 +722,15 @@ class ProveedorController extends Controller
                 $ctd_emdev_convertido = str_replace(',', '.', $ctd_emdev_decimales);
                 $ctd_emdev = (float) $ctd_emdev_convertido;
 
-                MaterialKilo::Create(
-                    [
+                // Verificar si ya existe un registro con el mismo codigo_material, mes y año
+                $existingMaterialKilo = MaterialKilo::where('codigo_material', $materialCodigo)
+                    ->where('mes', $mes)
+                    ->where('año', $año)
+                    ->first();
+
+                // Solo crear si no existe un registro con el mismo material, mes y año
+                if (!$existingMaterialKilo) {
+                    MaterialKilo::Create([
                         'codigo_material' => $materialCodigo,
                         'proveedor_id' => $proveedor->id_proveedor,
                         'mes' => $mes,
@@ -585,8 +741,11 @@ class ProveedorController extends Controller
                         'ce' => $ce,
                         'valor_emdev' => $valor_emdev_final,
                         'factor_conversion' => $factor_conversin,
-                    ]
-                );
+                    ]);
+                //    Log::info("MaterialKilo creado: material={$materialCodigo}, mes={$mes}, año={$año}");
+                } else {
+                  //  Log::info("MaterialKilo ya existe: material={$materialCodigo}, mes={$mes}, año={$año} - Omitido");
+                }
                 
                 $procesadas++;
                 // actualizar progreso de inserción en disco
@@ -595,8 +754,8 @@ class ProveedorController extends Controller
                 
             } catch (Exception $e) {
                 $errores++;
-                Log::error("Error procesando fila {$index}: " . $e->getMessage());
-                Log::error("Datos de la fila: " . json_encode($fila));
+              //  Log::error("Error procesando fila {$index}: " . $e->getMessage());
+              //  Log::error("Datos de la fila: " . json_encode($fila));
             }
         }
           Log::info("Procesamiento completado. Filas procesadas: {$procesadas}, Errores: {$errores}");
