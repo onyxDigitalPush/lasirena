@@ -45,7 +45,8 @@ class IncidenciaProveedor extends Model
         'fecha_reclamacion_respuesta1',
         'fecha_reclamacion_respuesta2',
         'fecha_decision_destino_producto',
-        'tipo_incidencia'
+        'tipo_incidencia',
+        'archivos'
     ];
 
     protected $dates = [
@@ -61,6 +62,7 @@ class IncidenciaProveedor extends Model
     protected $casts = [
         'cantidad_devuelta' => 'decimal:2',
         'cantidad_afectada' => 'decimal:2',
+        'archivos' => 'array',
         'año' => 'integer',
         'mes' => 'integer'
     ];

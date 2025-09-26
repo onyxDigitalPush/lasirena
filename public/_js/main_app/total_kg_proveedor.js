@@ -1155,4 +1155,76 @@ $(document).ready(function () {
       $("#producto").val("");
     }
   });
+
+  // Funcionalidad para manejo de archivos en incidencias
+  $("#archivos_incidencia").on("change", function () {
+    mostrarArchivosSeleccionados(this, "lista_archivos_incidencia");
+  });
+
+  // Funcionalidad para manejo de archivos en devoluciones
+  $("#archivos_devolucion").on("change", function () {
+    mostrarArchivosSeleccionados(this, "lista_archivos_devolucion");
+  });
+
+  // Función para mostrar archivos seleccionados
+  function mostrarArchivosSeleccionados(inputElement, listaElementId) {
+    var archivos = inputElement.files;
+    var listaContainer = document.getElementById(listaElementId);
+    
+    if (archivos.length === 0) {
+      listaContainer.innerHTML = "";
+      return;
+    }
+
+    var html = '<div class="alert alert-info"><strong>Archivos seleccionados:</strong><ul class="mb-0 mt-2">';
+    
+    for (var i = 0; i < archivos.length; i++) {
+      var archivo = archivos[i];
+      var tamaño = (archivo.size / (1024 * 1024)).toFixed(2); // Convertir a MB
+      var iconoTipo = obtenerIconoArchivo(archivo.name);
+      
+      html += '<li class="mb-1">';
+      html += '<i class="' + iconoTipo + ' mr-2"></i>';
+      html += '<strong>' + archivo.name + '</strong> ';
+      html += '<span class="badge badge-secondary">' + tamaño + ' MB</span>';
+      html += '</li>';
+    }
+    
+    html += '</ul></div>';
+    listaContainer.innerHTML = html;
+  }
+
+  // Función para obtener el icono según el tipo de archivo
+  function obtenerIconoArchivo(nombreArchivo) {
+    var extension = nombreArchivo.split('.').pop().toLowerCase();
+    
+    switch (extension) {
+      case 'pdf':
+        return 'fa fa-file-pdf-o text-danger';
+      case 'doc':
+      case 'docx':
+        return 'fa fa-file-word-o text-primary';
+      case 'xls':
+      case 'xlsx':
+        return 'fa fa-file-excel-o text-success';
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+        return 'fa fa-file-image-o text-info';
+      default:
+        return 'fa fa-file-o text-muted';
+    }
+  }
+
+  // Limpiar archivos cuando se resetean los formularios
+  $("#modalIncidencias").on("hidden.bs.modal", function () {
+    document.getElementById("formIncidencia").reset();
+    document.getElementById("lista_archivos_incidencia").innerHTML = "";
+  });
+
+  $("#modalDevoluciones").on("hidden.bs.modal", function () {
+    document.getElementById("formDevolucion").reset();
+    document.getElementById("lista_archivos_devolucion").innerHTML = "";
+  });
 });

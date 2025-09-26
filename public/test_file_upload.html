@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de Subida de Archivos</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <h2>Prueba de Subida de Archivos para Incidencias</h2>
+    
+    <form action="/material_kilo/guardar_incidencia" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+        
+        <!-- Campos básicos requeridos -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="id_proveedor">Proveedor ID *</label>
+                    <input type="number" class="form-control" id="id_proveedor" name="id_proveedor" value="1" required>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="año">Año *</label>
+                    <input type="number" class="form-control" id="año" name="año" value="2024" required>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="mes">Mes *</label>
+                    <input type="number" class="form-control" id="mes" name="mes" value="9" min="1" max="12" required>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="descripcion_incidencia">Descripción de la Incidencia</label>
+            <textarea class="form-control" id="descripcion_incidencia" name="descripcion_incidencia" rows="3">Prueba de incidencia con archivos</textarea>
+        </div>
+        
+        <!-- Campo de subida de archivos -->
+        <div class="form-group">
+            <label for="archivos">Subir Archivos</label>
+            <input type="file" class="form-control-file" id="archivos" name="archivos[]" multiple>
+            <small class="form-text text-muted">Selecciona uno o varios archivos (máximo 10MB cada uno)</small>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Guardar Incidencia</button>
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -800,7 +800,7 @@
             <thead>
                 <tr>
                     <th class="text-center">Num Tienda</th>
-                    <th class="text-center">Nombre Tienda</th>
+                   <th class="text-center">Nombre Tienda</th>
                     <th class="text-center">Tipo Analítica</th>
                     <th class="text-center">Fecha Teorica</th>
                     <th class="text-center">Estado</th>

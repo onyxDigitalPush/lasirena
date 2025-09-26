@@ -798,7 +798,8 @@ class MaterialKiloController extends Controller
                 'comentarios' => 'nullable|string',
                 'fecha_reclamacion_respuesta1' => 'nullable|date',
                 'fecha_reclamacion_respuesta2' => 'nullable|date',
-                'fecha_decision_destino_producto' => 'nullable|date'
+                'fecha_decision_destino_producto' => 'nullable|date',
+                'archivos.*' => 'nullable|file|max:10240', // Máximo 10MB por archivo
             ]);
 
             // Obtener el nombre del proveedor
@@ -826,6 +827,39 @@ class MaterialKiloController extends Controller
             if ($request->fecha_envio_proveedor && !$request->fecha_respuesta_proveedor) {
                 $fecha_envio = \Carbon\Carbon::parse($request->fecha_envio_proveedor);
                 $dias_sin_respuesta_informe = $fecha_envio->diffInDays(\Carbon\Carbon::now());
+            }
+
+            // Procesar archivos subidos
+            $archivosData = [];
+            if ($request->hasFile('archivos')) {
+                $archivos = $request->file('archivos');
+                foreach ($archivos as $archivo) {
+                    if ($archivo->isValid()) {
+                        // Obtener información del archivo ANTES de moverlo
+                        $nombreOriginal = $archivo->getClientOriginalName();
+                        $extension = $archivo->getClientOriginalExtension();
+                        $tamanoArchivo = $archivo->getSize(); // Obtener tamaño antes del move
+                        $nombreUnico = time() . '_' . uniqid() . '.' . $extension;
+                        
+                        // Crear directorio si no existe
+                        $rutaDirectorio = storage_path('app/public/incidencias');
+                        if (!file_exists($rutaDirectorio)) {
+                            mkdir($rutaDirectorio, 0755, true);
+                        }
+                        
+                        // Mover archivo
+                        $archivo->move($rutaDirectorio, $nombreUnico);
+                        
+                        // Guardar información del archivo
+                        $archivosData[] = [
+                            'nombre' => $nombreUnico,
+                            'nombre_original' => $nombreOriginal,
+                            'ruta' => asset('storage/incidencias/' . $nombreUnico),
+                            'tamano' => $tamanoArchivo,
+                            'fecha_subida' => now()->format('Y-m-d H:i:s')
+                        ];
+                    }
+                }
             }
 
             // Crear la incidencia
@@ -863,7 +897,8 @@ class MaterialKiloController extends Controller
                 'fecha_reclamacion_respuesta1' => $request->fecha_reclamacion_respuesta1,
                 'fecha_reclamacion_respuesta2' => $request->fecha_reclamacion_respuesta2,
                 'fecha_decision_destino_producto' => $request->fecha_decision_destino_producto,
-                'tipo_incidencia' => $request->tipo_incidencia ?? ''
+                'tipo_incidencia' => $request->tipo_incidencia ?? '',
+                'archivos' => $archivosData
             ]);
 
             // Actualizar las métricas automáticamente
@@ -1288,6 +1323,7 @@ class MaterialKiloController extends Controller
             'fecha_respuesta_proveedor' => 'nullable|date',
             'informe_respuesta' => 'nullable|string',
             'comentarios' => 'nullable|string',
+            'archivos.*' => 'nullable|file|max:10240', // Máximo 10MB por archivo
         ]);
 
         try {
@@ -1316,6 +1352,39 @@ class MaterialKiloController extends Controller
             if ($request->fecha_envio_proveedor && !$request->fecha_respuesta_proveedor) {
                 $fecha_envio = \Carbon\Carbon::parse($request->fecha_envio_proveedor);
                 $dias_sin_respuesta_informe = $fecha_envio->diffInDays(\Carbon\Carbon::now());
+            }
+
+            // Procesar archivos subidos (mantener archivos existentes)
+            $archivosExistentes = $incidencia->archivos ?? [];
+            if ($request->hasFile('archivos')) {
+                $archivos = $request->file('archivos');
+                foreach ($archivos as $archivo) {
+                    if ($archivo->isValid()) {
+                        // Obtener información del archivo ANTES de moverlo
+                        $nombreOriginal = $archivo->getClientOriginalName();
+                        $extension = $archivo->getClientOriginalExtension();
+                        $tamanoArchivo = $archivo->getSize(); // Obtener tamaño antes del move
+                        $nombreUnico = time() . '_' . uniqid() . '.' . $extension;
+                        
+                        // Crear directorio si no existe
+                        $rutaDirectorio = storage_path('app/public/incidencias');
+                        if (!file_exists($rutaDirectorio)) {
+                            mkdir($rutaDirectorio, 0755, true);
+                        }
+                        
+                        // Mover archivo
+                        $archivo->move($rutaDirectorio, $nombreUnico);
+                        
+                        // Agregar nuevo archivo a la lista existente
+                        $archivosExistentes[] = [
+                            'nombre' => $nombreUnico,
+                            'nombre_original' => $nombreOriginal,
+                            'ruta' => asset('storage/incidencias/' . $nombreUnico),
+                            'tamano' => $tamanoArchivo,
+                            'fecha_subida' => now()->format('Y-m-d H:i:s')
+                        ];
+                    }
+                }
             }
 
             // Actualizar la incidencia
@@ -1355,7 +1424,8 @@ class MaterialKiloController extends Controller
                 'comentarios' => $request->comentarios,
                 'dias_respuesta_proveedor' => $dias_respuesta_proveedor,
                 'dias_sin_respuesta_informe' => $dias_sin_respuesta_informe,
-                'tipo_incidencia' => $request->tipo_incidencia ?? ''
+                'tipo_incidencia' => $request->tipo_incidencia ?? '',
+                'archivos' => $archivosExistentes
             ]);
 
             // Actualizar las métricas automáticamente
@@ -1412,37 +1482,38 @@ class MaterialKiloController extends Controller
     public function guardarDevolucionCompleta(Request $request)
     {
         
-        // $request->validate([
-        //     'codigo_producto' => 'required|string|max:255',
-        //     'descripcion_producto' => 'nullable|string|max:255',
-        //     'año' => 'required|integer',
-        //     'mes' => 'required|integer|between:1,12',
-        //     'fecha_inicio' => 'nullable|date',
-        //     'fecha_fin' => 'nullable|date',
-        //     'fecha_reclamacion' => 'nullable|date',
-        //     'fecha_reclamacion_respuesta' => 'nullable|date',
-        //     'np' => 'nullable|string|max:255',
-        //     'no_queja' => 'nullable|string|max:255',
-        //     'origen' => 'nullable|string|max:255',
-        //     'nombre_tienda' => 'nullable|string|max:255',
-        //     'clasificacion_incidencia' => 'nullable|string|max:255',
-        //     'tipo_reclamacion' => 'nullable|string|max:255',
-        //     'top100fy2' => 'nullable|string|max:255',
-        //     'descripcion_motivo' => 'nullable|string',
-        //     'descripcion_queja' => 'nullable|string',
-        //     'especificacion_motivo_reclamacion_leve' => 'nullable|string',
-        //     'especificacion_motivo_reclamacion_grave' => 'nullable|string',
-        //     'lote_sirena' => 'nullable|string|max:255',
-        //     'lote_proveedor' => 'nullable|string|max:255',
-        //     'recuperamos_objeto_extraño' => 'nullable|in:Si,No',
-        //     'informe_a_proveedor' => 'nullable|in:Si,No',
-        //     'fecha_envio_proveedor' => 'nullable|date',
-        //     'fecha_respuesta_proveedor' => 'nullable|date',
-        //     'informe' => 'nullable|string',
-        //     'informe_respuesta' => 'nullable|string',
-        //     'abierto' => 'nullable|in:Si,No',
-        //     'comentarios' => 'nullable|string',
-        // ]);
+        $request->validate([
+            'codigo_producto' => 'required|string|max:255',
+            'descripcion_producto' => 'nullable|string|max:255',
+            'año' => 'required|integer',
+            'mes' => 'required|integer|between:1,12',
+            'fecha_inicio' => 'nullable|date',
+            'fecha_fin' => 'nullable|date',
+            'fecha_reclamacion' => 'nullable|date',
+            'fecha_reclamacion_respuesta' => 'nullable|date',
+            'np' => 'nullable|string|max:255',
+            'no_queja' => 'nullable|string|max:255',
+            'origen' => 'nullable|string|max:255',
+            'nombre_tienda' => 'nullable|string|max:255',
+            'clasificacion_incidencia' => 'nullable|string|max:255',
+            'tipo_reclamacion' => 'nullable|string|max:255',
+            'top100fy2' => 'nullable|string|max:255',
+            'descripcion_motivo' => 'nullable|string',
+            'descripcion_queja' => 'nullable|string',
+            'especificacion_motivo_reclamacion_leve' => 'nullable|string',
+            'especificacion_motivo_reclamacion_grave' => 'nullable|string',
+            'lote_sirena' => 'nullable|string|max:255',
+            'lote_proveedor' => 'nullable|string|max:255',
+            'recuperamos_objeto_extraño' => 'nullable|in:Si,No',
+            'informe_a_proveedor' => 'nullable|in:Si,No',
+            'fecha_envio_proveedor' => 'nullable|date',
+            'fecha_respuesta_proveedor' => 'nullable|date',
+            'informe' => 'nullable|string',
+            'informe_respuesta' => 'nullable|string',
+            'abierto' => 'nullable|in:Si,No',
+            'comentarios' => 'nullable|string',
+            'archivos.*' => 'nullable|file|max:10240', // Máximo 10MB por archivo
+        ]);
 
         try {
             // Obtener el nombre del proveedor
@@ -1456,6 +1527,39 @@ class MaterialKiloController extends Controller
                     return response()->json(['success' => false, 'message' => 'Proveedor no encontrado'], 404);
                 }
                 return redirect()->back()->with('error', 'Proveedor no encontrado');
+            }
+
+            // Procesar archivos subidos
+            $archivosData = [];
+            if ($request->hasFile('archivos')) {
+                $archivos = $request->file('archivos');
+                foreach ($archivos as $archivo) {
+                    if ($archivo->isValid()) {
+                        // Obtener información del archivo ANTES de moverlo
+                        $nombreOriginal = $archivo->getClientOriginalName();
+                        $extension = $archivo->getClientOriginalExtension();
+                        $tamanoArchivo = $archivo->getSize(); // Obtener tamaño antes del move
+                        $nombreUnico = time() . '_' . uniqid() . '.' . $extension;
+                        
+                        // Crear directorio si no existe
+                        $rutaDirectorio = storage_path('app/public/devoluciones');
+                        if (!file_exists($rutaDirectorio)) {
+                            mkdir($rutaDirectorio, 0755, true);
+                        }
+                        
+                        // Mover archivo
+                        $archivo->move($rutaDirectorio, $nombreUnico);
+                        
+                        // Guardar información del archivo
+                        $archivosData[] = [
+                            'nombre' => $nombreUnico,
+                            'nombre_original' => $nombreOriginal,
+                            'ruta' => asset('storage/devoluciones/' . $nombreUnico),
+                            'tamano' => $tamanoArchivo,
+                            'fecha_subida' => now()->format('Y-m-d H:i:s')
+                        ];
+                    }
+                }
             }
 
             // Crear la devolución
@@ -1492,6 +1596,7 @@ class MaterialKiloController extends Controller
                 'informe_respuesta' => $request->informe_respuesta,
                 'abierto' => $request->abierto ?? 'Si',
                 'comentarios' => $request->comentarios,
+                'archivos' => $archivosData
             ]);
 
 
@@ -1544,6 +1649,7 @@ class MaterialKiloController extends Controller
             'informe_respuesta' => 'nullable|string',
             'abierto' => 'nullable|in:Si,No',
             'comentarios' => 'nullable|string',
+            'archivos.*' => 'nullable|file|max:10240', // Máximo 10MB por archivo
         ]);
 
         try {
@@ -1557,6 +1663,39 @@ class MaterialKiloController extends Controller
 
             if (!$proveedor) {
                 return redirect()->back()->with('error', 'Proveedor no encontrado');
+            }
+
+            // Procesar archivos subidos (mantener archivos existentes)
+            $archivosExistentes = $devolucion->archivos ?? [];
+            if ($request->hasFile('archivos')) {
+                $archivos = $request->file('archivos');
+                foreach ($archivos as $archivo) {
+                    if ($archivo->isValid()) {
+                        // Obtener información del archivo ANTES de moverlo
+                        $nombreOriginal = $archivo->getClientOriginalName();
+                        $extension = $archivo->getClientOriginalExtension();
+                        $tamanoArchivo = $archivo->getSize(); // Obtener tamaño antes del move
+                        $nombreUnico = time() . '_' . uniqid() . '.' . $extension;
+                        
+                        // Crear directorio si no existe
+                        $rutaDirectorio = storage_path('app/public/devoluciones');
+                        if (!file_exists($rutaDirectorio)) {
+                            mkdir($rutaDirectorio, 0755, true);
+                        }
+                        
+                        // Mover archivo
+                        $archivo->move($rutaDirectorio, $nombreUnico);
+                        
+                        // Agregar nuevo archivo a la lista existente
+                        $archivosExistentes[] = [
+                            'nombre' => $nombreUnico,
+                            'nombre_original' => $nombreOriginal,
+                            'ruta' => asset('storage/devoluciones/' . $nombreUnico),
+                            'tamano' => $tamanoArchivo,
+                            'fecha_subida' => now()->format('Y-m-d H:i:s')
+                        ];
+                    }
+                }
             }
 
             // Actualizar la devolución
@@ -1593,6 +1732,7 @@ class MaterialKiloController extends Controller
                 'informe_respuesta' => $request->informe_respuesta,
                 'abierto' => $request->abierto ?? 'Si',
                 'comentarios' => $request->comentarios,
+                'archivos' => $archivosExistentes
             ]);
 
             return redirect()->route('material_kilo.historial_incidencias_devoluciones')->with('success', 'Devolución actualizada correctamente');
@@ -1637,5 +1777,187 @@ class MaterialKiloController extends Controller
             ];
         }
         return response()->json($result);
+    }
+
+    /**
+     * Descargar archivo de incidencia
+     */
+    public function descargarArchivoIncidencia($incidenciaId, $nombreArchivo)
+    {
+        // Limpiar cualquier salida previa
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        $incidencia = IncidenciaProveedor::find($incidenciaId);
+        if (!$incidencia) {
+            abort(404, 'Incidencia no encontrada');
+        }
+
+        $rutaArchivo = storage_path('app/public/incidencias/' . $nombreArchivo);
+        if (!file_exists($rutaArchivo)) {
+            abort(404, 'Archivo no encontrado en: ' . $rutaArchivo);
+        }
+
+        // Obtener el nombre original del archivo desde la base de datos
+        $archivos = $incidencia->archivos ?? [];
+        $nombreOriginal = $nombreArchivo;
+        
+        foreach ($archivos as $archivo) {
+            if (isset($archivo['nombre']) && $archivo['nombre'] === $nombreArchivo) {
+                $nombreOriginal = $archivo['nombre_original'] ?? $nombreArchivo;
+                break;
+            }
+        }
+
+        // Obtener información del archivo
+        $mimeType = mime_content_type($rutaArchivo);
+        $fileSize = filesize($rutaArchivo);
+
+        // Configurar headers para la descarga
+        return response()->download($rutaArchivo, $nombreOriginal, [
+            'Content-Type' => $mimeType,
+            'Content-Length' => $fileSize,
+            'Content-Disposition' => 'attachment; filename="' . $nombreOriginal . '"'
+        ]);
+    }
+
+    /**
+     * Descargar archivo de devolución
+     */
+    public function descargarArchivoDevolucion($devolucionId, $nombreArchivo)
+    {
+        // Limpiar cualquier salida previa
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        $devolucion = DevolucionProveedor::find($devolucionId);
+        if (!$devolucion) {
+            abort(404, 'Devolución no encontrada');
+        }
+
+        $rutaArchivo = storage_path('app/public/devoluciones/' . $nombreArchivo);
+        if (!file_exists($rutaArchivo)) {
+            abort(404, 'Archivo no encontrado en: ' . $rutaArchivo);
+        }
+
+        // Obtener el nombre original del archivo desde la base de datos
+        $archivos = $devolucion->archivos ?? [];
+        $nombreOriginal = $nombreArchivo;
+        
+        foreach ($archivos as $archivo) {
+            if (isset($archivo['nombre']) && $archivo['nombre'] === $nombreArchivo) {
+                $nombreOriginal = $archivo['nombre_original'] ?? $nombreArchivo;
+                break;
+            }
+        }
+
+        // Obtener información del archivo
+        $mimeType = mime_content_type($rutaArchivo);
+        $fileSize = filesize($rutaArchivo);
+
+        // Configurar headers para la descarga
+        return response()->download($rutaArchivo, $nombreOriginal, [
+            'Content-Type' => $mimeType,
+            'Content-Length' => $fileSize,
+            'Content-Disposition' => 'attachment; filename="' . $nombreOriginal . '"'
+        ]);
+    }
+
+    /**
+     * Eliminar archivo de incidencia
+     */
+    public function eliminarArchivoIncidencia(Request $request)
+    {
+        try {
+            $incidenciaId = $request->input('incidencia_id');
+            $nombreArchivo = $request->input('nombre_archivo');
+
+            $incidencia = IncidenciaProveedor::find($incidenciaId);
+            if (!$incidencia) {
+                return response()->json(['success' => false, 'message' => 'Incidencia no encontrada'], 404);
+            }
+
+            $archivos = $incidencia->archivos ?? [];
+            $archivos = array_filter($archivos, function($archivo) use ($nombreArchivo) {
+                return $archivo['nombre'] !== $nombreArchivo;
+            });
+
+            // Eliminar archivo físico
+            $rutaArchivo = storage_path('app/public/incidencias/' . $nombreArchivo);
+            if (file_exists($rutaArchivo)) {
+                unlink($rutaArchivo);
+            }
+
+            // Actualizar registro
+            $incidencia->archivos = array_values($archivos);
+            $incidencia->save();
+
+            return response()->json(['success' => true, 'message' => 'Archivo eliminado correctamente']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error al eliminar archivo'], 500);
+        }
+    }
+
+    /**
+     * Eliminar archivo de devolución
+     */
+    public function eliminarArchivoDevolucion(Request $request)
+    {
+        try {
+            $devolucionId = $request->input('devolucion_id');
+            $nombreArchivo = $request->input('nombre_archivo');
+
+            $devolucion = DevolucionProveedor::find($devolucionId);
+            if (!$devolucion) {
+                return response()->json(['success' => false, 'message' => 'Devolución no encontrada'], 404);
+            }
+
+            $archivos = $devolucion->archivos ?? [];
+            $archivos = array_filter($archivos, function($archivo) use ($nombreArchivo) {
+                return $archivo['nombre'] !== $nombreArchivo;
+            });
+
+            // Eliminar archivo físico
+            $rutaArchivo = storage_path('app/public/devoluciones/' . $nombreArchivo);
+            if (file_exists($rutaArchivo)) {
+                unlink($rutaArchivo);
+            }
+
+            // Actualizar registro
+            $devolucion->archivos = array_values($archivos);
+            $devolucion->save();
+
+            return response()->json(['success' => true, 'message' => 'Archivo eliminado correctamente']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error al eliminar archivo'], 500);
+        }
+    }
+
+    /**
+     * Método de prueba para descargar archivos directamente
+     */
+    public function testDescargaArchivo($nombreArchivo)
+    {
+        // Limpiar buffer de salida
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        $rutaArchivo = storage_path('app/public/incidencias/' . $nombreArchivo);
+        
+        if (!file_exists($rutaArchivo)) {
+            return response('Archivo no encontrado: ' . $rutaArchivo, 404);
+        }
+
+        // Obtener tipo MIME
+        $mimeType = mime_content_type($rutaArchivo) ?: 'application/octet-stream';
+        
+        // Retornar archivo directamente
+        return response()->file($rutaArchivo, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . basename($nombreArchivo) . '"'
+        ]);
     }
 }

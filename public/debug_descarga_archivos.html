@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - URLs de Descarga</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <h2>Debug - URLs de Descarga de Archivos</h2>
+    
+    <div class="alert alert-info">
+        <h5>URLs que se deben generar:</h5>
+        <ul>
+            <li><strong>Incidencias:</strong> <code>{{ url('') }}/material_kilo/incidencia/{incidenciaId}/archivo/{nombreArchivo}/descargar</code></li>
+            <li><strong>Devoluciones:</strong> <code>{{ url('') }}/material_kilo/devolucion/{devolucionId}/archivo/{nombreArchivo}/descargar</code></li>
+        </ul>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <h6>Ejemplo URLs - Incidencias</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Incidencia ID 1:</strong></p>
+                    <code>{{ url('material_kilo/incidencia/1/archivo/1758908233_68d6cf495bb8f.jpg/descargar') }}</code>
+                    <br><br>
+                    <a href="{{ url('material_kilo/incidencia/1/archivo/1758908233_68d6cf495bb8f.jpg/descargar') }}" 
+                       target="_blank" class="btn btn-sm btn-info">
+                        Probar Descarga (si existe incidencia ID 1)
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info">
+                    <h6>Ejemplo URLs - Devoluciones</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Devolución ID 1:</strong></p>
+                    <code>{{ url('material_kilo/devolucion/1/archivo/ejemplo.pdf/descargar') }}</code>
+                    <br><br>
+                    <a href="{{ url('material_kilo/devolucion/1/archivo/ejemplo.pdf/descargar') }}" 
+                       target="_blank" class="btn btn-sm btn-info">
+                        Probar Descarga (si existe devolución ID 1)
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="alert alert-success">
+        <h6>Cambios Realizados:</h6>
+        <ul>
+            <li>✅ Arreglada construcción de URLs en incidencia_form.blade.php</li>
+            <li>✅ Arreglada construcción de URLs en devolucion_form.blade.php</li>
+            <li>✅ Mejorados métodos de descarga en MaterialKiloController</li>
+            <li>✅ Agregado manejo de nombres originales de archivos</li>
+            <li>✅ Reemplazados response()->json() por abort() para errores</li>
+        </ul>
+    </div>
+
+    <div class="alert alert-warning">
+        <h6>Puntos a Verificar:</h6>
+        <ol>
+            <li>Que los archivos existan físicamente en <code>storage/app/public/incidencias/</code></li>
+            <li>Que los registros en base de datos tengan el campo <code>archivos</code> con los metadatos</li>
+            <li>Que las rutas estén correctamente registradas en <code>routes/web.php</code></li>
+            <li>Que no haya problemas de permisos en los directorios</li>
+        </ol>
+    </div>
+</div>
+</body>
+</html>

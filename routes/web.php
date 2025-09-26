@@ -231,6 +231,17 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/material_kilo/guardar-devolucion', 'MaterialKiloController@guardarDevolucion')->name('material_kilo.guardar_devolucion');
         Route::get('/material_kilo/obtener-devoluciones', 'MaterialKiloController@obtenerDevoluciones')->name('material_kilo.obtener_devoluciones');
         Route::get('/material_kilo/obtener-devolucion/{id}', 'MaterialKiloController@obtenerDevolucion')->name('material_kilo.obtener_devolucion');
+        Route::get('/material_kilo/devolucion/crear', 'MaterialKiloController@crearDevolucion')->name('material_kilo.crear_devolucion');
+        Route::get('/material_kilo/devolucion/editar/{id}', 'MaterialKiloController@editarDevolucion')->name('material_kilo.editar_devolucion');
+        Route::post('/material_kilo/devolucion/guardar', 'MaterialKiloController@guardarDevolucionCompleta')->name('material_kilo.guardar_devolucion_completa');
+        Route::put('/material_kilo/devolucion/actualizar/{id}', 'MaterialKiloController@actualizarDevolucion')->name('material_kilo.actualizar_devolucion');
+
+        // Rutas para manejo de archivos
+        Route::get('/material_kilo/incidencia/{incidenciaId}/archivo/{nombreArchivo}/descargar', 'MaterialKiloController@descargarArchivoIncidencia')->name('material_kilo.descargar_archivo_incidencia');
+        Route::get('/material_kilo/devolucion/{devolucionId}/archivo/{nombreArchivo}/descargar', 'MaterialKiloController@descargarArchivoDevolucion')->name('material_kilo.descargar_archivo_devolucion');
+        Route::delete('/material_kilo/incidencia/archivo/eliminar', 'MaterialKiloController@eliminarArchivoIncidencia')->name('material_kilo.eliminar_archivo_incidencia');
+        Route::delete('/material_kilo/devolucion/archivo/eliminar', 'MaterialKiloController@eliminarArchivoDevolucion')->name('material_kilo.eliminar_archivo_devolucion');
+        Route::get('/test-descarga', 'MaterialKiloController@testDescargaArchivo')->name('test.descarga');
 
         //Rutas para evaluacion analisis producto 
         Route::get('/evaluacion_analisis/historial', 'EvaluacionAnalisisController@historialEvaluaciones')->name('evaluacion_analisis.historial_evaluaciones');
