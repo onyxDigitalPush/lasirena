@@ -289,7 +289,7 @@
                                     <button type="button" class="btn btn-sm btn-primary btn-editar-analisis"
                                         data-id="{{ $resultado->id }}" data-tipo="{{ $resultado->tabla_origen }}"
                                         data-tipo-texto="{{ $resultado->tipo_analitica }}">
-                                        <i class="fa fa-edit mr-1"></i>Editar
+                                        <i class="fa fa-edit mr-1"></i>Modificar
                                     </button>
                                     <button type="button" class="btn btn-sm btn-danger btn-eliminar-analisis"
                                         data-id="{{ $resultado->id }}" data-tipo="{{ $resultado->tabla_origen }}"

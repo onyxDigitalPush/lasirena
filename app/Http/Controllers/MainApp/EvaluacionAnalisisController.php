@@ -17,11 +17,69 @@ use Illuminate\Support\Facades\Log;
 
 class EvaluacionAnalisisController extends Controller
 {
-    public function historialEvaluaciones(){
-        // Obtener todas las tiendas
-        $tiendas = Tienda::with(['analiticas' => function($q) {
+    public function historialEvaluaciones(Request $request){
+        // Obtener parámetros de filtro
+        $fechaInicio = $request->input('fecha_inicio');
+        $fechaFin = $request->input('fecha_fin');
+        $tipoAnalitica = $request->input('tipo_analitica');
+        $estadoFiltro = $request->input('estado');
+
+        // Construir query base con filtros condicionales
+        $query = Tienda::with(['analiticas' => function($q) use ($fechaInicio, $fechaFin, $tipoAnalitica, $estadoFiltro) {
             $q->orderByDesc('fecha_real_analitica');
-        }])->get();
+            
+            // Aplicar filtros de fecha
+            if ($fechaInicio) {
+                $q->where('fecha_real_analitica', '>=', $fechaInicio);
+            }
+            if ($fechaFin) {
+                $q->where('fecha_real_analitica', '<=', $fechaFin);
+            }
+            
+            // Aplicar filtro de tipo de analítica
+            if ($tipoAnalitica) {
+                $q->where('tipo_analitica', $tipoAnalitica);
+            }
+            
+            // Aplicar filtro de estado
+            if ($estadoFiltro) {
+                if ($estadoFiltro === 'sin_iniciar') {
+                    $q->where(function($subQ) {
+                        $subQ->whereNull('estado_analitica')
+                             ->orWhere('estado_analitica', 'sin_iniciar');
+                    });
+                } else {
+                    $q->where('estado_analitica', $estadoFiltro);
+                }
+            }
+        }]);
+
+        // Si hay filtros aplicados, solo mostrar tiendas que tengan analíticas que cumplan con los filtros
+        if ($fechaInicio || $fechaFin || $tipoAnalitica || $estadoFiltro) {
+            $query->whereHas('analiticas', function($q) use ($fechaInicio, $fechaFin, $tipoAnalitica, $estadoFiltro) {
+                if ($fechaInicio) {
+                    $q->where('fecha_real_analitica', '>=', $fechaInicio);
+                }
+                if ($fechaFin) {
+                    $q->where('fecha_real_analitica', '<=', $fechaFin);
+                }
+                if ($tipoAnalitica) {
+                    $q->where('tipo_analitica', $tipoAnalitica);
+                }
+                if ($estadoFiltro) {
+                    if ($estadoFiltro === 'sin_iniciar') {
+                        $q->where(function($subQ) {
+                            $subQ->whereNull('estado_analitica')
+                                 ->orWhere('estado_analitica', 'sin_iniciar');
+                        });
+                    } else {
+                        $q->where('estado_analitica', $estadoFiltro);
+                    }
+                }
+            });
+        }
+        
+        $tiendas = $query->get();
 
         // Calcular para cada tienda si la última analítica está vencida
         $hoy = now();

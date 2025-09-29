@@ -274,6 +274,96 @@
             </button>
         </div>
     @endif
+
+    {{-- Formulario de Filtros --}}
+    <div class="card mt-3">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#filtrosCollapse"
+                    aria-expanded="{{ request()->hasAny(['fecha_inicio', 'fecha_fin', 'tipo_analitica', 'estado']) ? 'true' : 'false' }}" aria-controls="filtrosCollapse">
+                    <i class="fas fa-filter"></i> Filtros de Búsqueda
+                </button>
+            </h5>
+        </div>
+        <div class="collapse {{ request()->hasAny(['fecha_inicio', 'fecha_fin', 'tipo_analitica', 'estado']) ? 'show' : '' }}" id="filtrosCollapse">
+            <div class="card-body">
+                <form method="GET" action="{{ route('evaluacion_analisis.historial_evaluaciones') }}">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="fecha_inicio">Fecha Inicio</label>
+                                <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control"
+                                    value="{{ request('fecha_inicio') }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="fecha_fin">Fecha Fin</label>
+                                <input type="date" name="fecha_fin" id="fecha_fin" class="form-control"
+                                    value="{{ request('fecha_fin') }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="tipo_analitica_filtro">Tipo de Analítica</label>
+                                <select name="tipo_analitica" id="tipo_analitica_filtro" class="form-control">
+                                    <option value="">-- Todos los tipos --</option>
+                                    <option value="Resultados agua" {{ request('tipo_analitica') == 'Resultados agua' ? 'selected' : '' }}>Analitica agua</option>
+                                    <option value="Tendencias superficie" {{ request('tipo_analitica') == 'Tendencias superficie' ? 'selected' : '' }}>Analitica de superficie</option>
+                                    <option value="Tendencias micro" {{ request('tipo_analitica') == 'Tendencias micro' ? 'selected' : '' }}>Analitica de microbiologia</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="estado_filtro">Estado</label>
+                                <select name="estado" id="estado_filtro" class="form-control">
+                                    <option value="">-- Todos los estados --</option>
+                                    <option value="sin_iniciar" {{ request('estado') == 'sin_iniciar' ? 'selected' : '' }}>Sin iniciar</option>
+                                    <option value="realizada" {{ request('estado') == 'realizada' ? 'selected' : '' }}>Realizada</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <div class="d-flex">
+                                    <button type="submit" class="btn btn-primary mr-2">
+                                        <i class="fas fa-search"></i> Filtrar
+                                    </button>
+                                    <a href="{{ route('evaluacion_analisis.historial_evaluaciones') }}" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> Limpiar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @if(request()->hasAny(['fecha_inicio', 'fecha_fin', 'tipo_analitica', 'estado']))
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> 
+                                    <strong>Filtros activos:</strong>
+                                    @if(request('fecha_inicio'))
+                                        Fecha inicio: {{ request('fecha_inicio') }}
+                                    @endif
+                                    @if(request('fecha_fin'))
+                                        - Fecha fin: {{ request('fecha_fin') }}
+                                    @endif
+                                    @if(request('tipo_analitica'))
+                                        - Tipo: {{ $tipoDisplay[request('tipo_analitica')] ?? request('tipo_analitica') }}
+                                    @endif
+                                    @if(request('estado'))
+                                        - Estado: {{ request('estado') == 'sin_iniciar' ? 'Sin iniciar' : (request('estado') == 'pendiente' ? 'Pendiente' : 'Realizada') }}
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 <br><br>
 @section('main_content')

@@ -451,7 +451,7 @@
                         </div>
                     </div>
 
-                    <div class="row">
+                    {{-- <div class="row">
                         <div class="col-12">
                             <div class="form-group">
                                 <label for="top100fy2">Top100:</label>
@@ -459,7 +459,7 @@
                                     placeholder="Top100FY2">
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
 
                     <div class="row">
                         <div class="col-12">
@@ -632,6 +632,28 @@
                                 <textarea id="comentarios_dev" name="comentarios" class="form-control" rows="3"
                                     placeholder="Comentarios adicionales"></textarea>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Subida de archivos -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label for="archivos_devolucion">Subir Archivos:</label>
+                                <input type="file" class="form-control-file" id="archivos_devolucion" name="archivos[]" multiple 
+                                       accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
+                                <small class="form-text text-muted">
+                                    Selecciona uno o varios archivos (máximo 10MB cada uno). 
+                                    Formatos permitidos: PDF, Word, Excel, imágenes.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista de archivos seleccionados -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div id="lista_archivos_devolucion" class="mt-2"></div>
                         </div>
                     </div>
                 </form>
@@ -1008,6 +1030,28 @@
                                 <textarea id="comentarios" name="comentarios" class="form-control" rows="3"
                                     placeholder="Comentarios adicionales"></textarea>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Subida de archivos -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label for="archivos_incidencia">Subir Archivos:</label>
+                                <input type="file" class="form-control-file" id="archivos_incidencia" name="archivos[]" multiple 
+                                       accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
+                                <small class="form-text text-muted">
+                                    Selecciona uno o varios archivos (máximo 10MB cada uno). 
+                                    Formatos permitidos: PDF, Word, Excel, imágenes.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista de archivos seleccionados -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div id="lista_archivos_incidencia" class="mt-2"></div>
                         </div>
                     </div>
 

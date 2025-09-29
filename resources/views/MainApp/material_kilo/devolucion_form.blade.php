@@ -94,7 +94,7 @@
                 </h5>
             </div>
             <div class="card-body">
-                <form method="POST" action="{{ isset($devolucion) ? route('material_kilo.actualizar_devolucion', $devolucion->id) : route('material_kilo.guardar_devolucion_completa') }}">
+                <form method="POST" action="{{ isset($devolucion) ? route('material_kilo.actualizar_devolucion', $devolucion->id) : route('material_kilo.guardar_devolucion_completa') }}" enctype="multipart/form-data">
                     @csrf
                     @if(isset($devolucion))
                         @method('PUT')
@@ -233,7 +233,7 @@
                     </div>
 
                     <!-- Top100FY2 -->
-                    <div class="form-section">
+                    {{-- <div class="form-section">
                         <h6><i class="fa fa-star mr-2"></i>Top100FY2</h6>
                         <div class="row">
                             <div class="col-12">
@@ -243,7 +243,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
 
                     <!-- Descripción motivo -->
                     <div class="form-section">
@@ -432,6 +432,37 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Archivos Relacionados -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="archivos_devolucion">Archivos Relacionados:</label>
+                                    <div class="row">
+                                        <div class="col-9">
+                                            <input type="file" 
+                                                   class="form-control-file" 
+                                                   id="archivos_devolucion" 
+                                                   name="archivos[]" 
+                                                   multiple 
+                                                   accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
+                                            <small class="form-text text-muted">
+                                                Archivos permitidos: PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF (máx. 10MB cada uno)
+                                            </small>
+                                        </div>
+                                        <div class="col-3">
+                                            <button type="button" class="btn btn-sm btn-info" id="btn_previsualizar_archivos_devolucion">
+                                                <i class="fas fa-eye"></i> Ver Archivos
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!-- Lista de archivos seleccionados -->
+                                    <div id="lista_archivos_seleccionados_devolucion" class="mt-2"></div>
+                                    <!-- Lista de archivos existentes (en modo edición) -->
+                                    <div id="lista_archivos_existentes_devolucion" class="mt-2"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Botones -->
@@ -451,4 +482,157 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Variables globales para manejo de archivos de devolución
+        var archivosSeleccionadosDevolucion = [];
+        var archivosExistentesDevolucion = [];
+
+        // Función para formatear tamaño de archivo
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            var k = 1024;
+            var sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            var i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Función para mostrar archivos seleccionados de devolución
+        function mostrarArchivosSeleccionadosDevolucion() {
+            var container = $('#lista_archivos_seleccionados_devolucion');
+            container.empty();
+            
+            if (archivosSeleccionadosDevolucion.length > 0) {
+                var html = '<div class="mt-2"><strong>Archivos seleccionados:</strong><ul class="list-group mt-1">';
+                archivosSeleccionadosDevolucion.forEach(function(archivo, index) {
+                    html += '<li class="list-group-item d-flex justify-content-between align-items-center py-1">';
+                    html += '<span><i class="fas fa-file"></i> ' + archivo.name + ' (' + formatFileSize(archivo.size) + ')</span>';
+                    html += '<button type="button" class="btn btn-sm btn-danger" onclick="removerArchivoSeleccionadoDevolucion(' + index + ')"><i class="fas fa-times"></i></button>';
+                    html += '</li>';
+                });
+                html += '</ul></div>';
+                container.html(html);
+            }
+        }
+
+        // Función para mostrar archivos existentes de devolución
+        function mostrarArchivosExistentesDevolucion() {
+            var container = $('#lista_archivos_existentes_devolucion');
+            container.empty();
+            
+            if (archivosExistentesDevolucion.length > 0) {
+                var html = '<div class="mt-2"><strong>Archivos existentes:</strong><ul class="list-group mt-1">';
+                archivosExistentesDevolucion.forEach(function(archivo, index) {
+                    if (typeof archivo === 'object' && archivo.nombre_original && archivo.nombre) {
+                        html += '<li class="list-group-item d-flex justify-content-between align-items-center py-2">';
+                        html += '<div class="d-flex align-items-center">';
+                        html += '<i class="fas fa-file text-primary mr-2"></i>';
+                        html += '<div>';
+                        html += '<strong>' + archivo.nombre_original + '</strong><br>';
+                        html += '<small class="text-muted">' + (archivo.fecha_subida || 'Fecha desconocida') + '</small>';
+                        html += '</div>';
+                        html += '</div>';
+                        html += '<div class="btn-group">';
+                        @if(isset($devolucion))
+                        html += '<a href="{{ url("material_kilo/devolucion") }}/{{ $devolucion->id }}/archivo/' + archivo.nombre + '/descargar" target="_blank" class="btn btn-sm btn-info" title="Descargar"><i class="fas fa-download"></i></a>';
+                        @else
+                        html += '<span class="btn btn-sm btn-secondary disabled" title="Guarde primero para descargar"><i class="fas fa-download"></i></span>';
+                        @endif
+                        html += '<button type="button" class="btn btn-sm btn-danger" onclick="eliminarArchivoExistenteDevolucion(\'' + archivo.nombre + '\')" title="Eliminar"><i class="fas fa-times"></i></button>';
+                        html += '</div>';
+                        html += '</li>';
+                    }
+                });
+                html += '</ul></div>';
+                container.html(html);
+            }
+        }
+
+        // Función para remover archivo seleccionado
+        function removerArchivoSeleccionadoDevolucion(index) {
+            archivosSeleccionadosDevolucion.splice(index, 1);
+            actualizarInputArchivosDevolucion();
+            mostrarArchivosSeleccionadosDevolucion();
+        }
+
+        // Función para eliminar archivo existente
+        function eliminarArchivoExistenteDevolucion(nombreArchivo) {
+            if (!nombreArchivo || !{{ isset($devolucion) ? $devolucion->id : 'null' }}) {
+                alert('Error: datos de archivo incompletos');
+                return;
+            }
+            
+            if (!confirm('¿Está seguro de eliminar este archivo?')) return;
+            
+            $.ajax({
+                url: '{{ route("material_kilo.eliminar_archivo_devolucion") }}',
+                type: 'DELETE',
+                data: {
+                    devolucion_id: {{ isset($devolucion) ? $devolucion->id : 'null' }},
+                    nombre_archivo: nombreArchivo,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Remover de la lista de archivos existentes
+                        archivosExistentesDevolucion = archivosExistentesDevolucion.filter(function(archivo) {
+                            return archivo.nombre !== nombreArchivo;
+                        });
+                        mostrarArchivosExistentesDevolucion();
+                        alert('Archivo eliminado correctamente');
+                    } else {
+                        alert('Error al eliminar archivo: ' + response.message);
+                    }
+                },
+                error: function(xhr) {
+                    alert('Error al eliminar archivo');
+                    console.error(xhr);
+                }
+            });
+        }
+
+        // Función para actualizar el input de archivos
+        function actualizarInputArchivosDevolucion() {
+            var input = $('#archivos_devolucion')[0];
+            var dt = new DataTransfer();
+            archivosSeleccionadosDevolucion.forEach(function(archivo) {
+                dt.items.add(archivo);
+            });
+            input.files = dt.files;
+        }
+
+        // Event listeners
+        $(document).ready(function() {
+            // Manejar selección de archivos
+            $('#archivos_devolucion').on('change', function() {
+                var files = Array.from(this.files);
+                archivosSeleccionadosDevolucion = files;
+                mostrarArchivosSeleccionadosDevolucion();
+            });
+
+            // Botón para previsualizar archivos
+            $('#btn_previsualizar_archivos_devolucion').on('click', function() {
+                if (archivosSeleccionadosDevolucion.length === 0 && archivosExistentesDevolucion.length === 0) {
+                    alert('No hay archivos seleccionados o existentes');
+                    return;
+                }
+                
+                // Mostrar en ventana separada
+                var ventana = window.open('', '_blank', 'width=600,height=400');
+                var html = '<html><head><title>Archivos de Devolución</title></head><body>';
+                html += '<h3>Archivos Seleccionados</h3>';
+                html += $('#lista_archivos_seleccionados_devolucion').html();
+                html += '<h3>Archivos Existentes</h3>';
+                html += $('#lista_archivos_existentes_devolucion').html();
+                html += '</body></html>';
+                ventana.document.write(html);
+            });
+
+            // Si estamos en modo edición, cargar archivos existentes
+            @if(isset($devolucion) && $devolucion->archivos)
+                archivosExistentesDevolucion = @json($devolucion->archivos);
+                mostrarArchivosExistentesDevolucion();
+            @endif
+        });
+    </script>
 @endsection
