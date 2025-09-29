@@ -68,6 +68,16 @@ $(document).ready(function () {
             if (columnName && value) {
                 searches[columnName] = value;
                 params.set(columnName, value);
+                
+                // Debug temporal para el campo mes
+                if (columnName === 'mes') {
+                    console.log('Enviando filtro mes:', {
+                        columnName: columnName,
+                        value: value,
+                        type: typeof value,
+                        isNumeric: !isNaN(value) && !isNaN(parseFloat(value))
+                    });
+                }
             } else if (columnName) {
                 params.delete(columnName);
             }

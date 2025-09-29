@@ -57,7 +57,21 @@ class MaterialKiloController extends Controller
         }
         
         if (request('mes')) {
-            $query->where('material_kilos.mes', 'LIKE', '%' . request('mes') . '%');
+            $mesInput = request('mes');
+            Log::info('Filtro mes aplicado:', ['mes_input' => $mesInput, 'type' => gettype($mesInput)]);
+            
+            // Registrar algunos valores existentes de mes en la BD para comparar
+            $existingMeses = MaterialKilo::select('mes')->distinct()->limit(10)->pluck('mes')->toArray();
+            Log::info('Valores existentes de mes en BD:', ['meses' => $existingMeses]);
+            
+            // Cambiar LIKE por igualdad exacta para números
+            if (is_numeric($mesInput)) {
+                $query->where('material_kilos.mes', '=', intval($mesInput));
+                Log::info('Aplicando filtro numérico exacto:', ['mes' => intval($mesInput)]);
+            } else {
+                $query->where('material_kilos.mes', 'LIKE', '%' . $mesInput . '%');
+                Log::info('Aplicando filtro LIKE:', ['mes' => $mesInput]);
+            }
         }
 
         // Aplicar filtros de factor de conversión
@@ -90,6 +104,10 @@ class MaterialKiloController extends Controller
         }
 
         Log::info('SQL generado:', ['sql' => $query->toSql(), 'bindings' => $query->getBindings()]);
+        
+        // Debug adicional: contar registros antes de paginar
+        $totalRecords = $query->count();
+        Log::info('Total de registros encontrados con filtros:', ['total' => $totalRecords]);
         
         $array_material_kilo = $query->paginate(25);
 
