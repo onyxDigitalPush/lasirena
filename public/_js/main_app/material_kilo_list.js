@@ -59,16 +59,21 @@ $(document).ready(function () {
         
         var params = new URLSearchParams(window.location.search);
         
-        // Obtener valores de búsqueda de los inputs
+        // Obtener valores de búsqueda de los inputs (iterar por TH para mantener índices de columna)
         var searches = {};
-        $('#table_material_kilo thead tr:eq(1) th input').each(function(i) {
+        $('#table_material_kilo thead tr:eq(1) th').each(function(i) {
+            var input = $(this).find('input');
+            if (!input.length) {
+                return; // continuar si no hay input en esta TH
+            }
+
             var columnName = getColumnName(i);
-            var value = $(this).val().trim();
-            
+            var value = input.val().trim();
+
             if (columnName && value) {
                 searches[columnName] = value;
                 params.set(columnName, value);
-                
+
                 // Debug temporal para el campo mes
                 if (columnName === 'mes') {
                     console.log('Enviando filtro mes:', {
@@ -124,10 +129,16 @@ $(document).ready(function () {
     function initializeFiltersFromUrl() {
         var params = new URLSearchParams(window.location.search);
         
-        $('#table_material_kilo thead tr:eq(1) th input').each(function(i) {
+        // Inicializar inputs leyendo por TH para respetar los índices de columna
+        $('#table_material_kilo thead tr:eq(1) th').each(function(i) {
+            var input = $(this).find('input');
+            if (!input.length) {
+                return;
+            }
+
             var columnName = getColumnName(i);
             if (columnName && params.has(columnName)) {
-                $(this).val(params.get(columnName)).addClass('has-value');
+                input.val(params.get(columnName)).addClass('has-value');
             }
         });
         
