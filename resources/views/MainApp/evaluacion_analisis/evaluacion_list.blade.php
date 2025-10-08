@@ -43,12 +43,16 @@
                                     <div class="col-12"><strong>Tienda:</strong> <span
                                             class="nombreTiendaDisplay"></span></div>
                                 </div>
+                                <!-- Campo oculto para tipo_analitica ya que no se muestra visible -->
+                                <input type="hidden" name="tipo_analitica" value="Resultados agua">
                                 <div class="row">
                                     <div class="col-md-6">
+                                        <!-- Tipo de analítica no mostrado (valor implícito 'Resultados agua') -->
+                                        <!-- Fecha teórica no mostrada en modal (se mantiene en campo oculto para lógica interna) -->
                                         <div class="form-group">
                                             <label>Fecha de muestra</label>
                                             <input type="date" name="fecha_muestra"
-                                                class="form-control fecha_muestra_input" required>
+                                                class="form-control fecha_muestra_input">
                                         </div>
                                         <div class="form-group">
                                             <label>Estado de Analítica</label>
@@ -58,70 +62,99 @@
                                                 <option value="realizada">Realizada</option>
                                             </select>
                                         </div>
-                                        <div class="form-row">
-                                            <div class="form-group col-md-6">
-                                                <label>Año</label>
-                                                <input type="text" name="anio" class="form-control anio_input"
-                                                    readonly>
+                                        <div class="form-group">
+                                            <label>Periodicidad</label>
+                                            <div class="row">
+                                                <div class="col-9">
+                                                    <select name="periodicidad" class="form-control periodicidad_select">
+                                                        <option value="">-- Seleccionar --</option>
+                                                        <option value="Diaria">Diaria</option>
+                                                        <option value="Semanal">Semanal</option>
+                                                        <option value="Quincenal">Quincenal</option>
+                                                        <option value="Mensual">Mensual</option>
+                                                        <option value="Trimestral">Trimestral</option>
+                                                        <option value="Semestral">Semestral</option>
+                                                        <option value="Anual">Anual</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="form-check mt-2">
+                                                        <input type="checkbox" name="periodicidad_no_procede" class="form-check-input periodicidad_no_procede" value="1">
+                                                        <label class="form-check-label small">No procede</label>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div class="form-group col-md-6">
-                                                <label>Mes</label>
-                                                <input type="text" name="mes" class="form-control mes_input"
-                                                    readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Proveedor</label>
+                                            <div class="row">
+                                                <div class="col-9">
+                                                    <select name="proveedor_id" class="form-control proveedor_select">
+                                                        <option value="">-- Seleccionar proveedor --</option>
+                                                        @foreach(\App\Models\MainApp\Proveedor::orderBy('nombre_proveedor')->get() as $proveedor)
+                                                            <option value="{{ $proveedor->id_proveedor }}">{{ $proveedor->nombre_proveedor }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="form-check mt-2">
+                                                        <input type="checkbox" name="proveedor_no_procede" class="form-check-input proveedor_no_procede" value="1">
+                                                        <label class="form-check-label small">No procede</label>
+                                                    </div>
+                                                </div>
                                             </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>¿Procede?</label>
+                                            <select name="procede" class="form-control procede_input">
+                                                <option value="1">Sí</option>
+                                                <option value="0">No</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Producto</label>
+                                            <select name="producto" class="form-control producto_select">
+                                                <option value="">-- Seleccionar producto --</option>
+                                                <option value="CRUDO">CRUDO</option>
+                                                <option value="cocido">cocido</option>
+                                                <option value="precocinado">precocinado</option>
+                                                <option value="envasado (descongelar y comer)">envasado (descongelar y comer)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <!-- Asesor Externo - Empresa removed per request -->
+                                        <div class="form-group">
+                                            <label>Dónde se recoge la muestra</label>
+                                            <input type="text" name="donde_se_recoje_muestra" class="form-control donde_se_recoje_muestra_input">
                                         </div>
                                         <div class="form-group">
                                             <label>Número de muestras</label>
                                             <input type="number" name="numero_muestras" class="form-control">
                                         </div>
                                         <div class="form-group">
-                                            <label>Precio reducido agua</label>
-                                            <input type="text" name="precio_reducido_agua" class="form-control">
+                                            <label>Número Factura</label>
+                                            <input type="text" name="numero_factura" class="form-control">
                                         </div>
-                                        <div class="form-group">
-                                            <label>Código</label>
-                                            <input type="text" name="codigo" class="form-control">
-                                        </div>
-
+                                        <br>
+                                        <br>
+                                        <br>
                                         <h6 class="mt-3">Resultados (Correcto / Falso)</h6>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>Protinco</label>
-                                            <input type="text" name="protinco" class="form-control">
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Asesor</label>
-                                            <input type="text" name="asesor" class="form-control">
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Tipo referencia</label>
-                                            <input type="text" name="tipo_referencia" class="form-control">
-                                        </div>
-                                        <div class="form-group">
-                                            <label>E.O</label>
-                                            <input type="text" name="eo" class="form-control">
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Descripción centro</label>
-                                            <input type="text" name="descripcion_centro" class="form-control">
-                                        </div>
-                                        <hr>
                                     </div>
                                 </div>
                                 <!-- fila para resultados -->
                                 <div class="row mt-3">
-                                    @php $resultFields = ['calificacion','estaraca','avia','mix','plan','cal','condicion','clara']; @endphp
+                                    @php $resultFields = ['E_coli','coliformes_totales','enterococos','amonio','nitritos','color','sabor','olor','conductividad','ph','turbidez','cloro_libre','cloro_combinado','cloro_total','cobre','cromo_total','niquel','hierro','cloruro_vinilo','bisfenol']; @endphp
                                     @foreach ($resultFields as $rf)
                                         <div class="col-md-6">
                                             <div class="form-group mb-3">
-                                                <label class="d-block font-weight-bold">{{ ucfirst($rf) }}</label>
+                                                <label class="d-block font-weight-bold">{{ str_replace('_', ' ', ucfirst($rf)) }}</label>
                                                 <div class="row align-items-end">
                                                     <div class="col-md-6">
                                                         <label class="small mb-1">Valor</label>
                                                         <input type="text" name="{{ $rf }}_valor"
                                                             class="form-control form-control-sm"
-                                                            placeholder="Valor {{ ucfirst($rf) }}">
+                                                            placeholder="Valor {{ str_replace('_', ' ', ucfirst($rf)) }}">
                                                     </div>
                                                     <div class="col-md-6">
                                                         <label class="small mb-1">Resultado</label>
@@ -197,41 +230,21 @@
                                         </div>
                                         <div class="form-row">
                                             <div class="form-group col-md-6">
-                                                <label>Año</label>
-                                                <input type="text" name="anio" class="form-control anio_input" readonly>
+                                                <label>Referencia</label>
+                                                <input type="text" name="referencia" class="form-control referencia_input">
                                             </div>
                                             <div class="form-group col-md-6">
-                                                <label>Mes</label>
-                                                <input type="text" name="mes" class="form-control mes_input" readonly>
-                                            </div>
-                                        </div>
-                                        <div class="form-row">
-                                            <div class="form-group col-md-6">
-                                                <label>Semana</label>
-                                                <input type="text" name="semana" class="form-control semana_input" readonly>
-                                            </div>
-                                            <div class="form-group col-md-6">
-                                                <label>Código Centro</label>
-                                                <input type="text" name="codigo_centro" class="form-control">
+                                                <label>Número de Muestra</label>
+                                                <input type="text" name="numero_muestra" class="form-control">
                                             </div>
                                         </div>
                                         <div class="form-row">
                                             <div class="form-group col-md-6">
-                                                <label>Descripción Centro</label>
-                                                <input type="text" name="descripcion_centro" class="form-control">
-                                            </div>
-                                            <div class="form-group col-md-6">
-                                                <label>Provincia</label>
-                                                <input type="text" name="provincia" class="form-control">
-                                            </div>
-                                        </div>
-                                        <div class="form-row">
-                                            <div class="form-group col-md-6">
-                                                <label>Número de muestras</label>
+                                                <label>Número de Muestras</label>
                                                 <input type="number" name="numero_muestras" class="form-control">
                                             </div>
                                             <div class="form-group col-md-6">
-                                                <label>Número factura</label>
+                                                <label>Número Factura</label>
                                                 <input type="text" name="numero_factura" class="form-control">
                                             </div>
                                         </div>
@@ -326,6 +339,16 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="form-group col-md-6">
+                                                <label>Producto</label>
+                                                <select name="producto" class="form-control producto_select">
+                                                    <option value="">-- Seleccionar producto --</option>
+                                                    <option value="CRUDO">CRUDO</option>
+                                                    <option value="cocido">cocido</option>
+                                                    <option value="precocinado">precocinado</option>
+                                                    <option value="envasado (descongelar y comer)">envasado (descongelar y comer)</option>
+                                                </select>
+                                            </div>
 
                                             {{-- Sección de archivos --}}
                                             <div class="form-group">
@@ -417,41 +440,27 @@
                                         </div>
                                         <div class="form-row">
                                             <div class="form-group col-md-6">
-                                                <label>Año</label>
-                                                <input type="text" name="anio" class="form-control anio_input" readonly>
+                                                <label>Lote Proveedor</label>
+                                                <input type="text" name="lote_proveedor" class="form-control">
                                             </div>
                                             <div class="form-group col-md-6">
-                                                <label>Mes</label>
-                                                <input type="text" name="mes" class="form-control mes_input" readonly>
-                                            </div>
-                                        </div>
-                                        <div class="form-row">
-                                            <div class="form-group col-md-6">
-                                                <label>Semana</label>
-                                                <input type="text" name="semana" class="form-control semana_input" readonly>
-                                            </div>
-                                            <div class="form-group col-md-6">
-                                                <label>Código</label>
-                                                <input type="text" name="codigo" class="form-control">
+                                                <label>Lote SAP</label>
+                                                <input type="text" name="lote_sap" class="form-control">
                                             </div>
                                         </div>
                                         <div class="form-row">
                                             <div class="form-group col-md-6">
-                                                <label>Nombre</label>
-                                                <input type="text" name="nombre" class="form-control">
+                                                <label>FCP</label>
+                                                <input type="text" name="fcp" class="form-control">
                                             </div>
                                             <div class="form-group col-md-6">
-                                                <label>Provincia</label>
-                                                <input type="text" name="provincia" class="form-control">
+                                                <label>Número de Muestra</label>
+                                                <input type="text" name="numero_muestra" class="form-control">
                                             </div>
                                         </div>
                                         <div class="form-row">
                                             <div class="form-group col-md-6">
-                                                <label>Número de muestra</label>
-                                                <input type="number" name="numero_muestra" class="form-control">
-                                            </div>
-                                            <div class="form-group col-md-6">
-                                                <label>Número factura</label>
+                                                <label>Número Factura</label>
                                                 <input type="text" name="numero_factura" class="form-control">
                                             </div>
                                         </div>
@@ -463,6 +472,18 @@
                                             <div class="form-group col-md-6">
                                                 <label>Nombre producto</label>
                                                 <input type="text" name="nombre_producto" class="form-control nombre_producto_input" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label>Producto</label>
+                                                <select name="producto" class="form-control producto_select">
+                                                    <option value="">-- Seleccionar producto --</option>
+                                                    <option value="CRUDO">CRUDO</option>
+                                                    <option value="cocido">cocido</option>
+                                                    <option value="precocinado">precocinado</option>
+                                                    <option value="envasado (descongelar y comer)">envasado (descongelar y comer)</option>
+                                                </select>
                                             </div>
                                         </div>
                                         <div class="form-row">
@@ -541,7 +562,7 @@
                                         </div>
                                         <div class="form-row align-items-end">
                                             <div class="form-group col-md-6">
-                                                <label>S (valor)</label>
+                                                <label>Sta. Aureus (valor)</label>
                                                 <input type="text" name="s_valor" class="form-control">
                                             </div>
                                             <div class="form-group col-md-6">
@@ -565,6 +586,16 @@
                                                     <option value="correcto">Correcto</option>
                                                     <option value="incorrecto">Incorrecto</option>
                                                 </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-row align-items-end">
+                                            <div class="form-group col-md-6">
+                                                <label>Salmonella Presencia</label>
+                                                <input type="text" name="salmonella_presencia" class="form-control">
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label>Salmonella Recuento</label>
+                                                <input type="text" name="salmonella_recuento" class="form-control">
                                             </div>
                                         </div>
                                         
@@ -653,6 +684,16 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Producto</label>
+                                            <select name="producto" class="form-control producto_select">
+                                                <option value="">-- Seleccionar producto --</option>
+                                                <option value="CRUDO">CRUDO</option>
+                                                <option value="cocido">cocido</option>
+                                                <option value="precocinado">precocinado</option>
+                                                <option value="envasado (descongelar y comer)">envasado (descongelar y comer)</option>
+                                            </select>
                                         </div>
 
                                         {{-- Sección de archivos --}}
@@ -827,7 +868,8 @@
                         // Verificar si tiene resultados guardados para mostrar información adicional
                         $tieneResultados = false;
                         if ($a->tipo_analitica === 'Resultados agua') {
-                            $tieneResultados = $a->created_at !== null;
+                            // Para Resultados agua, verificar si existe registro en tabla resultados_agua
+                            $tieneResultados = \App\Models\ResultadoAgua::where('analitica_id', $a->id)->exists();
                         } elseif ($a->tipo_analitica === 'Tendencias superficie') {
                             $tienda = \App\Models\Tienda::where('num_tienda', $a->num_tienda)->first();
                             if ($tienda) {
@@ -927,6 +969,7 @@
                                         data-periodicidad="{{ $a->periodicidad }}"
                                         data-asesor-externo-empresa="{{ $a->asesor_externo_empresa ?? '' }}"
                                         data-procede="{{ $a->procede ?? '' }}"
+                                        data-producto="{{ $a->producto ?? '' }}"
                                         data-modo="editar">
                                         <i class="fa fa-edit mr-1"></i>Editar
                                     </a>
@@ -942,6 +985,7 @@
                                         data-periodicidad="{{ $a->periodicidad }}"
                                         data-asesor-externo-empresa="{{ $a->asesor_externo_empresa ?? '' }}"
                                         data-procede="{{ $a->procede ?? '' }}"
+                                        data-producto="{{ $a->producto ?? '' }}"
                                         data-modo="agregar">
                                         <i class="fa fa-plus mr-1"></i>Agregar Analítica
                                     </a>
@@ -975,6 +1019,20 @@
         .table-success {
             background-color: #d4edda !important;
         }
+
+        // Delegated handler for eliminar archivo seleccionado (from archivosSeleccionados list)
+        $(document).on('click', '.btn-eliminar-archivo-seleccionado', function() {
+            var idx = $(this).data('index');
+            var $modal = $(this).closest('.modal');
+            eliminarArchivoSeleccionado(idx, $modal);
+        });
+
+        // Delegated handler for eliminar archivo existente (from archivosExistentes list)
+        $(document).on('click', '.btn-eliminar-archivo-existente', function() {
+            var nombre = $(this).data('nombre');
+            var $modal = $(this).closest('.modal');
+            eliminarArchivoExistente(nombre, $modal);
+        });
         
         /* Estilo para filas de analíticas pendientes */
         .table-warning {
@@ -1224,6 +1282,9 @@
             var periodicidad = $(this).data('periodicidad') || '';
             var asesorExternoEmpresa = $(this).data('asesor-externo-empresa') || '';
             var procede = $(this).data('procede') || '';
+            var producto = $(this).data('producto') || '';
+            var dondeSeRecojeMuestra = $(this).data('donde-se-recoje-muestra') || '';
+            var referencia = $(this).data('referencia') || '';
             
             console.log('DEBUG - Datos del botón para auto-duplicar:');
             console.log('- fechaTeorica:', fechaTeorica);
@@ -1297,8 +1358,12 @@
             
             // Si es modo edición, cargar datos existentes
             if (esEdicion) {
-                cargarDatosExistentes($modal, tipo, tienda);
+                cargarDatosExistentes($modal, tipo, tienda, producto);
             } else {
+                // Guardar fecha teórica original en campo oculto (para lógica de auto-duplicado)
+                if (fechaTeorica) {
+                    $modal.find('.fecha_teorica_original_input').val(fechaTeorica);
+                }
                 // Limpiar formulario para modo agregar
                 // NO limpiar el _token CSRF ni el id_registro ni num_tienda ni el campo de modo ni los datos originales
                 $modal.find('input, select, textarea').not('.num_tienda_input, .modo_edicion_input, .id_registro_input, .analitica_id_input, .fecha_teorica_original_input, .periodicidad_original_input, .proveedor_id_original_input, .tipo_analitica_original_input, .asesor_externo_empresa_original_input, input[name="_token"]').val('');
@@ -1328,6 +1393,12 @@
                 }
             }
             
+            // Preselect producto desde el data attribute del botón (tanto en agregar como en editar).
+            // Nota: si se trata de edición, la llamada AJAX a cargarDatosExistentes puede sobreescribir este valor
+            if (producto) {
+                $modal.find('select.producto_select').val(producto);
+            }
+
             // Setear el campo procede desde los data attributes del botón (tanto para edición como agregar)
             if (procede !== '') {
                 $modal.find('select[name="procede"]').val(procede);
@@ -1339,6 +1410,15 @@
                 $modal.find('select[name="procede"]').val('');
                 $modal.find('input.proveedor_no_procede, input.periodicidad_no_procede').prop('checked', false);
                 $modal.find('select.proveedor_select, select.periodicidad_select').prop('required', false);
+                
+                // Precargar proveedor desde data attribute si existe
+                if (prov) {
+                    $modal.find('select.proveedor_select').val(prov);
+                }
+                // Precargar periodicidad desde data attribute si existe
+                if (periodicidad) {
+                    $modal.find('select.periodicidad_select').val(periodicidad);
+                }
             } else {
                 // En modo edición mostrar los campos por si estaban ocultos previamente
                 $modal.find('select[name="procede"]').closest('.form-group').show();
@@ -1371,6 +1451,12 @@
             // Si es modal resultados agua, rellenar nombre tienda y escuchar fecha
             if (target === '#modal_resultados_agua') {
                 $modal.find('.nombreTiendaDisplay').text(nombre || tienda);
+                
+                // Precargar donde_se_recoje_muestra desde data attribute
+                if (dondeSeRecojeMuestra) {
+                    $modal.find('.donde_se_recoje_muestra_input').val(dondeSeRecojeMuestra);
+                }
+                
                 // si ya hay una fecha, actualizar año/mes
                 var fechaVal = $modal.find('.fecha_muestra_input').val();
                 if (fechaVal) {
@@ -1383,6 +1469,12 @@
             // Si es modal Tendencias superficie, rellenar num_tienda y proveedor
             if (target === '#modal_tendencias_superficie') {
                 $modal.find('input.num_tienda_input').val(tienda);
+                
+                // Precargar referencia desde data attribute
+                if (referencia) {
+                    $modal.find('.referencia_input').val(referencia);
+                }
+                
                 // si el modal contiene un select proveedor, setearlo
                 if (prov) $modal.find('select.proveedor_select').val(prov);
                 // ajustar la action del form al endpoint de guardar tendencias superficie
@@ -1459,7 +1551,7 @@
         });
 
         // Función para cargar datos existentes cuando se edita
-        function cargarDatosExistentes($modal, tipo, tienda) {
+        function cargarDatosExistentes($modal, tipo, tienda, productoFallback) {
             var analiticaId = $modal.find('.analitica_id_input').val();
             analiticaIdActual = analiticaId;
             
@@ -1559,6 +1651,55 @@
                                 $modal.find('select[name="procede"]').val(data.analitica.procede.toString());
                             }
                         }
+
+                        // Si la respuesta incluye el campo producto (puede venir en data.producto o en data.analitica.producto), setearlo en el select
+                        if ($modal.find('select.producto_select').length) {
+                            var productoVal = '';
+                            if (data.producto !== undefined && data.producto !== null && data.producto !== '') {
+                                productoVal = data.producto;
+                                console.log('Producto cargado desde data.producto:', productoVal);
+                            } else if (data.analitica && data.analitica.producto !== undefined && data.analitica.producto !== null && data.analitica.producto !== '') {
+                                productoVal = data.analitica.producto;
+                                console.log('Producto cargado desde data.analitica.producto:', productoVal);
+                            } else if (productoFallback) {
+                                // Si no hay producto en la respuesta del servidor, usar el fallback del data attribute
+                                productoVal = productoFallback;
+                                console.log('Producto cargado desde data attribute (fallback):', productoVal);
+                            }
+                            
+                            if (productoVal !== '') {
+                                $modal.find('select.producto_select').val(productoVal);
+                                console.log('Producto establecido en el select:', productoVal);
+                            } else {
+                                console.log('No se encontró valor de producto en ninguna fuente');
+                            }
+                        }
+                        
+                        // Precargar donde_se_recoje_muestra para análisis agua
+                        if (tipo === 'Resultados agua' && $modal.find('.donde_se_recoje_muestra_input').length) {
+                            var dondeVal = '';
+                            if (data.donde_se_recoje_muestra !== undefined && data.donde_se_recoje_muestra !== null) {
+                                dondeVal = data.donde_se_recoje_muestra;
+                            } else if (data.analitica && data.analitica.donde_se_recoje_muestra !== undefined && data.analitica.donde_se_recoje_muestra !== null) {
+                                dondeVal = data.analitica.donde_se_recoje_muestra;
+                            }
+                            if (dondeVal !== '') {
+                                $modal.find('.donde_se_recoje_muestra_input').val(dondeVal);
+                            }
+                        }
+                        
+                        // Precargar referencia para tendencias superficie
+                        if (tipo === 'Tendencias superficie' && $modal.find('.referencia_input').length) {
+                            var refVal = '';
+                            if (data.referencia !== undefined && data.referencia !== null) {
+                                refVal = data.referencia;
+                            } else if (data.analitica && data.analitica.referencia !== undefined && data.analitica.referencia !== null) {
+                                refVal = data.analitica.referencia;
+                            }
+                            if (refVal !== '') {
+                                $modal.find('.referencia_input').val(refVal);
+                            }
+                        }
                     }
                 }).fail(function() {
                     alert('Error al cargar los datos existentes');
@@ -1614,15 +1755,17 @@
             var estado = $(this).val();
             var $modal = $(this).closest('.modal');
             var $form = $(this).closest('form');
+            var modoEdicion = $form.find('.modo_edicion_input').val();
             
             console.log('=== CAMBIO DE ESTADO ===');
             console.log('Estado seleccionado:', estado);
             console.log('Modal:', $modal.attr('id'));
+            console.log('Modo edición:', modoEdicion);
             console.log('Formulario encontrado:', $form.length);
             
-            // Si se marca como realizada, se puede considerar automáticamente establecer la fecha
-            if (estado === 'realizada') {
-                console.log('Analítica marcada como realizada');
+            // Si se marca como realizada Y estamos en modo EDITAR, activar auto-duplicación
+            if (estado === 'realizada' && modoEdicion === 'editar') {
+                console.log('Analítica marcada como realizada EN MODO EDITAR');
                 console.log('Verificando datos para auto-duplicar:');
                 console.log('- fecha_teorica_original:', $form.find('.fecha_teorica_original_input').val());
                 console.log('- periodicidad_original:', $form.find('.periodicidad_original_input').val());
@@ -1665,6 +1808,8 @@
                 } catch (err) {
                     console.error('Error al intentar agregar campos ocultos en cambio de estado:', err);
                 }
+            } else if (estado === 'realizada' && modoEdicion === 'agregar') {
+                console.log('Analítica marcada como realizada EN MODO AGREGAR - NO se auto-duplicará (funcionalidad solo para editar)');
             } else if (estado === 'pendiente') {
                 console.log('Analítica marcada como pendiente');
             } else {
@@ -1835,6 +1980,18 @@
                     break;
                 case 'anual':
                     fechaVencimiento.setFullYear(fechaVencimiento.getFullYear() + 1);
+                    break;
+                case '2 años':
+                    fechaVencimiento.setFullYear(fechaVencimiento.getFullYear() + 2);
+                    break;
+                case '3 años':
+                    fechaVencimiento.setFullYear(fechaVencimiento.getFullYear() + 3);
+                    break;
+                case '4 años':
+                    fechaVencimiento.setFullYear(fechaVencimiento.getFullYear() + 4);
+                    break;
+                case '5 años':
+                    fechaVencimiento.setFullYear(fechaVencimiento.getFullYear() + 5);
                     break;
                 default:
                     console.log('Periodicidad no reconocida:', periodicidad);
@@ -2272,7 +2429,7 @@
                 console.log('DEBUG: Agregando archivo:', archivo.name);
                 var item = $('<div class="list-group-item d-flex justify-content-between align-items-center"></div>');
                 item.append('<span><i class="fas fa-file mr-2"></i>' + archivo.name + '</span>');
-                item.append('<button type="button" class="btn btn-sm btn-danger" onclick="eliminarArchivoSeleccionado(' + index + ', $(this).closest(\'.modal\'))"><i class="fas fa-trash"></i></button>');
+                item.append('<button type="button" class="btn btn-sm btn-danger btn-eliminar-archivo-seleccionado" data-index="' + index + '"><i class="fas fa-trash"></i></button>');
                 listGroup.append(item);
             });
             container.append(listGroup);
@@ -2297,7 +2454,7 @@
                 var link = '<a href="{{ asset('storage/analiticas') }}/:nombre" target="_blank" class="text-decoration-none">';
                 link = link.replace(':nombre', archivo.nombre);
                 item.append('<span>' + link + '<i class="fas fa-download mr-2"></i>' + archivo.nombre_original + '</a></span>');
-                item.append('<button type="button" class="btn btn-sm btn-danger" onclick="eliminarArchivoExistente(\'' + archivo.nombre + '\', $(this).closest(\'.modal\'))"><i class="fas fa-trash"></i></button>');
+                item.append('<button type="button" class="btn btn-sm btn-danger btn-eliminar-archivo-existente" data-nombre="' + archivo.nombre + '"><i class="fas fa-trash"></i></button>');
                 listGroup.append(item);
             });
             container.append(listGroup);

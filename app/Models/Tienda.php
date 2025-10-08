@@ -13,9 +13,10 @@ class Tienda extends Model
         'num_tienda',
         'nombre_tienda',
         'direccion_tienda',
-        'responsable',
-        'email_responsable',
         'telefono',
+        'cp',
+        'ciudad',
+        'provincia',
     ];
 
     public function analiticas()

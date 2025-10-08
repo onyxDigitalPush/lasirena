@@ -20,14 +20,12 @@
         $('#btnBuscarTiendas').on('click', function() {
             var num = $('#filtro_num_tienda').val();
             var nombre = $('#filtro_nombre_tienda').val();
-            var responsable = $('#filtro_responsable').val();
             $.ajax({
                 url: '{{ route('tiendas.buscar') }}',
                 method: 'GET',
                 data: {
                     num_tienda: num,
-                    nombre_tienda: nombre,
-                    responsable: responsable
+                    nombre_tienda: nombre
                 },
                 success: function(response) {
                     table.clear();
@@ -36,8 +34,7 @@
                             t.num_tienda,
                             t.nombre_tienda,
                             t.direccion_tienda,
-                            t.responsable,
-                            t.email_responsable,
+                            t.ciudad,
                             t.telefono,
                             renderEditAction(t.id),
                             renderDeleteAction(t.id)
@@ -52,9 +49,10 @@
                             $('#num_tienda_edit').val(data.num_tienda);
                             $('#nombre_tienda_edit').val(data.nombre_tienda);
                             $('#direccion_tienda_edit').val(data.direccion_tienda);
-                            $('#responsable_edit').val(data.responsable);
-                            $('#email_responsable_edit').val(data.email_responsable);
                             $('#telefono_edit').val(data.telefono);
+                            $('#cp_edit').val(data.cp);
+                            $('#ciudad_edit').val(data.ciudad);
+                            $('#provincia_edit').val(data.provincia);
                             $('#editTiendaModal').modal('show');
                         });
                     });
@@ -68,7 +66,6 @@
         $('#btnLimpiarFiltro').on('click', function() {
             $('#filtro_num_tienda').val('');
             $('#filtro_nombre_tienda').val('');
-            $('#filtro_responsable').val('');
             $('#btnBuscarTiendas').click();
         });
     });
@@ -121,7 +118,7 @@
          <form id="filtroTiendasForm" class="form-inline mb-3" method="GET" action="{{ route('tiendas.index') }}">
             <input type="text" class="form-control mr-2 mb-2" name="num_tienda" value="{{ request('num_tienda') }}" placeholder="Num Tienda">
             <input type="text" class="form-control mr-2 mb-2" name="nombre_tienda" value="{{ request('nombre_tienda') }}" placeholder="Nombre Tienda">
-            <input type="text" class="form-control mr-2 mb-2" name="responsable" value="{{ request('responsable') }}" placeholder="Responsable">
+            <!-- Responsable filter removed -->
             <button type="submit" class="btn btn-info mb-2"><i class="fa fa-search"></i> Buscar</button>
             <a href="{{ route('tiendas.index') }}" class="btn btn-secondary mb-2 ml-2"><i class="fa fa-eraser"></i> Limpiar</a>
         </form>
@@ -133,8 +130,7 @@
                     <th class="text-center">Num Tienda</th>
                     <th class="text-center">Nombre Tienda</th>
                     <th class="text-center">Dirección</th>
-                    <th class="text-center">Responsable</th>
-                    <th class="text-center">Email Responsable</th>
+                    <th class="text-center">Ciudad</th>
                     <th class="text-center">Teléfono</th>
                     <th class="text-center">Editar</th>
                     <th class="text-center">Eliminar</th>
@@ -147,8 +143,7 @@
                         <td class="text-center">{{ $tienda->num_tienda }}</td>
                         <td class="text-center">{{ $tienda->nombre_tienda }}</td>
                         <td class="text-center">{{ $tienda->direccion_tienda }}</td>
-                        <td class="text-center">{{ $tienda->responsable }}</td>
-                        <td class="text-center">{{ $tienda->email_responsable }}</td>
+                        <td class="text-center">{{ $tienda->ciudad }}</td>
                         <td class="text-center">{{ $tienda->telefono }}</td>
                         <td class="text-center">
                             <a href="#" class="btn btn-primary open-modal" data-url="{{ url('tiendas/' . $tienda->id . '/edit') }}">
@@ -195,17 +190,22 @@
                         <label for="direccion_tienda">Dirección Tienda</label>
                         <input type="text" class="form-control" id="direccion_tienda" name="direccion_tienda" required>
                     </div>
-                    <div class="form-group">
-                        <label for="responsable">Responsable</label>
-                        <input type="text" class="form-control" id="responsable" name="responsable" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email_responsable">Email Responsable</label>
-                        <input type="email" class="form-control" id="email_responsable" name="email_responsable" required>
-                    </div>
+                    <!-- responsable and email_responsable removed -->
                     <div class="form-group">
                         <label for="telefono">Teléfono</label>
                         <input type="text" class="form-control" id="telefono" name="telefono" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cp">Código Postal</label>
+                        <input type="text" class="form-control" id="cp" name="cp">
+                    </div>
+                    <div class="form-group">
+                        <label for="ciudad">Ciudad</label>
+                        <input type="text" class="form-control" id="ciudad" name="ciudad">
+                    </div>
+                    <div class="form-group">
+                        <label for="provincia">Provincia</label>
+                        <input type="text" class="form-control" id="provincia" name="provincia">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -240,17 +240,22 @@
                         <label for="direccion_tienda_edit">Dirección Tienda</label>
                         <input type="text" class="form-control" id="direccion_tienda_edit" name="direccion_tienda">
                     </div>
-                    <div class="form-group">
-                        <label for="responsable_edit">Responsable</label>
-                        <input type="text" class="form-control" id="responsable_edit" name="responsable">
-                    </div>
-                    <div class="form-group">
-                        <label for="email_responsable_edit">Email Responsable</label>
-                        <input type="email" class="form-control" id="email_responsable_edit" name="email_responsable">
-                    </div>
+                    <!-- responsable_edit and email_responsable_edit removed -->
                     <div class="form-group">
                         <label for="telefono_edit">Teléfono</label>
                         <input type="text" class="form-control" id="telefono_edit" name="telefono">
+                    </div>
+                    <div class="form-group">
+                        <label for="cp_edit">Código Postal</label>
+                        <input type="text" class="form-control" id="cp_edit" name="cp">
+                    </div>
+                    <div class="form-group">
+                        <label for="ciudad_edit">Ciudad</label>
+                        <input type="text" class="form-control" id="ciudad_edit" name="ciudad">
+                    </div>
+                    <div class="form-group">
+                        <label for="provincia_edit">Provincia</label>
+                        <input type="text" class="form-control" id="provincia_edit" name="provincia">
                     </div>
                     <button type="submit" class="btn btn-primary">Guardar Cambios</button>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
@@ -333,6 +338,9 @@
             $('#responsable_edit').val(data.responsable);
             $('#email_responsable_edit').val(data.email_responsable);
             $('#telefono_edit').val(data.telefono);
+            $('#cp_edit').val(data.cp);
+            $('#ciudad_edit').val(data.ciudad);
+            $('#provincia_edit').val(data.provincia);
             $('#editTiendaModal').modal('show');
         });
     });

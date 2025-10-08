@@ -18,7 +18,7 @@
                     <input type="hidden" name="modo_edicion" id="modo_edicion_modal" value="agregar">
                     <input type="hidden" name="id_registro" id="id_registro_modal">
                     <div class="form-group">
-                        <label for="asesor_externo_empresa">Asesor Externo - Empresa</label>
+                        <label for="asesor_externo_empresa">Empresa externa</label>
                         <input type="text" class="form-control" name="asesor_externo_empresa" required>
                     </div>
                     <div class="form-group">
@@ -35,6 +35,10 @@
                                     <option value="3 meses">3 meses</option>
                                     <option value="6 meses">6 meses</option>
                                     <option value="anual">Anual</option>
+                                    <option value="2 años">2 años</option>
+                                    <option value="3 años">3 años</option>
+                                    <option value="4 años">4 años</option>
+                                    <option value="5 años">5 años</option>
                                 </select>
                             </div>
                             <div class="col-3">
@@ -54,6 +58,18 @@
                             <option value="Resultados agua">Analitica agua</option>
                             <option value="Tendencias superficie">Analitica de superficie</option>
                             <option value="Tendencias micro">Analitica de microbiologia</option>
+                        </select>
+                    </div>
+
+                    <!-- Producto: siempre visible debajo de tipo_analitica -->
+                    <div class="form-group" id="producto_group">
+                        <label for="producto">Producto</label>
+                        <select class="form-control" name="producto" id="producto_select" required>
+                            <option value="">-- Seleccionar producto --</option>
+                            <option value="CRUDO">CRUDO</option>
+                            <option value="cocido">cocido</option>
+                            <option value="precocinado">precocinado</option>
+                            <option value="envasado (descongelar y comer)">envasado (descongelar y comer)</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -115,12 +131,43 @@
                         </select>
                     </div>
 
+                    <div class="form-group d-none" id="donde_recoge_muestra_group">
+                        <label for="donde_recoge_muestra">Donde recoge muestra</label>
+                        <select class="form-control" name="donde_recoge_muestra" id="donde_recoge_muestra">
+                            <option value="">-- Seleccionar --</option>
+                            <option value="GRIFO TRASTIENDA">GRIFO TRASTIENDA</option>
+                            <option value="GRIFO OBRADOR">GRIFO OBRADOR</option>
+                            <option value="GRIFO ZONA LAVADO">GRIFO ZONA LAVADO</option>
+                            <option value="GRIFO PICA REBOTICA">GRIFO PICA REBOTICA</option>
+                            <option value="GRIFO PICA OBRADOR">GRIFO PICA OBRADOR</option>
+                            <option value="GRIFO ALMACÉN">GRIFO ALMACÉN</option>
+                        </select>
+                    </div>
+
                     <div class="form-group d-none" id="detalle_superficie_group">
                         <label for="detalle_superficie">Tipo (Analitica de superficie)</label>
                         <select class="form-control" name="detalle_tipo" id="detalle_superficie">
                             <option value="">-- Seleccionar --</option>
                             <option value="Mesa">Mesa</option>
                             <option value="Suelo">Suelo</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group d-none" id="referencia_superficie_group">
+                        <label for="referencia_superficie">Referencia</label>
+                        <select class="form-control" name="referencia_superficie" id="referencia_superficie">
+                            <option value="">-- Seleccionar --</option>
+                            <option value="S01Pala">S01Pala</option>
+                            <option value="S02Cubeta">S02Cubeta</option>
+                            <option value="S03Rejilla acondicionamiento">S03Rejilla acondicionamiento</option>
+                            <option value="S04Mesa manipulación">S04Mesa manipulación</option>
+                            <option value="S05Mesa manipulación panadería">S05Mesa manipulación panadería</option>
+                            <option value="S06Recipientes para contener alimentos (bandejas exposición bollería, bandejas horneado pan, etc.)">S06Recipientes para contener alimentos (bandejas exposición bollería, bandejas horneado pan, etc.)</option>
+                            <option value="S07Utensilio panadería (pinzas, espátula)">S07Utensilio panadería (pinzas, espátula)</option>
+                            <option value="S08Mueble expositor pan">S08Mueble expositor pan</option>
+                            <option value="S09Báscula panadería asistida">S09Báscula panadería asistida</option>
+                            <option value="S10Utensilio panadería (pinzas, espátula)">S10Utensilio panadería (pinzas, espátula)</option>
+                            <option value="S11Plato microondas">S11Plato microondas</option>
                         </select>
                     </div>
 
@@ -207,15 +254,21 @@
             var val = $(this).val();
             // ocultar todos
             $('#detalle_agua_group').addClass('d-none');
+            $('#donde_recoge_muestra_group').addClass('d-none');
             $('#detalle_superficie_group').addClass('d-none');
+            $('#referencia_superficie_group').addClass('d-none');
             $('#micro_fields').addClass('d-none');
             // habilitar proveedor por defecto
             $('#proveedor_id_select').prop('required', true).prop('disabled', false);
 
             if (val === 'Resultados agua') {
                 $('#detalle_agua_group').removeClass('d-none');
+                $('#donde_recoge_muestra_group').removeClass('d-none');
+                // proveedor no obligatorio para agua
+                $('#proveedor_id_select').prop('required', false).prop('disabled', false);
             } else if (val === 'Tendencias superficie') {
                 $('#detalle_superficie_group').removeClass('d-none');
+                $('#referencia_superficie_group').removeClass('d-none');
             } else if (val === 'Tendencias micro') {
                 $('#micro_fields').removeClass('d-none');
                 // proveedor no obligatorio
@@ -793,6 +846,8 @@
             
             $('#tienda_id_modal').val(tiendaId);
             $('#nombreTiendaModal').text(tiendaNombre);
+            // Asegurar que el select producto quede vacío en modo agregar
+            $('#producto_select').val('');
             $('#modalAgregarAnalitica').modal('show');
         });
 
@@ -844,6 +899,12 @@
                     console.log('=== LLENANDO FORMULARIO ===');
                     $('input[name="fecha_real_analitica"]').val(analitica.fecha_real_analitica);
                     $('input[name="asesor_externo_empresa"]').val(analitica.asesor_externo_empresa);
+                    // Producto
+                    if (analitica.producto) {
+                        $('#producto_select').val(analitica.producto);
+                    } else {
+                        $('#producto_select').val('');
+                    }
                     // Tipo analítica y campos condicionales
                     $('select[name="tipo_analitica"]').val(analitica.tipo_analitica);
                     // Rellenar valores específicos de detalle/código/descr para editar
@@ -855,6 +916,21 @@
                         $('#detalle_agua').val('');
                         $('#detalle_superficie').val('');
                     }
+                    
+                    // Cargar el campo "donde_recoge_muestra" si existe
+                    if (analitica.donde_recoge_muestra) {
+                        $('#donde_recoge_muestra').val(analitica.donde_recoge_muestra);
+                    } else {
+                        $('#donde_recoge_muestra').val('');
+                    }
+                    
+                    // Cargar el campo "referencia_superficie" si existe
+                    if (analitica.referencia_superficie) {
+                        $('#referencia_superficie').val(analitica.referencia_superficie);
+                    } else {
+                        $('#referencia_superficie').val('');
+                    }
+                    
                     // Campos de microbiología: intentar varias propiedades que puedan venir según origen
                     var codigoProd = analitica.codigo_producto || analitica.codigo || analitica.product_cod || analitica.codigo_producto || analitica.codigo_producto || '';
                     var descripcionProd = analitica.descripcion_producto || analitica.nombre_producto || analitica.product_description || analitica.nombre || analitica.descripcion || '';
@@ -863,7 +939,7 @@
                     // Disparar el change del select para que el comportamiento de mostrar/ocultar se aplique
                     $('#tipo_analitica_modal').trigger('change');
                     // Ajustar required del proveedor si corresponde
-                    if (analitica.tipo_analitica === 'Tendencias micro') {
+                    if (analitica.tipo_analitica === 'Tendencias micro' || analitica.tipo_analitica === 'Resultados agua') {
                         $('#proveedor_id_select').prop('required', false);
                     } else {
                         $('#proveedor_id_select').prop('required', true);

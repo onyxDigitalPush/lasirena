@@ -548,56 +548,50 @@
             var html = '<div class="container-fluid"><div class="row">';
             html += '<div class="col-md-6">';
             html += '<div class="form-group"><label>Fecha de muestra</label>';
-            html += '<input type="date" name="fecha_muestra" class="form-control" value="' + (datos.fecha_muestra || '') +
-                '"></div>';
-            html += '<div class="form-row">';
-            html += '<div class="form-group col-md-6"><label>Año</label>';
-            html += '<input type="text" name="anio" class="form-control" value="' + (datos.anio || '') +
-            '" readonly></div>';
-            html += '<div class="form-group col-md-6"><label>Mes</label>';
-            html += '<input type="text" name="mes" class="form-control" value="' + (datos.mes || '') + '" readonly></div>';
-            html += '</div>';
+            html += '<input type="date" name="fecha_muestra" class="form-control" value="' + (datos.fecha_muestra || '') + '"></div>';
+            
+            html += '<div class="form-group"><label>Dónde se recoge la muestra</label>';
+            html += '<input type="text" name="donde_se_recoje_muestra" class="form-control" value="' + (datos.donde_se_recoje_muestra || '') + '"></div>';
+            
             html += '<div class="form-group"><label>Número de muestras</label>';
-            html += '<input type="number" name="numero_muestras" class="form-control" value="' + (datos.numero_muestras ||
-                '') + '"></div>';
-            html += '<div class="form-group"><label>Precio reducido agua</label>';
-            html += '<input type="text" name="precio_reducido_agua" class="form-control" value="' + (datos
-                .precio_reducido_agua || '') + '"></div>';
-            html += '<div class="form-group"><label>Código</label>';
-            html += '<input type="text" name="codigo" class="form-control" value="' + (datos.codigo || '') + '"></div>';
-            html += '<h6 class="mt-3">Resultados (Correcto / Falso)</h6>';
+            html += '<input type="number" name="numero_muestras" class="form-control" value="' + (datos.numero_muestras || '') + '"></div>';
+            
+            html += '<div class="form-group"><label>Número Factura</label>';
+            html += '<input type="text" name="numero_factura" class="form-control" value="' + (datos.numero_factura || '') + '"></div>';
+            
+            html += '<h6 class="mt-3">Resultados Microbiológicos</h6>';
             html += '</div>';
+            
             html += '<div class="col-md-6">';
-            html += '<div class="form-group"><label>Protinco</label>';
-            html += '<input type="text" name="protinco" class="form-control" value="' + (datos.protinco || '') + '"></div>';
-            html += '<div class="form-group"><label>Asesor</label>';
-            html += '<input type="text" name="asesor" class="form-control" value="' + (datos.asesor || '') + '"></div>';
-            html += '<div class="form-group"><label>Tipo referencia</label>';
-            html += '<input type="text" name="tipo_referencia" class="form-control" value="' + (datos.tipo_referencia ||
-                '') + '"></div>';
-            html += '<div class="form-group"><label>E.O</label>';
-            html += '<input type="text" name="eo" class="form-control" value="' + (datos.eo || '') + '"></div>';
-            html += '<div class="form-group"><label>Descripción centro</label>';
-            html += '<input type="text" name="descripcion_centro" class="form-control" value="' + (datos
-                .descripcion_centro || '') + '"></div>';
+            html += '<div class="form-group"><label>Producto</label>';
+            html += '<select name="producto" class="form-control">';
+            html += '<option value="">-- Seleccionar producto --</option>';
+            var productos = ['CRUDO', 'cocido', 'precocinado', 'envasado (descongelar y comer)'];
+            for (var p = 0; p < productos.length; p++) {
+                var selected = (datos.producto == productos[p]) ? ' selected' : '';
+                html += '<option value="' + productos[p] + '"' + selected + '>' + productos[p] + '</option>';
+            }
+            html += '</select></div>';
             html += '<hr>';
             html += '</div>';
             html += '</div>';
 
-            // Generar campos de resultados
+            // Generar campos de resultados con los NUEVOS campos
             html += '<div class="row mt-3">';
-            var resultFields = ['calificacion', 'estaraca', 'avia', 'mix', 'plan', 'cal', 'condicion', 'clara'];
+            var resultFields = ['E_coli', 'coliformes_totales', 'enterococos', 'amonio', 'nitritos', 
+                              'color', 'sabor', 'olor', 'conductividad', 'ph', 'turbidez', 
+                              'cloro_libre', 'cloro_combinado', 'cloro_total', 'cobre', 
+                              'cromo_total', 'niquel', 'hierro', 'cloruro_vinilo', 'bisfenol'];
             for (var i = 0; i < resultFields.length; i++) {
                 var field = resultFields[i];
+                var fieldLabel = field.replace(/_/g, ' ').replace(/\b\w/g, function(l){ return l.toUpperCase(); });
                 html += '<div class="col-md-6">';
                 html += '<div class="form-group mb-3">';
-                html += '<label class="d-block font-weight-bold">' + field.charAt(0).toUpperCase() + field.slice(1) +
-                    '</label>';
+                html += '<label class="d-block font-weight-bold">' + fieldLabel + '</label>';
                 html += '<div class="row align-items-end">';
                 html += '<div class="col-md-6">';
                 html += '<label class="small mb-1">Valor</label>';
-                html += '<input type="text" name="' + field + '_valor" class="form-control form-control-sm" value="' + (
-                    datos[field + '_valor'] || '') + '">';
+                html += '<input type="text" name="' + field + '_valor" class="form-control form-control-sm" value="' + (datos[field + '_valor'] || '') + '">';
                 html += '</div>';
                 html += '<div class="col-md-6">';
                 html += '<label class="small mb-1">Resultado</label>';

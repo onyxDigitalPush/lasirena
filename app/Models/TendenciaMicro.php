@@ -45,7 +45,13 @@ class TendenciaMicro extends Model
         'salmonella_valor',
         'salmonella_resultado',
         'archivos',
-        'procede'
+        'procede',
+        // Nuevos campos agregados
+        'lote_proveedor',
+        'lote_sap',
+        'fcp',
+        'salmonella_presencia',
+        'salmonella_recuento',
     ];
 
     protected $dates = [

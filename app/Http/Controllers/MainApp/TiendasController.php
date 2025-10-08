@@ -17,9 +17,6 @@ class TiendasController extends Controller
         if ($request->filled('nombre_tienda')) {
             $query->where('nombre_tienda', 'like', '%' . $request->nombre_tienda . '%');
         }
-        if ($request->filled('responsable')) {
-            $query->where('responsable', 'like', '%' . $request->responsable . '%');
-        }
         $tiendas = $query->orderBy('num_tienda')->get();
         return view('MainApp.tiendas.tiendas_list', compact('tiendas'));
     }
@@ -30,9 +27,10 @@ class TiendasController extends Controller
             'num_tienda' => 'required',
             'nombre_tienda' => 'required',
             'direccion_tienda' => 'required',
-            'responsable' => 'required',
-            'email_responsable' => 'required|email',
             'telefono' => 'required',
+            'cp' => 'nullable|string|max:10',
+            'ciudad' => 'nullable|string|max:100',
+            'provincia' => 'nullable|string|max:100',
         ]);
         Tienda::create($request->all());
         return redirect()->back()->with('success', 'Tienda creada correctamente');
@@ -51,9 +49,10 @@ class TiendasController extends Controller
             'num_tienda' => 'required',
             'nombre_tienda' => 'required',
             'direccion_tienda' => 'required',
-            'responsable' => 'required',
-            'email_responsable' => 'required|email',
             'telefono' => 'required',
+            'cp' => 'nullable|string|max:10',
+            'ciudad' => 'nullable|string|max:100',
+            'provincia' => 'nullable|string|max:100',
         ]);
         $tienda = Tienda::findOrFail($request->id);
         $tienda->update($request->all());
@@ -79,9 +78,6 @@ class TiendasController extends Controller
         if ($request->filled('nombre_tienda')) {
             $query->where('nombre_tienda', 'like', '%' . $request->nombre_tienda . '%');
         }
-        if ($request->filled('responsable')) {
-            $query->where('responsable', 'like', '%' . $request->responsable . '%');
-        }
         $tiendas = $query->orderBy('num_tienda')->get();
         // Devolver solo los datos necesarios para la tabla
         $data = $tiendas->map(function($t) {
@@ -89,9 +85,10 @@ class TiendasController extends Controller
                 'num_tienda' => $t->num_tienda,
                 'nombre_tienda' => $t->nombre_tienda,
                 'direccion_tienda' => $t->direccion_tienda,
-                'responsable' => $t->responsable,
-                'email_responsable' => $t->email_responsable,
                 'telefono' => $t->telefono,
+                'cp' => $t->cp,
+                'ciudad' => $t->ciudad,
+                'provincia' => $t->provincia,
                 'id' => $t->id
             ];
         });

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use App\Models\Tienda;
 use App\Models\Analitica;
+use App\Models\ResultadoAgua;
 use App\Models\MainApp\Proveedor;
 use App\Models\TendenciaSuperficie;
 use App\Models\TendenciaMicro;
@@ -101,6 +102,18 @@ class EvaluacionAnalisisController extends Controller
                     case 'anual':
             $fechaLimite = $fecha->copy()->addYear();
                         break;
+                    case '2 años':
+            $fechaLimite = $fecha->copy()->addYears(2);
+                        break;
+                    case '3 años':
+            $fechaLimite = $fecha->copy()->addYears(3);
+                        break;
+                    case '4 años':
+            $fechaLimite = $fecha->copy()->addYears(4);
+                        break;
+                    case '5 años':
+            $fechaLimite = $fecha->copy()->addYears(5);
+                        break;
                     default:
                         $fechaLimite = $fecha;
                 }
@@ -167,6 +180,39 @@ class EvaluacionAnalisisController extends Controller
                 }
                 Log::info('guardarAnalitica - editar payload', $data);
                 $analitica->update($data);
+                
+                // Si es tipo "Resultados agua", actualizar también en tabla resultados_agua
+                if ($analitica->tipo_analitica === 'Resultados agua') {
+                    $tienda = Tienda::where('num_tienda', $analitica->num_tienda)->first();
+                    
+                    $resultadoAguaData = [
+                        'tienda_id' => $tienda ? $tienda->id : null,
+                        'fecha_muestra' => $request->input('fecha_muestra'),
+                        'donde_se_recoje_muestra' => $request->input('donde_se_recoje_muestra'),
+                        'numero_muestras' => $request->input('numero_muestras'),
+                        'numero_factura' => $request->input('numero_factura'),
+                        'producto' => $request->input('producto'),
+                        'estado_analitica' => $request->input('estado_analitica', 'sin_iniciar'),
+                    ];
+                    
+                    // Agregar todos los campos de resultados microbiológicos
+                    $camposResultados = ['E_coli', 'coliformes_totales', 'enterococos', 'amonio', 'nitritos', 
+                                        'color', 'sabor', 'olor', 'conductividad', 'ph', 'turbidez', 
+                                        'cloro_libre', 'cloro_combinado', 'cloro_total', 'cobre', 
+                                        'cromo_total', 'niquel', 'hierro', 'cloruro_vinilo', 'bisfenol'];
+                    
+                    foreach ($camposResultados as $campo) {
+                        $resultadoAguaData[$campo . '_valor'] = $request->input($campo . '_valor');
+                        $resultadoAguaData[$campo . '_resultado'] = $request->input($campo . '_resultado');
+                    }
+                    
+                    // Actualizar o crear el registro en resultados_agua
+                    ResultadoAgua::updateOrCreate(
+                        ['analitica_id' => $analitica->id],
+                        $resultadoAguaData
+                    );
+                    Log::info('Resultado agua actualizado correctamente', ['analitica_id' => $analitica->id]);
+                }
                 
                 // Procesar archivos subidos en edición
                 if ($request->hasFile('archivos')) {
@@ -305,6 +351,36 @@ class EvaluacionAnalisisController extends Controller
             }
             Log::info('guardarAnalitica - crear payload', $data);
             $analitica = Analitica::create($data);
+            
+            // Si es tipo "Resultados agua", guardar también en tabla resultados_agua
+            if ($request->input('tipo_analitica') === 'Resultados agua') {
+                $tienda = Tienda::where('num_tienda', $request->input('num_tienda'))->first();
+                
+                $resultadoAguaData = [
+                    'analitica_id' => $analitica->id,
+                    'tienda_id' => $tienda ? $tienda->id : null,
+                    'fecha_muestra' => $request->input('fecha_muestra'),
+                    'donde_se_recoje_muestra' => $request->input('donde_se_recoje_muestra'),
+                    'numero_muestras' => $request->input('numero_muestras'),
+                    'numero_factura' => $request->input('numero_factura'),
+                    'producto' => $request->input('producto'),
+                    'estado_analitica' => $request->input('estado_analitica', 'sin_iniciar'),
+                ];
+                
+                // Agregar todos los campos de resultados microbiológicos
+                $camposResultados = ['E_coli', 'coliformes_totales', 'enterococos', 'amonio', 'nitritos', 
+                                    'color', 'sabor', 'olor', 'conductividad', 'ph', 'turbidez', 
+                                    'cloro_libre', 'cloro_combinado', 'cloro_total', 'cobre', 
+                                    'cromo_total', 'niquel', 'hierro', 'cloruro_vinilo', 'bisfenol'];
+                
+                foreach ($camposResultados as $campo) {
+                    $resultadoAguaData[$campo . '_valor'] = $request->input($campo . '_valor');
+                    $resultadoAguaData[$campo . '_resultado'] = $request->input($campo . '_resultado');
+                }
+                
+                ResultadoAgua::create($resultadoAguaData);
+                Log::info('Resultado agua guardado correctamente', ['analitica_id' => $analitica->id]);
+            }
             
             // Procesar archivos subidos
             if ($request->hasFile('archivos')) {
@@ -563,6 +639,18 @@ class EvaluacionAnalisisController extends Controller
                         break;
                     case 'anual':
                         $fechaLimite = $fecha->copy()->addYear();
+                        break;
+                    case '2 años':
+                        $fechaLimite = $fecha->copy()->addYears(2);
+                        break;
+                    case '3 años':
+                        $fechaLimite = $fecha->copy()->addYears(3);
+                        break;
+                    case '4 años':
+                        $fechaLimite = $fecha->copy()->addYears(4);
+                        break;
+                    case '5 años':
+                        $fechaLimite = $fecha->copy()->addYears(5);
                         break;
                     default:
                         $fechaLimite = $fecha;
@@ -1132,7 +1220,9 @@ class EvaluacionAnalisisController extends Controller
                     if (!empty($datos->fecha_realizacion)) {
                         $realizada = true;
                     } else {
-                        $realizada = TendenciaSuperficie::where('analitica_id', $datos->id)->exists() || TendenciaMicro::where('analitica_id', $datos->id)->exists();
+                        $realizada = TendenciaSuperficie::where('analitica_id', $datos->id)->exists() 
+                                  || TendenciaMicro::where('analitica_id', $datos->id)->exists()
+                                  || ResultadoAgua::where('analitica_id', $datos->id)->exists();
                     }
                     $datos->realizada = $realizada;
                     // Asegurar que los campos nuevos estén presentes en el payload
@@ -1140,8 +1230,42 @@ class EvaluacionAnalisisController extends Controller
                     $datos->codigo_producto = $datos->codigo_producto ?? ($datos->codigo ?? null);
                     $datos->descripcion_producto = $datos->descripcion_producto ?? ($datos->descripcion ?? $datos->nombre_producto ?? $datos->product_description ?? $datos->nombre ?? null);
                     
-                    // Agregar archivos de la analítica
-                    $datos->archivos = $datos->getArchivosArray();
+                    // Si es tipo "Resultados agua", cargar datos de la tabla resultados_agua
+                    if ($datos->tipo_analitica === 'Resultados agua') {
+                        $resultadoAgua = ResultadoAgua::where('analitica_id', $datos->id)->first();
+                        if ($resultadoAgua) {
+                            // Merge de datos de resultados_agua en el objeto analitica
+                            $datos->fecha_muestra = $resultadoAgua->fecha_muestra;
+                            $datos->donde_se_recoje_muestra = $resultadoAgua->donde_se_recoje_muestra;
+                            $datos->numero_muestras = $resultadoAgua->numero_muestras;
+                            $datos->numero_factura = $resultadoAgua->numero_factura;
+                            $datos->producto = $resultadoAgua->producto;
+                            
+                            // Agregar todos los campos de resultados microbiológicos
+                            $camposResultados = ['E_coli', 'coliformes_totales', 'enterococos', 'amonio', 'nitritos', 
+                                                'color', 'sabor', 'olor', 'conductividad', 'ph', 'turbidez', 
+                                                'cloro_libre', 'cloro_combinado', 'cloro_total', 'cobre', 
+                                                'cromo_total', 'niquel', 'hierro', 'cloruro_vinilo', 'bisfenol'];
+                            
+                            foreach ($camposResultados as $campo) {
+                                $datos->{$campo . '_valor'} = $resultadoAgua->{$campo . '_valor'};
+                                $datos->{$campo . '_resultado'} = $resultadoAgua->{$campo . '_resultado'};
+                            }
+                            
+                            // Archivos: combinar de ambas tablas si existen
+                            $archivosAgua = $resultadoAgua->getArchivosArray();
+                            if (!empty($archivosAgua)) {
+                                $datos->archivos = array_merge($datos->getArchivosArray(), $archivosAgua);
+                            } else {
+                                $datos->archivos = $datos->getArchivosArray();
+                            }
+                        } else {
+                            $datos->archivos = $datos->getArchivosArray();
+                        }
+                    } else {
+                        // Agregar archivos de la analítica
+                        $datos->archivos = $datos->getArchivosArray();
+                    }
                     
                     return response()->json(['success' => true, 'analitica' => $datos]);
                 }

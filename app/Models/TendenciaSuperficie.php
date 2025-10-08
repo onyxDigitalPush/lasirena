@@ -19,7 +19,10 @@ class TendenciaSuperficie extends Model
         'enterobacterias_valor','enterobacterias_result',
         'listeria_monocytogenes_valor','listeria_monocytogenes_result',
         'accion_correctiva','repeticion_n1','repeticion_n2',
-        'estado_analitica', 'fecha_cambio_estado', 'archivos', 'procede'
+        'estado_analitica', 'fecha_cambio_estado', 'archivos', 'procede',
+        // Nuevos campos agregados
+        'referencia',
+        'numero_muestra',
     ];
 
     protected $casts = [
