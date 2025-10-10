@@ -938,21 +938,31 @@ class MaterialKiloController extends Controller
     }
 
     /**
-     * Actualizar métricas basadas en incidencias
+     * Actualizar métricas basadas en incidencias Y devoluciones
      */
     private function actualizarMetricasIncidencias($id_proveedor, $año, $mes)
     {
-        // Contar incidencias por tipo para el proveedor, año y mes específicos
-        $metricas = DB::table('incidencias_proveedores')
+        // Contar INCIDENCIAS por tipo (DEV1, ROK1, RET1)
+        $metricas_incidencias = DB::table('incidencias_proveedores')
             ->where('id_proveedor', $id_proveedor)
+            ->where('año', $año)
+            ->where('mes', $mes)
+            ->select([
+                DB::raw('SUM(CASE WHEN clasificacion_incidencia = "DEV1" THEN 1 ELSE 0 END) as dev1'),
+                DB::raw('SUM(CASE WHEN clasificacion_incidencia = "ROK1" THEN 1 ELSE 0 END) as rok1'),
+                DB::raw('SUM(CASE WHEN clasificacion_incidencia = "RET1" THEN 1 ELSE 0 END) as ret1'),
+            ])
+            ->first();
+
+        // Contar DEVOLUCIONES por tipo (RG1, RL1)
+        // NOTA: codigo_proveedor es VARCHAR en devoluciones_proveedores
+        $metricas_devoluciones = DB::table('devoluciones_proveedores')
+            ->where('codigo_proveedor', $id_proveedor)
             ->where('año', $año)
             ->where('mes', $mes)
             ->select([
                 DB::raw('SUM(CASE WHEN clasificacion_incidencia = "RG1" THEN 1 ELSE 0 END) as rg1'),
                 DB::raw('SUM(CASE WHEN clasificacion_incidencia = "RL1" THEN 1 ELSE 0 END) as rl1'),
-                DB::raw('SUM(CASE WHEN clasificacion_incidencia = "DEV1" THEN 1 ELSE 0 END) as dev1'),
-                DB::raw('SUM(CASE WHEN clasificacion_incidencia = "ROK1" THEN 1 ELSE 0 END) as rok1'),
-                DB::raw('SUM(CASE WHEN clasificacion_incidencia = "RET1" THEN 1 ELSE 0 END) as ret1'),
             ])
             ->first();
 
@@ -964,11 +974,11 @@ class MaterialKiloController extends Controller
                 'mes' => $mes
             ],
             [
-                'rg1' => $metricas->rg1 ?? 0,
-                'rl1' => $metricas->rl1 ?? 0,
-                'dev1' => $metricas->dev1 ?? 0,
-                'rok1' => $metricas->rok1 ?? 0,
-                'ret1' => $metricas->ret1 ?? 0,
+                'rg1' => $metricas_devoluciones->rg1 ?? 0,
+                'rl1' => $metricas_devoluciones->rl1 ?? 0,
+                'dev1' => $metricas_incidencias->dev1 ?? 0,
+                'rok1' => $metricas_incidencias->rok1 ?? 0,
+                'ret1' => $metricas_incidencias->ret1 ?? 0,
             ]
         );
     }
@@ -1617,6 +1627,8 @@ class MaterialKiloController extends Controller
                 'archivos' => $archivosData
             ]);
 
+            // Actualizar las métricas automáticamente
+            $this->actualizarMetricasIncidencias($request->codigo_proveedor, $request->año, $request->mes);
 
             if ($request->ajax()) {
                 return response()->json(['success' => true, 'message' => 'Devolución guardada correctamente']);
@@ -1752,6 +1764,9 @@ class MaterialKiloController extends Controller
                 'comentarios' => $request->comentarios,
                 'archivos' => $archivosExistentes
             ]);
+
+            // Actualizar las métricas automáticamente
+            $this->actualizarMetricasIncidencias($request->codigo_proveedor, $request->año, $request->mes);
 
             return redirect()->route('material_kilo.historial_incidencias_devoluciones')->with('success', 'Devolución actualizada correctamente');
         } catch (\Exception $e) {

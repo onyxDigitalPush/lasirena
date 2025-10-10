@@ -697,10 +697,46 @@ class ProveedorController extends Controller
                 if (empty($factor_conversin)) $factor_conversin = isset($fila['factor_conversin']) ? trim($fila['factor_conversin']) : '';
 
                 // Conversiones de formato optimizadas
-                $totalKg = floatval(str_replace(',', '.', str_replace('.', '', $totalKgRaw)));
-                $valor_emdev_final = floatval(str_replace(',', '.', str_replace('.', '', $valor_emdev)));
-                $factor_conversin_final = floatval(str_replace(',', '.', str_replace('.', '', $factor_conversin)));
-                $ctd_emdev_final = floatval(str_replace(',', '.', str_replace('.', '', $ctd_emdev)));
+                // Función para convertir números con formato europeo o decimal simple
+                $convertirNumero = function($valor) {
+                    $valor = trim($valor);
+                    if (empty($valor)) return 0;
+                    
+                    // Contar puntos y comas para determinar el formato
+                    $numPuntos = substr_count($valor, '.');
+                    $numComas = substr_count($valor, ',');
+                    
+                    // Si tiene ambos, es formato europeo: 1.234,56 -> eliminar puntos, coma a punto
+                    if ($numPuntos > 0 && $numComas > 0) {
+                        return floatval(str_replace(',', '.', str_replace('.', '', $valor)));
+                    }
+                    // Si solo tiene comas, la coma es el decimal: 0,3 o 1,234 -> coma a punto
+                    elseif ($numComas > 0 && $numPuntos == 0) {
+                        return floatval(str_replace(',', '.', $valor));
+                    }
+                    // Si solo tiene puntos múltiples, son separadores de miles: 1.234 -> eliminar puntos
+                    elseif ($numPuntos > 1) {
+                        return floatval(str_replace('.', '', $valor));
+                    }
+                    // Si tiene un solo punto, es decimal: 0.3 -> dejar como está
+                    else {
+                        return floatval($valor);
+                    }
+                };
+                
+                $totalKg = $convertirNumero($totalKgRaw);
+                $valor_emdev_final = $convertirNumero($valor_emdev);
+                $factor_conversin_final = $convertirNumero($factor_conversin);
+                $ctd_emdev_final = $convertirNumero($ctd_emdev);
+                
+                // Log de conversión para las primeras 5 filas (debugging)
+                if ($index < 5) {
+                    Log::info("Fila {$index} - Conversiones:");
+                    Log::info("  factor_conversion: '{$factor_conversin}' -> {$factor_conversin_final}");
+                    Log::info("  valor_emdev: '{$valor_emdev}' -> {$valor_emdev_final}");
+                    Log::info("  total_kg: '{$totalKgRaw}' -> {$totalKg}");
+                    Log::info("  ctd_emdev: '{$ctd_emdev}' -> {$ctd_emdev_final}");
+                }
 
                 // Validación crítica
                 if (empty($proveedorId) || empty($materialCodigo) || empty($mes)) {
@@ -995,10 +1031,37 @@ class ProveedorController extends Controller
             $totalKgRaw = isset($filaArray[13]) ? trim($filaArray[13]) : '';
             
             // Conversiones de formato optimizadas
-            $totalKg = floatval(str_replace(',', '.', str_replace('.', '', $totalKgRaw)));
-            $valor_emdev_final = floatval(str_replace(',', '.', str_replace('.', '', $valor_emdev)));
-            $factor_conversin_final = floatval(str_replace(',', '.', str_replace('.', '', $factor_conversin)));
-            $ctd_emdev_final = floatval(str_replace(',', '.', str_replace('.', '', $ctd_emdev)));
+            // Función para convertir números con formato europeo o decimal simple
+            $convertirNumero = function($valor) {
+                $valor = trim($valor);
+                if (empty($valor)) return 0;
+                
+                // Contar puntos y comas para determinar el formato
+                $numPuntos = substr_count($valor, '.');
+                $numComas = substr_count($valor, ',');
+                
+                // Si tiene ambos, es formato europeo: 1.234,56 -> eliminar puntos, coma a punto
+                if ($numPuntos > 0 && $numComas > 0) {
+                    return floatval(str_replace(',', '.', str_replace('.', '', $valor)));
+                }
+                // Si solo tiene comas, la coma es el decimal: 0,3 o 1,234 -> coma a punto
+                elseif ($numComas > 0 && $numPuntos == 0) {
+                    return floatval(str_replace(',', '.', $valor));
+                }
+                // Si solo tiene puntos múltiples, son separadores de miles: 1.234 -> eliminar puntos
+                elseif ($numPuntos > 1) {
+                    return floatval(str_replace('.', '', $valor));
+                }
+                // Si tiene un solo punto, es decimal: 0.3 -> dejar como está
+                else {
+                    return floatval($valor);
+                }
+            };
+            
+            $totalKg = $convertirNumero($totalKgRaw);
+            $valor_emdev_final = $convertirNumero($valor_emdev);
+            $factor_conversin_final = $convertirNumero($factor_conversin);
+            $ctd_emdev_final = $convertirNumero($ctd_emdev);
 
             // PERMITIR DUPLICADOS: Procesar TODOS los registros sin verificar existencia
             

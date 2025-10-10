@@ -345,7 +345,7 @@
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label for="proveedor_devolucion">Proveedor:</label>
-                                <select id="proveedor_devolucion" name="id_proveedor" class="form-control" required>
+                                <select id="proveedor_devolucion" name="codigo_proveedor" class="form-control" required>
                                     <option value="">Seleccione un proveedor</option>
                                     @foreach ($proveedores_alfabetico as $proveedor)
                                         <option value="{{ $proveedor->id_proveedor }}">

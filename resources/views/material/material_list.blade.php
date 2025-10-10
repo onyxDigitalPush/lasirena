@@ -79,7 +79,6 @@
             <thead>
                 <tr>
                     <th class="text-center">Codigo Material</th>
-                    <th class="text-center">Jerarquia</th>
                     <th class="text-center">Descripcion Material</th>
                     <th class="text-center">Factor Conversion</th>
                     <th class="text-center">Editar</th>
@@ -92,7 +91,6 @@
                 @foreach ($materiales as $material)
                     <tr>
                         <td class="text-center">{{ $material->codigo }}</td>
-                        <td class="text-center">{{ $material->jerarquia }}</td>
                         <td class="text-center">{{ $material->descripcion }} </td>
                         <td class="text-center">
                             @if($material->factor_conversion !== null && $material->factor_conversion > 0)
