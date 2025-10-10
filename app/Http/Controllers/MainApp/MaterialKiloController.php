@@ -225,8 +225,8 @@ class MaterialKiloController extends Controller
     }
     public function totalKgPorProveedor(Request $request)
     {
-        // Obtener filtros con valores por defecto (Enero del año actual)
-        $mes = $request->get('mes', 1); // Por defecto enero (mes 1)
+        // Obtener filtros - si no se especifica mes, será null (todos los meses)
+        $mes = $request->has('mes') ? $request->get('mes') : null;
         $año = $request->get('año', date('Y')); // Por defecto año actual
 
         // Query base para totales por proveedor
@@ -241,8 +241,8 @@ class MaterialKiloController extends Controller
         // Aplicar filtros
         $query->where('material_kilos.año', $año);
 
-        // Si mes está seleccionado, filtrar por mes específico
-        if ($mes) {
+        // Si mes está seleccionado Y no está vacío, filtrar por mes específico
+        if ($mes !== null && $mes !== '') {
             $query->where('material_kilos.mes', $mes);
         }
 
@@ -266,12 +266,26 @@ class MaterialKiloController extends Controller
         // Obtener métricas existentes para el período filtrado
         $metricas_query = ProveedorMetric::where('año', $año);
 
-        // Si mes está seleccionado, filtrar métricas por mes específico
-        if ($mes) {
+        // Si mes está seleccionado Y no está vacío, filtrar métricas por mes específico
+        if ($mes !== null && $mes !== '') {
             $metricas_query->where('mes', $mes);
+            $metricas_por_proveedor = $metricas_query->get()->keyBy('proveedor_id');
+        } else {
+            // Si no hay mes seleccionado, sumar todas las métricas del año
+            $metricas_agrupadas = ProveedorMetric::where('año', $año)
+                ->select(
+                    'proveedor_id',
+                    DB::raw('SUM(rg1) as rg1'),
+                    DB::raw('SUM(rl1) as rl1'),
+                    DB::raw('SUM(dev1) as dev1'),
+                    DB::raw('SUM(rok1) as rok1'),
+                    DB::raw('SUM(ret1) as ret1')
+                )
+                ->groupBy('proveedor_id')
+                ->get()
+                ->keyBy('proveedor_id');
+            $metricas_por_proveedor = $metricas_agrupadas;
         }
-
-        $metricas_por_proveedor = $metricas_query->get()->keyBy('proveedor_id');
 
         return view('MainApp/material_kilo.total_kg_por_proveedor', compact(
             'totales_por_proveedor',
