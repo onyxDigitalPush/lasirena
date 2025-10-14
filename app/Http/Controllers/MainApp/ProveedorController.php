@@ -763,6 +763,7 @@ class ProveedorController extends Controller
                         'jerarquia' => $jerarquia,
                         'descripcion' => $descripcionMaterial,
                         'proveedor_id' => $proveedorId,
+                        'factor_conversion' => $factor_conversin_final,
                         'created_at' => now(),
                         'updated_at' => now()
                     ];
@@ -1083,6 +1084,7 @@ class ProveedorController extends Controller
                     'jerarquia' => $jerarquia,
                     'descripcion' => $descripcionMaterial,
                     'proveedor_id' => $proveedorId,
+                    'factor_conversion' => $factor_conversin_final,
                     'created_at' => now(),
                     'updated_at' => now()
                 ];
