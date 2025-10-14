@@ -398,3 +398,33 @@
 [2025-10-14 17:03:02] local.INFO: Tiempo total de importación: 68.36 segundos  
 [2025-10-14 17:03:02] local.INFO: ============================  
 [2025-10-14 17:03:02] local.INFO: XLSX procesado directamente. Total filas procesadas: 23093  
+[2025-10-14 17:32:38] local.INFO: XLSX procesado directamente. Total filas procesadas: 0  
+[2025-10-14 17:43:38] local.INFO: XLSX procesado directamente. Total filas procesadas: 0  
+[2025-10-14 18:10:04] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string"} 
+[2025-10-14 18:14:35] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string"} 
+[2025-10-14 18:14:39] local.INFO: Parámetros recibidos: {"orden":null,"filtro":null} 
+[2025-10-14 18:14:39] local.INFO: Aplicando ordenamiento: {"orden":null} 
+[2025-10-14 18:14:39] local.INFO: SQL generado: {"sql":"select `gp_ls_material_kilos`.`id`, `gp_ls_material_kilos`.`total_kg`, `gp_ls_proveedores`.`nombre_proveedor`, `gp_ls_materiales`.`descripcion` as `nombre_material`, `gp_ls_material_kilos`.`ctd_emdev`, `gp_ls_material_kilos`.`umb`, `gp_ls_material_kilos`.`ce`, `gp_ls_material_kilos`.`valor_emdev`, `gp_ls_material_kilos`.`factor_conversion`, `gp_ls_material_kilos`.`codigo_material`, `gp_ls_material_kilos`.`mes`, `gp_ls_material_kilos`.`proveedor_id` from `gp_ls_material_kilos` inner join `gp_ls_proveedores` on `gp_ls_material_kilos`.`proveedor_id` = `gp_ls_proveedores`.`id_proveedor` inner join `gp_ls_materiales` on `gp_ls_material_kilos`.`codigo_material` = `gp_ls_materiales`.`codigo` order by `gp_ls_material_kilos`.`id` asc","bindings":[]} 
+[2025-10-14 18:14:40] local.INFO: Total de registros encontrados con filtros: {"total":213495} 
+[2025-10-14 18:14:47] local.INFO: Parámetros recibidos: {"orden":null,"filtro":null} 
+[2025-10-14 18:14:47] local.INFO: Aplicando ordenamiento: {"orden":null} 
+[2025-10-14 18:14:47] local.INFO: SQL generado: {"sql":"select `gp_ls_material_kilos`.`id`, `gp_ls_material_kilos`.`total_kg`, `gp_ls_proveedores`.`nombre_proveedor`, `gp_ls_materiales`.`descripcion` as `nombre_material`, `gp_ls_material_kilos`.`ctd_emdev`, `gp_ls_material_kilos`.`umb`, `gp_ls_material_kilos`.`ce`, `gp_ls_material_kilos`.`valor_emdev`, `gp_ls_material_kilos`.`factor_conversion`, `gp_ls_material_kilos`.`codigo_material`, `gp_ls_material_kilos`.`mes`, `gp_ls_material_kilos`.`proveedor_id` from `gp_ls_material_kilos` inner join `gp_ls_proveedores` on `gp_ls_material_kilos`.`proveedor_id` = `gp_ls_proveedores`.`id_proveedor` inner join `gp_ls_materiales` on `gp_ls_material_kilos`.`codigo_material` = `gp_ls_materiales`.`codigo` where `gp_ls_material_kilos`.`codigo_material` LIKE ? order by `gp_ls_material_kilos`.`id` asc","bindings":["%30001%"]} 
+[2025-10-14 18:14:48] local.INFO: Total de registros encontrados con filtros: {"total":4} 
+[2025-10-14 18:23:12] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string"} 
+[2025-10-14 18:23:35] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"970","idProveedor_type":"string"} 
+[2025-10-14 18:23:53] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"74","idProveedor_type":"string"} 
+[2025-10-14 18:25:25] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"74","idProveedor_type":"string"} 
+[2025-10-14 18:25:28] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"74","idProveedor_type":"string"} 
+[2025-10-14 18:26:09] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string"} 
+[2025-10-14 18:39:13] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"74","idProveedor_type":"string"} 
+[2025-10-14 18:39:17] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"1422","idProveedor_type":"string"} 
+[2025-10-14 18:44:58] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string"} 
+[2025-10-14 19:00:55] local.ERROR: Class "App\Models\ProveedorMetric" not found {"exception":"[object] (Error(code: 0): Class \"App\\Models\\ProveedorMetric\" not found at C:\\xampp7\\htdocs\\lasirena\ecalcular_metricas_completo.php:101)
+[stacktrace]
+#0 {main}
+"} 
+[2025-10-14 19:04:11] local.INFO: Parámetros recibidos: {"orden":null,"filtro":null} 
+[2025-10-14 19:04:11] local.INFO: Aplicando ordenamiento: {"orden":null} 
+[2025-10-14 19:04:11] local.INFO: SQL generado: {"sql":"select `gp_ls_material_kilos`.`id`, `gp_ls_material_kilos`.`total_kg`, `gp_ls_proveedores`.`nombre_proveedor`, `gp_ls_materiales`.`descripcion` as `nombre_material`, `gp_ls_material_kilos`.`ctd_emdev`, `gp_ls_material_kilos`.`umb`, `gp_ls_material_kilos`.`ce`, `gp_ls_material_kilos`.`valor_emdev`, `gp_ls_material_kilos`.`factor_conversion`, `gp_ls_material_kilos`.`codigo_material`, `gp_ls_material_kilos`.`mes`, `gp_ls_material_kilos`.`proveedor_id` from `gp_ls_material_kilos` inner join `gp_ls_proveedores` on `gp_ls_material_kilos`.`proveedor_id` = `gp_ls_proveedores`.`id_proveedor` inner join `gp_ls_materiales` on `gp_ls_material_kilos`.`codigo_material` = `gp_ls_materiales`.`codigo` order by `gp_ls_material_kilos`.`id` asc","bindings":[]} 
+[2025-10-14 19:04:12] local.INFO: Total de registros encontrados con filtros: {"total":213495} 
+[2025-10-14 19:27:03] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string"} 

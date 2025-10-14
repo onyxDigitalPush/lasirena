@@ -432,8 +432,51 @@ class MaterialKiloController extends Controller
                 DB::table('devoluciones_proveedores')->insert($insert);
                 $insertados[] = $insert;
             }
-            return redirect()->back()->with('success', 'Devoluciones insertadas correctamente');
+            
+            // 🆕 ACTUALIZAR MÉTRICAS AUTOMÁTICAMENTE
+            // Obtener proveedores únicos y sus períodos afectados
+            $proveedores_afectados = [];
+            foreach ($insertados as $devolucion) {
+                $key = $devolucion['codigo_proveedor'] . '-' . $devolucion['año'] . '-' . $devolucion['mes'];
+                if (!isset($proveedores_afectados[$key])) {
+                    $proveedores_afectados[$key] = [
+                        'codigo_proveedor' => $devolucion['codigo_proveedor'],
+                        'año' => $devolucion['año'],
+                        'mes' => $devolucion['mes']
+                    ];
+                }
+            }
+            
+            // Recalcular métricas para cada proveedor/período afectado
+            $metricas_actualizadas = 0;
+            foreach ($proveedores_afectados as $proveedor_info) {
+                try {
+                    $this->actualizarMetricasIncidencias(
+                        $proveedor_info['codigo_proveedor'], 
+                        $proveedor_info['año'], 
+                        $proveedor_info['mes']
+                    );
+                    $metricas_actualizadas++;
+                } catch (\Exception $e) {
+                    Log::warning('Error al actualizar métricas del proveedor', [
+                        'proveedor' => $proveedor_info['codigo_proveedor'],
+                        'año' => $proveedor_info['año'],
+                        'mes' => $proveedor_info['mes'],
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+            
+            $mensaje = count($insertados) . ' devoluciones insertadas correctamente';
+            if ($metricas_actualizadas > 0) {
+                $mensaje .= ' y métricas actualizadas para ' . $metricas_actualizadas . ' proveedores';
+            }
+            
+            return redirect()->back()->with('success', $mensaje);
         } catch (\Exception $e) {
+            Log::error('Error en guardarExcel: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
             return redirect()->back()->with('error', 'Error al procesar el archivo: ' . $e->getMessage());
         }
     }
