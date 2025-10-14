@@ -158,6 +158,18 @@
                                 </div>
                             </div>
                         </form>
+                        
+                        <!-- Botón para recalcular métricas -->
+                        <div class="row mt-3">
+                            <div class="col-12 text-right">
+                                <a href="{{ route('material_kilo.recalcular_metricas') }}" class="btn btn-success">
+                                    <i class="fa fa-sync-alt mr-1"></i>Recalcular Todas las Métricas
+                                </a>
+                                <small class="text-muted d-block mt-1">
+                                    Use esta opción si las métricas (columnas amarillas) no están actualizadas
+                                </small>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

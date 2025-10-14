@@ -2050,4 +2050,157 @@ class MaterialKiloController extends Controller
             'Content-Disposition' => 'inline; filename="' . basename($nombreArchivo) . '"'
         ]);
     }
+
+    /**
+     * Muestra la vista para recalcular todas las métricas de proveedores
+     */
+    public function recalcularMetricasWeb(Request $request)
+    {
+        return view('MainApp.material_kilo.recalcular_metricas');
+    }
+
+    /**
+     * Ejecuta el recálculo completo de todas las métricas de proveedores
+     */
+    public function ejecutarRecalculoMetricas(Request $request)
+    {
+        try {
+            \Log::info('===== INICIO RECÁLCULO WEB DE MÉTRICAS =====');
+            
+            $inicio = microtime(true);
+            $resultados = [
+                'total_periodos' => 0,
+                'procesados' => 0,
+                'errores' => 0,
+                'detalles_errores' => [],
+                'tiempo_ejecucion' => 0
+            ];
+
+            // Paso 1: Limpiar tabla de métricas existente
+            \Log::info('Truncando tabla proveedor_metrics...');
+            DB::table('proveedor_metrics')->truncate();
+
+            // Paso 2: Obtener todos los períodos únicos de incidencias
+            \Log::info('Obteniendo períodos de incidencias...');
+            $periodosIncidencias = DB::table('incidencias_proveedores')
+                ->select('id_proveedor', 'año', 'mes')
+                ->distinct()
+                ->get();
+
+            // Paso 3: Obtener todos los períodos únicos de devoluciones
+            \Log::info('Obteniendo períodos de devoluciones...');
+            $periodosDevoluciones = DB::table('devoluciones_proveedores')
+                ->select('id_proveedor', 'año', 'mes')
+                ->distinct()
+                ->get();
+
+            // Paso 4: Combinar períodos únicos
+            $todosLosPeriodos = $periodosIncidencias->concat($periodosDevoluciones)
+                ->unique(function ($item) {
+                    return $item->id_proveedor . '-' . $item->año . '-' . $item->mes;
+                });
+
+            $resultados['total_periodos'] = $todosLosPeriodos->count();
+            \Log::info("Total de períodos únicos encontrados: {$resultados['total_periodos']}");
+
+            // Paso 5: Procesar cada período
+            foreach ($todosLosPeriodos as $periodo) {
+                try {
+                    $id_proveedor = $periodo->id_proveedor;
+                    $año = $periodo->año;
+                    $mes = $periodo->mes;
+
+                    \Log::info("Procesando proveedor {$id_proveedor}, año {$año}, mes {$mes}");
+
+                    // Contar incidencias por clasificación
+                    $rg1 = DB::table('incidencias_proveedores')
+                        ->where('id_proveedor', $id_proveedor)
+                        ->where('año', $año)
+                        ->where('mes', $mes)
+                        ->where('clasificacion_incidencia', 'RG1')
+                        ->count();
+
+                    $rl1 = DB::table('incidencias_proveedores')
+                        ->where('id_proveedor', $id_proveedor)
+                        ->where('año', $año)
+                        ->where('mes', $mes)
+                        ->where('clasificacion_incidencia', 'RL1')
+                        ->count();
+
+                    // Contar devoluciones por clasificación
+                    $dev1 = DB::table('devoluciones_proveedores')
+                        ->where('id_proveedor', $id_proveedor)
+                        ->where('año', $año)
+                        ->where('mes', $mes)
+                        ->where('clasificacion_devolucion', 'DEV1')
+                        ->count();
+
+                    $rok1 = DB::table('devoluciones_proveedores')
+                        ->where('id_proveedor', $id_proveedor)
+                        ->where('año', $año)
+                        ->where('mes', $mes)
+                        ->where('clasificacion_devolucion', 'ROK1')
+                        ->count();
+
+                    $ret1 = DB::table('devoluciones_proveedores')
+                        ->where('id_proveedor', $id_proveedor)
+                        ->where('año', $año)
+                        ->where('mes', $mes)
+                        ->where('clasificacion_devolucion', 'RET1')
+                        ->count();
+
+                    // Insertar o actualizar métricas
+                    DB::table('proveedor_metrics')->updateOrInsert(
+                        [
+                            'proveedor_id' => $id_proveedor,
+                            'año' => $año,
+                            'mes' => $mes
+                        ],
+                        [
+                            'rg1' => $rg1,
+                            'rl1' => $rl1,
+                            'dev1' => $dev1,
+                            'rok1' => $rok1,
+                            'ret1' => $ret1,
+                            'created_at' => now(),
+                            'updated_at' => now()
+                        ]
+                    );
+
+                    $resultados['procesados']++;
+                    \Log::info("✓ Métricas actualizadas: RG1={$rg1}, RL1={$rl1}, DEV1={$dev1}, ROK1={$rok1}, RET1={$ret1}");
+
+                } catch (\Exception $e) {
+                    $resultados['errores']++;
+                    $error = "Error en proveedor {$periodo->id_proveedor} ({$periodo->año}-{$periodo->mes}): {$e->getMessage()}";
+                    $resultados['detalles_errores'][] = $error;
+                    \Log::error($error);
+                }
+            }
+
+            $fin = microtime(true);
+            $resultados['tiempo_ejecucion'] = round($fin - $inicio, 2);
+
+            \Log::info("===== FIN RECÁLCULO WEB DE MÉTRICAS =====");
+            \Log::info("Total procesados: {$resultados['procesados']}/{$resultados['total_periodos']}");
+            \Log::info("Errores: {$resultados['errores']}");
+            \Log::info("Tiempo: {$resultados['tiempo_ejecucion']} segundos");
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Recálculo de métricas completado exitosamente',
+                'resultados' => $resultados
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error fatal en recálculo de métricas: ' . $e->getMessage());
+            \Log::error($e->getTraceAsString());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al ejecutar el recálculo: ' . $e->getMessage(),
+                'resultados' => $resultados ?? []
+            ], 500);
+        }
+    }
 }

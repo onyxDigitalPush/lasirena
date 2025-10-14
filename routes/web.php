@@ -211,6 +211,8 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/material_kilo/historial-incidencias-devoluciones', 'MaterialKiloController@historialIncidenciasYDevoluciones')->name('material_kilo.historial_incidencias_devoluciones');
         Route::post('/material_kilo/delete', 'MaterialKiloController@destroy')->name('material_kilo.delete');
         Route::post('/material_kilo/guardar-metricas', 'MaterialKiloController@guardarMetricas')->name('material_kilo.guardar_metricas');
+        Route::get('/material_kilo/recalcular-metricas', 'MaterialKiloController@recalcularMetricasWeb')->name('material_kilo.recalcular_metricas');
+        Route::post('/material_kilo/ejecutar-recalculo-metricas', 'MaterialKiloController@ejecutarRecalculoMetricas')->name('material_kilo.ejecutar_recalculo_metricas');
         Route::post('/material_kilo/data', 'MaterialKiloController@data')->name('material-kilo.data');
         Route::get('/material_kilo/buscar-proveedor/{id}', 'MaterialKiloController@buscarProveedor');
 
