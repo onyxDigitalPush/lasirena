@@ -1101,11 +1101,20 @@ class MaterialKiloController extends Controller
         $año = $request->get('año', \Carbon\Carbon::now()->year);
         $proveedor = $request->get('proveedor', '');
         $tipo = $request->get('tipo', ''); // 'incidencia', 'devolucion', o vacío para ambos
+        
+        // Nuevos filtros
+        $codigo_proveedor = $request->get('codigo_proveedor', '');
+        $codigo_producto = $request->get('codigo_producto', '');
+        $gravedad = $request->get('gravedad', ''); // 'grave', 'leve', o vacío
+        $no_queja = $request->get('no_queja', '');
 
         $resultados = collect();
 
+        // Si se filtra por no_queja, solo buscar en devoluciones
+        $buscar_solo_devoluciones = !empty($no_queja);
+
         // Obtener incidencias usando las tablas correctas (sin _kilo)
-        if (!$tipo || $tipo === 'incidencia') {
+        if (!$buscar_solo_devoluciones && (!$tipo || $tipo === 'incidencia')) {
             $incidencias = DB::table('incidencias_proveedores as i')
                 ->leftJoin('proveedores as p', 'i.id_proveedor', '=', 'p.id_proveedor')
                 ->select(
@@ -1122,6 +1131,10 @@ class MaterialKiloController extends Controller
                     'i.año',
                     'i.fecha_respuesta_proveedor',
                     'i.fecha_envio_proveedor',
+                    'i.numero_informe',
+                    DB::raw('NULL as np'),
+                    DB::raw('NULL as codigo_producto'),
+                    DB::raw('NULL as no_queja'),
                     DB::raw('NULL as abierto'), // Para incidencias no aplica
                     DB::raw("'incidencia' as tipo_registro")
                 )
@@ -1133,6 +1146,23 @@ class MaterialKiloController extends Controller
 
             if ($proveedor) {
                 $incidencias->where('p.nombre_proveedor', 'LIKE', '%' . $proveedor . '%');
+            }
+
+            // Filtro por código de proveedor (en incidencias es id_proveedor)
+            if ($codigo_proveedor) {
+                $incidencias->where('i.id_proveedor', 'LIKE', '%' . $codigo_proveedor . '%');
+            }
+
+            // Filtro por código de producto (en incidencias es 'codigo')
+            if ($codigo_producto) {
+                $incidencias->where('i.codigo', 'LIKE', '%' . $codigo_producto . '%');
+            }
+
+            // Filtro por gravedad
+            if ($gravedad === 'grave') {
+                $incidencias->where('i.clasificacion_incidencia', 'RG1');
+            } elseif ($gravedad === 'leve') {
+                $incidencias->where('i.clasificacion_incidencia', 'RL1');
             }
 
             $resultados = $resultados->merge($incidencias->get());
@@ -1156,7 +1186,12 @@ class MaterialKiloController extends Controller
                     'd.año',
                     'd.fecha_respuesta_proveedor',
                     'd.fecha_envio_proveedor',
+                    'd.np',
+                    'd.no_queja',
                     'd.abierto',
+                    DB::raw('NULL as codigo'),
+                    DB::raw('NULL as producto'),
+                    DB::raw('NULL as numero_informe'),
                     DB::raw("'devolucion' as tipo_registro")
                 )
                 ->where('d.año', $año);
@@ -1167,6 +1202,28 @@ class MaterialKiloController extends Controller
 
             if ($proveedor) {
                 $devoluciones->where('p.nombre_proveedor', 'LIKE', '%' . $proveedor . '%');
+            }
+
+            // Filtro por código de proveedor (en devoluciones es codigo_proveedor)
+            if ($codigo_proveedor) {
+                $devoluciones->where('d.codigo_proveedor', 'LIKE', '%' . $codigo_proveedor . '%');
+            }
+
+            // Filtro por código de producto (en devoluciones es 'codigo_producto')
+            if ($codigo_producto) {
+                $devoluciones->where('d.codigo_producto', 'LIKE', '%' . $codigo_producto . '%');
+            }
+
+            // Filtro por gravedad
+            if ($gravedad === 'grave') {
+                $devoluciones->where('d.clasificacion_incidencia', 'RG1');
+            } elseif ($gravedad === 'leve') {
+                $devoluciones->where('d.clasificacion_incidencia', 'RL1');
+            }
+
+            // Filtro por número de queja
+            if ($no_queja) {
+                $devoluciones->where('d.no_queja', 'LIKE', '%' . $no_queja . '%');
             }
 
             $resultados = $resultados->merge($devoluciones->get());
@@ -1193,6 +1250,10 @@ class MaterialKiloController extends Controller
             'año',
             'proveedor',
             'tipo',
+            'codigo_proveedor',
+            'codigo_producto',
+            'gravedad',
+            'no_queja',
             'total_incidencias',
             'total_devoluciones',
             'total_registros'

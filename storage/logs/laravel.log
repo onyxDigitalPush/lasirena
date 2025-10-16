@@ -1,430 +1,56 @@
-[2025-10-14 17:01:50] local.INFO: === INICIO IMPORTAR ARCHIVO ===  
-[2025-10-14 17:01:50] local.INFO: Método: POST  
-[2025-10-14 17:01:50] local.INFO: Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryiuyKjh6pRM3uyY89  
-[2025-10-14 17:01:50] local.INFO: Archivos recibidos: {"archivo":{}}  
-[2025-10-14 17:01:50] local.INFO: Todos los inputs: {"_token":"L67CTuBNggszmzJOIuW5uW6U4cRbvPeiIK3OvnTP","import_type":"general","archivo":{}}  
-[2025-10-14 17:01:50] local.INFO: Configuración PHP:  
-[2025-10-14 17:01:50] local.INFO: - upload_max_filesize: 512M  
-[2025-10-14 17:01:50] local.INFO: - post_max_size: 512M  
-[2025-10-14 17:01:50] local.INFO: - max_file_uploads: 20  
-[2025-10-14 17:01:50] local.INFO: - memory_limit: 1024M  
-[2025-10-14 17:01:50] local.INFO: - max_execution_time: 0  
-[2025-10-14 17:01:50] local.INFO: Detalles del archivo recibido:  
-[2025-10-14 17:01:50] local.INFO: - Nombre original: mes2 (1).xlsx  
-[2025-10-14 17:01:50] local.INFO: - Extensión: xlsx  
-[2025-10-14 17:01:50] local.INFO: - Tamaño: 2574387 bytes  
-[2025-10-14 17:01:50] local.INFO: - MIME type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet  
-[2025-10-14 17:01:50] local.INFO: - Es válido: true  
-[2025-10-14 17:01:50] local.INFO: Validación de extensión pasada: xlsx  
-[2025-10-14 17:01:50] local.INFO: Validación pasada correctamente  
-[2025-10-14 17:01:50] local.INFO: Ruta real del archivo: C:\xampp7\tmp\phpFD19.tmp  
-[2025-10-14 17:01:50] local.INFO: Tipo de importación solicitado: general  
-[2025-10-14 17:01:50] local.INFO: Procesando archivo: mes2 (1).xlsx - Extensión: xlsx - MIME: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet  
-[2025-10-14 17:01:50] local.INFO: Iniciando procesamiento de archivo XLSX  
-[2025-10-14 17:01:50] local.INFO: Tipo de archivo detectado: Xlsx  
-[2025-10-14 17:01:51] local.INFO: Archivo XLSX detectado - Filas: 23097, Columnas: N  
-[2025-10-14 17:01:54] local.INFO: Cabeceras leídas de fila 4: ["jerarquia_product","material","descripcion_de_material","proveedor","nombre_del_proveedor","ce","mes","ctd_emdev","umb","valor_emdev","ml","mes_1","factor_conversion","total_kg"]  
-[2025-10-14 17:01:54] local.INFO: Cabeceras ahora son únicas - Longitud: 14  
-[2025-10-14 17:01:57] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:01:57] local.INFO: Registros procesados: 500 de 23097 (2.16%)  
-[2025-10-14 17:01:57] local.INFO: Tiempo transcurrido: 3.01 segundos  
-[2025-10-14 17:01:57] local.INFO: Tiempo del último lote: 3.01 segundos  
-[2025-10-14 17:01:57] local.INFO: Promedio por registro: 6.02 ms  
-[2025-10-14 17:01:57] local.INFO: Tiempo estimado restante: 2.3 minutos  
-[2025-10-14 17:01:57] local.INFO: Memoria utilizada: 24 MB  
-[2025-10-14 17:01:57] local.INFO: ===============================  
-[2025-10-14 17:01:57] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:01:57] local.INFO: Registros procesados: 1000 de 23097 (4.33%)  
-[2025-10-14 17:01:57] local.INFO: Tiempo transcurrido: 3.37 segundos  
-[2025-10-14 17:01:57] local.INFO: Tiempo del último lote: 0.37 segundos  
-[2025-10-14 17:01:57] local.INFO: Promedio por registro: 3.37 ms  
-[2025-10-14 17:01:57] local.INFO: Tiempo estimado restante: 1.2 minutos  
-[2025-10-14 17:01:57] local.INFO: Memoria utilizada: 26 MB  
-[2025-10-14 17:01:57] local.INFO: ===============================  
-[2025-10-14 17:01:59] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:01:59] local.INFO: Registros procesados: 1500 de 23097 (6.49%)  
-[2025-10-14 17:01:59] local.INFO: Tiempo transcurrido: 5.92 segundos  
-[2025-10-14 17:01:59] local.INFO: Tiempo del último lote: 2.55 segundos  
-[2025-10-14 17:01:59] local.INFO: Promedio por registro: 3.95 ms  
-[2025-10-14 17:01:59] local.INFO: Tiempo estimado restante: 1.4 minutos  
-[2025-10-14 17:01:59] local.INFO: Memoria utilizada: 30 MB  
-[2025-10-14 17:01:59] local.INFO: ===============================  
-[2025-10-14 17:02:00] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:00] local.INFO: Registros procesados: 2000 de 23097 (8.66%)  
-[2025-10-14 17:02:00] local.INFO: Tiempo transcurrido: 6.21 segundos  
-[2025-10-14 17:02:00] local.INFO: Tiempo del último lote: 0.29 segundos  
-[2025-10-14 17:02:00] local.INFO: Promedio por registro: 3.11 ms  
-[2025-10-14 17:02:00] local.INFO: Tiempo estimado restante: 1.1 minutos  
-[2025-10-14 17:02:00] local.INFO: Memoria utilizada: 32 MB  
-[2025-10-14 17:02:00] local.INFO: ===============================  
-[2025-10-14 17:02:02] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:02] local.INFO: Registros procesados: 2500 de 23097 (10.82%)  
-[2025-10-14 17:02:02] local.INFO: Tiempo transcurrido: 8.5 segundos  
-[2025-10-14 17:02:02] local.INFO: Tiempo del último lote: 2.28 segundos  
-[2025-10-14 17:02:02] local.INFO: Promedio por registro: 3.4 ms  
-[2025-10-14 17:02:02] local.INFO: Tiempo estimado restante: 1.2 minutos  
-[2025-10-14 17:02:02] local.INFO: Memoria utilizada: 34 MB  
-[2025-10-14 17:02:02] local.INFO: ===============================  
-[2025-10-14 17:02:02] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:02] local.INFO: Registros procesados: 3000 de 23097 (12.99%)  
-[2025-10-14 17:02:02] local.INFO: Tiempo transcurrido: 8.79 segundos  
-[2025-10-14 17:02:02] local.INFO: Tiempo del último lote: 0.29 segundos  
-[2025-10-14 17:02:02] local.INFO: Promedio por registro: 2.93 ms  
-[2025-10-14 17:02:02] local.INFO: Tiempo estimado restante: 1 minutos  
-[2025-10-14 17:02:02] local.INFO: Memoria utilizada: 36 MB  
-[2025-10-14 17:02:02] local.INFO: ===============================  
-[2025-10-14 17:02:05] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:05] local.INFO: Registros procesados: 3500 de 23097 (15.15%)  
-[2025-10-14 17:02:05] local.INFO: Tiempo transcurrido: 11.35 segundos  
-[2025-10-14 17:02:05] local.INFO: Tiempo del último lote: 2.56 segundos  
-[2025-10-14 17:02:05] local.INFO: Promedio por registro: 3.24 ms  
-[2025-10-14 17:02:05] local.INFO: Tiempo estimado restante: 1.1 minutos  
-[2025-10-14 17:02:05] local.INFO: Memoria utilizada: 38 MB  
-[2025-10-14 17:02:05] local.INFO: ===============================  
-[2025-10-14 17:02:05] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:05] local.INFO: Registros procesados: 4000 de 23097 (17.32%)  
-[2025-10-14 17:02:05] local.INFO: Tiempo transcurrido: 11.7 segundos  
-[2025-10-14 17:02:05] local.INFO: Tiempo del último lote: 0.36 segundos  
-[2025-10-14 17:02:05] local.INFO: Promedio por registro: 2.93 ms  
-[2025-10-14 17:02:05] local.INFO: Tiempo estimado restante: 0.9 minutos  
-[2025-10-14 17:02:05] local.INFO: Memoria utilizada: 40 MB  
-[2025-10-14 17:02:05] local.INFO: ===============================  
-[2025-10-14 17:02:08] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:08] local.INFO: Registros procesados: 4500 de 23097 (19.48%)  
-[2025-10-14 17:02:08] local.INFO: Tiempo transcurrido: 14.03 segundos  
-[2025-10-14 17:02:08] local.INFO: Tiempo del último lote: 2.33 segundos  
-[2025-10-14 17:02:08] local.INFO: Promedio por registro: 3.12 ms  
-[2025-10-14 17:02:08] local.INFO: Tiempo estimado restante: 1 minutos  
-[2025-10-14 17:02:08] local.INFO: Memoria utilizada: 42 MB  
-[2025-10-14 17:02:08] local.INFO: ===============================  
-[2025-10-14 17:02:08] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:08] local.INFO: Registros procesados: 5000 de 23097 (21.65%)  
-[2025-10-14 17:02:08] local.INFO: Tiempo transcurrido: 14.31 segundos  
-[2025-10-14 17:02:08] local.INFO: Tiempo del último lote: 0.28 segundos  
-[2025-10-14 17:02:08] local.INFO: Promedio por registro: 2.86 ms  
-[2025-10-14 17:02:08] local.INFO: Tiempo estimado restante: 0.9 minutos  
-[2025-10-14 17:02:08] local.INFO: Memoria utilizada: 44 MB  
-[2025-10-14 17:02:08] local.INFO: ===============================  
-[2025-10-14 17:02:10] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:10] local.INFO: Registros procesados: 5500 de 23097 (23.81%)  
-[2025-10-14 17:02:10] local.INFO: Tiempo transcurrido: 16.62 segundos  
-[2025-10-14 17:02:10] local.INFO: Tiempo del último lote: 2.31 segundos  
-[2025-10-14 17:02:10] local.INFO: Promedio por registro: 3.02 ms  
-[2025-10-14 17:02:10] local.INFO: Tiempo estimado restante: 0.9 minutos  
-[2025-10-14 17:02:10] local.INFO: Memoria utilizada: 46 MB  
-[2025-10-14 17:02:10] local.INFO: ===============================  
-[2025-10-14 17:02:11] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:11] local.INFO: Registros procesados: 6000 de 23097 (25.98%)  
-[2025-10-14 17:02:11] local.INFO: Tiempo transcurrido: 16.94 segundos  
-[2025-10-14 17:02:11] local.INFO: Tiempo del último lote: 0.32 segundos  
-[2025-10-14 17:02:11] local.INFO: Promedio por registro: 2.82 ms  
-[2025-10-14 17:02:11] local.INFO: Tiempo estimado restante: 0.8 minutos  
-[2025-10-14 17:02:11] local.INFO: Memoria utilizada: 48 MB  
-[2025-10-14 17:02:11] local.INFO: ===============================  
-[2025-10-14 17:02:13] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:13] local.INFO: Registros procesados: 6500 de 23097 (28.14%)  
-[2025-10-14 17:02:13] local.INFO: Tiempo transcurrido: 19.65 segundos  
-[2025-10-14 17:02:13] local.INFO: Tiempo del último lote: 2.71 segundos  
-[2025-10-14 17:02:13] local.INFO: Promedio por registro: 3.02 ms  
-[2025-10-14 17:02:13] local.INFO: Tiempo estimado restante: 0.8 minutos  
-[2025-10-14 17:02:13] local.INFO: Memoria utilizada: 50 MB  
-[2025-10-14 17:02:13] local.INFO: ===============================  
-[2025-10-14 17:02:14] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:14] local.INFO: Registros procesados: 7000 de 23097 (30.31%)  
-[2025-10-14 17:02:14] local.INFO: Tiempo transcurrido: 19.94 segundos  
-[2025-10-14 17:02:14] local.INFO: Tiempo del último lote: 0.29 segundos  
-[2025-10-14 17:02:14] local.INFO: Promedio por registro: 2.85 ms  
-[2025-10-14 17:02:14] local.INFO: Tiempo estimado restante: 0.8 minutos  
-[2025-10-14 17:02:14] local.INFO: Memoria utilizada: 50 MB  
-[2025-10-14 17:02:14] local.INFO: ===============================  
-[2025-10-14 17:02:16] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:16] local.INFO: Registros procesados: 7500 de 23097 (32.47%)  
-[2025-10-14 17:02:16] local.INFO: Tiempo transcurrido: 22.29 segundos  
-[2025-10-14 17:02:16] local.INFO: Tiempo del último lote: 2.35 segundos  
-[2025-10-14 17:02:16] local.INFO: Promedio por registro: 2.97 ms  
-[2025-10-14 17:02:16] local.INFO: Tiempo estimado restante: 0.8 minutos  
-[2025-10-14 17:02:16] local.INFO: Memoria utilizada: 54 MB  
-[2025-10-14 17:02:16] local.INFO: ===============================  
-[2025-10-14 17:02:16] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:16] local.INFO: Registros procesados: 8000 de 23097 (34.64%)  
-[2025-10-14 17:02:16] local.INFO: Tiempo transcurrido: 22.59 segundos  
-[2025-10-14 17:02:16] local.INFO: Tiempo del último lote: 0.3 segundos  
-[2025-10-14 17:02:16] local.INFO: Promedio por registro: 2.82 ms  
-[2025-10-14 17:02:16] local.INFO: Tiempo estimado restante: 0.7 minutos  
-[2025-10-14 17:02:16] local.INFO: Memoria utilizada: 54 MB  
-[2025-10-14 17:02:16] local.INFO: ===============================  
-[2025-10-14 17:02:19] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:19] local.INFO: Registros procesados: 8500 de 23097 (36.8%)  
-[2025-10-14 17:02:19] local.INFO: Tiempo transcurrido: 24.93 segundos  
-[2025-10-14 17:02:19] local.INFO: Tiempo del último lote: 2.35 segundos  
-[2025-10-14 17:02:19] local.INFO: Promedio por registro: 2.93 ms  
-[2025-10-14 17:02:19] local.INFO: Tiempo estimado restante: 0.7 minutos  
-[2025-10-14 17:02:19] local.INFO: Memoria utilizada: 58 MB  
-[2025-10-14 17:02:19] local.INFO: ===============================  
-[2025-10-14 17:02:19] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:19] local.INFO: Registros procesados: 9000 de 23097 (38.97%)  
-[2025-10-14 17:02:19] local.INFO: Tiempo transcurrido: 25.26 segundos  
-[2025-10-14 17:02:19] local.INFO: Tiempo del último lote: 0.33 segundos  
-[2025-10-14 17:02:19] local.INFO: Promedio por registro: 2.81 ms  
-[2025-10-14 17:02:19] local.INFO: Tiempo estimado restante: 0.7 minutos  
-[2025-10-14 17:02:19] local.INFO: Memoria utilizada: 58 MB  
-[2025-10-14 17:02:19] local.INFO: ===============================  
-[2025-10-14 17:02:21] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:21] local.INFO: Registros procesados: 9500 de 23097 (41.13%)  
-[2025-10-14 17:02:21] local.INFO: Tiempo transcurrido: 27.87 segundos  
-[2025-10-14 17:02:21] local.INFO: Tiempo del último lote: 2.61 segundos  
-[2025-10-14 17:02:21] local.INFO: Promedio por registro: 2.93 ms  
-[2025-10-14 17:02:21] local.INFO: Tiempo estimado restante: 0.7 minutos  
-[2025-10-14 17:02:21] local.INFO: Memoria utilizada: 60 MB  
-[2025-10-14 17:02:21] local.INFO: ===============================  
-[2025-10-14 17:02:22] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:22] local.INFO: Registros procesados: 10000 de 23097 (43.3%)  
-[2025-10-14 17:02:22] local.INFO: Tiempo transcurrido: 28.17 segundos  
-[2025-10-14 17:02:22] local.INFO: Tiempo del último lote: 0.29 segundos  
-[2025-10-14 17:02:22] local.INFO: Promedio por registro: 2.82 ms  
-[2025-10-14 17:02:22] local.INFO: Tiempo estimado restante: 0.6 minutos  
-[2025-10-14 17:02:22] local.INFO: Memoria utilizada: 62 MB  
-[2025-10-14 17:02:22] local.INFO: ===============================  
-[2025-10-14 17:02:24] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:24] local.INFO: Registros procesados: 10500 de 23097 (45.46%)  
-[2025-10-14 17:02:24] local.INFO: Tiempo transcurrido: 30.81 segundos  
-[2025-10-14 17:02:24] local.INFO: Tiempo del último lote: 2.64 segundos  
-[2025-10-14 17:02:24] local.INFO: Promedio por registro: 2.93 ms  
-[2025-10-14 17:02:24] local.INFO: Tiempo estimado restante: 0.6 minutos  
-[2025-10-14 17:02:24] local.INFO: Memoria utilizada: 64 MB  
-[2025-10-14 17:02:24] local.INFO: ===============================  
-[2025-10-14 17:02:25] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:25] local.INFO: Registros procesados: 11000 de 23097 (47.63%)  
-[2025-10-14 17:02:25] local.INFO: Tiempo transcurrido: 31.17 segundos  
-[2025-10-14 17:02:25] local.INFO: Tiempo del último lote: 0.36 segundos  
-[2025-10-14 17:02:25] local.INFO: Promedio por registro: 2.83 ms  
-[2025-10-14 17:02:25] local.INFO: Tiempo estimado restante: 0.6 minutos  
-[2025-10-14 17:02:25] local.INFO: Memoria utilizada: 66 MB  
-[2025-10-14 17:02:25] local.INFO: ===============================  
-[2025-10-14 17:02:27] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:27] local.INFO: Registros procesados: 11500 de 23097 (49.79%)  
-[2025-10-14 17:02:27] local.INFO: Tiempo transcurrido: 33.88 segundos  
-[2025-10-14 17:02:27] local.INFO: Tiempo del último lote: 2.71 segundos  
-[2025-10-14 17:02:27] local.INFO: Promedio por registro: 2.95 ms  
-[2025-10-14 17:02:27] local.INFO: Tiempo estimado restante: 0.6 minutos  
-[2025-10-14 17:02:27] local.INFO: Memoria utilizada: 68 MB  
-[2025-10-14 17:02:27] local.INFO: ===============================  
-[2025-10-14 17:02:28] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:28] local.INFO: Registros procesados: 12000 de 23097 (51.95%)  
-[2025-10-14 17:02:28] local.INFO: Tiempo transcurrido: 34.17 segundos  
-[2025-10-14 17:02:28] local.INFO: Tiempo del último lote: 0.29 segundos  
-[2025-10-14 17:02:28] local.INFO: Promedio por registro: 2.85 ms  
-[2025-10-14 17:02:28] local.INFO: Tiempo estimado restante: 0.5 minutos  
-[2025-10-14 17:02:28] local.INFO: Memoria utilizada: 70 MB  
-[2025-10-14 17:02:28] local.INFO: ===============================  
-[2025-10-14 17:02:30] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:30] local.INFO: Registros procesados: 12500 de 23097 (54.12%)  
-[2025-10-14 17:02:30] local.INFO: Tiempo transcurrido: 36.69 segundos  
-[2025-10-14 17:02:30] local.INFO: Tiempo del último lote: 2.52 segundos  
-[2025-10-14 17:02:30] local.INFO: Promedio por registro: 2.94 ms  
-[2025-10-14 17:02:30] local.INFO: Tiempo estimado restante: 0.5 minutos  
-[2025-10-14 17:02:30] local.INFO: Memoria utilizada: 72 MB  
-[2025-10-14 17:02:30] local.INFO: ===============================  
-[2025-10-14 17:02:31] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:31] local.INFO: Registros procesados: 13000 de 23097 (56.28%)  
-[2025-10-14 17:02:31] local.INFO: Tiempo transcurrido: 37.04 segundos  
-[2025-10-14 17:02:31] local.INFO: Tiempo del último lote: 0.35 segundos  
-[2025-10-14 17:02:31] local.INFO: Promedio por registro: 2.85 ms  
-[2025-10-14 17:02:31] local.INFO: Tiempo estimado restante: 0.5 minutos  
-[2025-10-14 17:02:31] local.INFO: Memoria utilizada: 74 MB  
-[2025-10-14 17:02:31] local.INFO: ===============================  
-[2025-10-14 17:02:33] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:33] local.INFO: Registros procesados: 13500 de 23097 (58.45%)  
-[2025-10-14 17:02:33] local.INFO: Tiempo transcurrido: 39.86 segundos  
-[2025-10-14 17:02:33] local.INFO: Tiempo del último lote: 2.82 segundos  
-[2025-10-14 17:02:33] local.INFO: Promedio por registro: 2.95 ms  
-[2025-10-14 17:02:33] local.INFO: Tiempo estimado restante: 0.5 minutos  
-[2025-10-14 17:02:33] local.INFO: Memoria utilizada: 76 MB  
-[2025-10-14 17:02:33] local.INFO: ===============================  
-[2025-10-14 17:02:34] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:34] local.INFO: Registros procesados: 14000 de 23097 (60.61%)  
-[2025-10-14 17:02:34] local.INFO: Tiempo transcurrido: 40.17 segundos  
-[2025-10-14 17:02:34] local.INFO: Tiempo del último lote: 0.31 segundos  
-[2025-10-14 17:02:34] local.INFO: Promedio por registro: 2.87 ms  
-[2025-10-14 17:02:34] local.INFO: Tiempo estimado restante: 0.4 minutos  
-[2025-10-14 17:02:34] local.INFO: Memoria utilizada: 76 MB  
-[2025-10-14 17:02:34] local.INFO: ===============================  
-[2025-10-14 17:02:37] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:37] local.INFO: Registros procesados: 14500 de 23097 (62.78%)  
-[2025-10-14 17:02:37] local.INFO: Tiempo transcurrido: 42.99 segundos  
-[2025-10-14 17:02:37] local.INFO: Tiempo del último lote: 2.82 segundos  
-[2025-10-14 17:02:37] local.INFO: Promedio por registro: 2.97 ms  
-[2025-10-14 17:02:37] local.INFO: Tiempo estimado restante: 0.4 minutos  
-[2025-10-14 17:02:37] local.INFO: Memoria utilizada: 80 MB  
-[2025-10-14 17:02:37] local.INFO: ===============================  
-[2025-10-14 17:02:37] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:37] local.INFO: Registros procesados: 15000 de 23097 (64.94%)  
-[2025-10-14 17:02:37] local.INFO: Tiempo transcurrido: 43.31 segundos  
-[2025-10-14 17:02:37] local.INFO: Tiempo del último lote: 0.32 segundos  
-[2025-10-14 17:02:37] local.INFO: Promedio por registro: 2.89 ms  
-[2025-10-14 17:02:37] local.INFO: Tiempo estimado restante: 0.4 minutos  
-[2025-10-14 17:02:37] local.INFO: Memoria utilizada: 80 MB  
-[2025-10-14 17:02:37] local.INFO: ===============================  
-[2025-10-14 17:02:40] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:40] local.INFO: Registros procesados: 15500 de 23097 (67.11%)  
-[2025-10-14 17:02:40] local.INFO: Tiempo transcurrido: 45.98 segundos  
-[2025-10-14 17:02:40] local.INFO: Tiempo del último lote: 2.67 segundos  
-[2025-10-14 17:02:40] local.INFO: Promedio por registro: 2.97 ms  
-[2025-10-14 17:02:40] local.INFO: Tiempo estimado restante: 0.4 minutos  
-[2025-10-14 17:02:40] local.INFO: Memoria utilizada: 82 MB  
-[2025-10-14 17:02:40] local.INFO: ===============================  
-[2025-10-14 17:02:40] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:40] local.INFO: Registros procesados: 16000 de 23097 (69.27%)  
-[2025-10-14 17:02:40] local.INFO: Tiempo transcurrido: 46.32 segundos  
-[2025-10-14 17:02:40] local.INFO: Tiempo del último lote: 0.33 segundos  
-[2025-10-14 17:02:40] local.INFO: Promedio por registro: 2.89 ms  
-[2025-10-14 17:02:40] local.INFO: Tiempo estimado restante: 0.3 minutos  
-[2025-10-14 17:02:40] local.INFO: Memoria utilizada: 84 MB  
-[2025-10-14 17:02:40] local.INFO: ===============================  
-[2025-10-14 17:02:42] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:42] local.INFO: Registros procesados: 16500 de 23097 (71.44%)  
-[2025-10-14 17:02:42] local.INFO: Tiempo transcurrido: 48.92 segundos  
-[2025-10-14 17:02:42] local.INFO: Tiempo del último lote: 2.6 segundos  
-[2025-10-14 17:02:42] local.INFO: Promedio por registro: 2.96 ms  
-[2025-10-14 17:02:42] local.INFO: Tiempo estimado restante: 0.3 minutos  
-[2025-10-14 17:02:42] local.INFO: Memoria utilizada: 86 MB  
-[2025-10-14 17:02:42] local.INFO: ===============================  
-[2025-10-14 17:02:43] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:43] local.INFO: Registros procesados: 17000 de 23097 (73.6%)  
-[2025-10-14 17:02:43] local.INFO: Tiempo transcurrido: 49.2 segundos  
-[2025-10-14 17:02:43] local.INFO: Tiempo del último lote: 0.28 segundos  
-[2025-10-14 17:02:43] local.INFO: Promedio por registro: 2.89 ms  
-[2025-10-14 17:02:43] local.INFO: Tiempo estimado restante: 0.3 minutos  
-[2025-10-14 17:02:43] local.INFO: Memoria utilizada: 88 MB  
-[2025-10-14 17:02:43] local.INFO: ===============================  
-[2025-10-14 17:02:45] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:45] local.INFO: Registros procesados: 17500 de 23097 (75.77%)  
-[2025-10-14 17:02:45] local.INFO: Tiempo transcurrido: 51.56 segundos  
-[2025-10-14 17:02:45] local.INFO: Tiempo del último lote: 2.36 segundos  
-[2025-10-14 17:02:45] local.INFO: Promedio por registro: 2.95 ms  
-[2025-10-14 17:02:45] local.INFO: Tiempo estimado restante: 0.3 minutos  
-[2025-10-14 17:02:45] local.INFO: Memoria utilizada: 90 MB  
-[2025-10-14 17:02:45] local.INFO: ===============================  
-[2025-10-14 17:02:45] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:45] local.INFO: Registros procesados: 18000 de 23097 (77.93%)  
-[2025-10-14 17:02:45] local.INFO: Tiempo transcurrido: 51.87 segundos  
-[2025-10-14 17:02:45] local.INFO: Tiempo del último lote: 0.31 segundos  
-[2025-10-14 17:02:45] local.INFO: Promedio por registro: 2.88 ms  
-[2025-10-14 17:02:45] local.INFO: Tiempo estimado restante: 0.2 minutos  
-[2025-10-14 17:02:45] local.INFO: Memoria utilizada: 92 MB  
-[2025-10-14 17:02:45] local.INFO: ===============================  
-[2025-10-14 17:02:48] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:48] local.INFO: Registros procesados: 18500 de 23097 (80.1%)  
-[2025-10-14 17:02:48] local.INFO: Tiempo transcurrido: 54.45 segundos  
-[2025-10-14 17:02:48] local.INFO: Tiempo del último lote: 2.58 segundos  
-[2025-10-14 17:02:48] local.INFO: Promedio por registro: 2.94 ms  
-[2025-10-14 17:02:48] local.INFO: Tiempo estimado restante: 0.2 minutos  
-[2025-10-14 17:02:48] local.INFO: Memoria utilizada: 94 MB  
-[2025-10-14 17:02:48] local.INFO: ===============================  
-[2025-10-14 17:02:48] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:48] local.INFO: Registros procesados: 19000 de 23097 (82.26%)  
-[2025-10-14 17:02:48] local.INFO: Tiempo transcurrido: 54.74 segundos  
-[2025-10-14 17:02:48] local.INFO: Tiempo del último lote: 0.3 segundos  
-[2025-10-14 17:02:48] local.INFO: Promedio por registro: 2.88 ms  
-[2025-10-14 17:02:48] local.INFO: Tiempo estimado restante: 0.2 minutos  
-[2025-10-14 17:02:48] local.INFO: Memoria utilizada: 94 MB  
-[2025-10-14 17:02:48] local.INFO: ===============================  
-[2025-10-14 17:02:51] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:51] local.INFO: Registros procesados: 19500 de 23097 (84.43%)  
-[2025-10-14 17:02:51] local.INFO: Tiempo transcurrido: 57.34 segundos  
-[2025-10-14 17:02:51] local.INFO: Tiempo del último lote: 2.6 segundos  
-[2025-10-14 17:02:51] local.INFO: Promedio por registro: 2.94 ms  
-[2025-10-14 17:02:51] local.INFO: Tiempo estimado restante: 0.2 minutos  
-[2025-10-14 17:02:51] local.INFO: Memoria utilizada: 98 MB  
-[2025-10-14 17:02:51] local.INFO: ===============================  
-[2025-10-14 17:02:51] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:51] local.INFO: Registros procesados: 20000 de 23097 (86.59%)  
-[2025-10-14 17:02:51] local.INFO: Tiempo transcurrido: 57.64 segundos  
-[2025-10-14 17:02:51] local.INFO: Tiempo del último lote: 0.3 segundos  
-[2025-10-14 17:02:51] local.INFO: Promedio por registro: 2.88 ms  
-[2025-10-14 17:02:51] local.INFO: Tiempo estimado restante: 0.1 minutos  
-[2025-10-14 17:02:51] local.INFO: Memoria utilizada: 98 MB  
-[2025-10-14 17:02:51] local.INFO: ===============================  
-[2025-10-14 17:02:54] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:54] local.INFO: Registros procesados: 20500 de 23097 (88.76%)  
-[2025-10-14 17:02:54] local.INFO: Tiempo transcurrido: 60.04 segundos  
-[2025-10-14 17:02:54] local.INFO: Tiempo del último lote: 2.4 segundos  
-[2025-10-14 17:02:54] local.INFO: Promedio por registro: 2.93 ms  
-[2025-10-14 17:02:54] local.INFO: Tiempo estimado restante: 0.1 minutos  
-[2025-10-14 17:02:54] local.INFO: Memoria utilizada: 100 MB  
-[2025-10-14 17:02:54] local.INFO: ===============================  
-[2025-10-14 17:02:54] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:54] local.INFO: Registros procesados: 21000 de 23097 (90.92%)  
-[2025-10-14 17:02:54] local.INFO: Tiempo transcurrido: 60.33 segundos  
-[2025-10-14 17:02:54] local.INFO: Tiempo del último lote: 0.29 segundos  
-[2025-10-14 17:02:54] local.INFO: Promedio por registro: 2.87 ms  
-[2025-10-14 17:02:54] local.INFO: Tiempo estimado restante: 0.1 minutos  
-[2025-10-14 17:02:54] local.INFO: Memoria utilizada: 102 MB  
-[2025-10-14 17:02:54] local.INFO: ===============================  
-[2025-10-14 17:02:56] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:56] local.INFO: Registros procesados: 21500 de 23097 (93.09%)  
-[2025-10-14 17:02:56] local.INFO: Tiempo transcurrido: 62.71 segundos  
-[2025-10-14 17:02:56] local.INFO: Tiempo del último lote: 2.38 segundos  
-[2025-10-14 17:02:56] local.INFO: Promedio por registro: 2.92 ms  
-[2025-10-14 17:02:56] local.INFO: Tiempo estimado restante: 0.1 minutos  
-[2025-10-14 17:02:56] local.INFO: Memoria utilizada: 104 MB  
-[2025-10-14 17:02:56] local.INFO: ===============================  
-[2025-10-14 17:02:57] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:02:57] local.INFO: Registros procesados: 22000 de 23097 (95.25%)  
-[2025-10-14 17:02:57] local.INFO: Tiempo transcurrido: 63 segundos  
-[2025-10-14 17:02:57] local.INFO: Tiempo del último lote: 0.29 segundos  
-[2025-10-14 17:02:57] local.INFO: Promedio por registro: 2.86 ms  
-[2025-10-14 17:02:57] local.INFO: Tiempo estimado restante: 0.1 minutos  
-[2025-10-14 17:02:57] local.INFO: Memoria utilizada: 106 MB  
-[2025-10-14 17:02:57] local.INFO: ===============================  
-[2025-10-14 17:03:00] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:03:00] local.INFO: Registros procesados: 22500 de 23097 (97.42%)  
-[2025-10-14 17:03:00] local.INFO: Tiempo transcurrido: 66.06 segundos  
-[2025-10-14 17:03:00] local.INFO: Tiempo del último lote: 3.06 segundos  
-[2025-10-14 17:03:00] local.INFO: Promedio por registro: 2.94 ms  
-[2025-10-14 17:03:00] local.INFO: Tiempo estimado restante: 0 minutos  
-[2025-10-14 17:03:00] local.INFO: Memoria utilizada: 108 MB  
-[2025-10-14 17:03:00] local.INFO: ===============================  
-[2025-10-14 17:03:00] local.INFO: === PROGRESO DE IMPORTACIÓN ===  
-[2025-10-14 17:03:00] local.INFO: Registros procesados: 23000 de 23097 (99.58%)  
-[2025-10-14 17:03:00] local.INFO: Tiempo transcurrido: 66.4 segundos  
-[2025-10-14 17:03:00] local.INFO: Tiempo del último lote: 0.34 segundos  
-[2025-10-14 17:03:00] local.INFO: Promedio por registro: 2.89 ms  
-[2025-10-14 17:03:00] local.INFO: Tiempo estimado restante: 0 minutos  
-[2025-10-14 17:03:00] local.INFO: Memoria utilizada: 110 MB  
-[2025-10-14 17:03:00] local.INFO: ===============================  
-[2025-10-14 17:03:02] local.INFO: === LOTE FINAL INSERTADO ===  
-[2025-10-14 17:03:02] local.INFO: Registros en lote final: 93  
-[2025-10-14 17:03:02] local.INFO: Tiempo total de importación: 68.36 segundos  
-[2025-10-14 17:03:02] local.INFO: ============================  
-[2025-10-14 17:03:02] local.INFO: XLSX procesado directamente. Total filas procesadas: 23093  
-[2025-10-14 17:32:38] local.INFO: XLSX procesado directamente. Total filas procesadas: 0  
-[2025-10-14 17:43:38] local.INFO: XLSX procesado directamente. Total filas procesadas: 0  
-[2025-10-14 18:10:04] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string"} 
-[2025-10-14 18:14:35] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string"} 
-[2025-10-14 18:14:39] local.INFO: Parámetros recibidos: {"orden":null,"filtro":null} 
-[2025-10-14 18:14:39] local.INFO: Aplicando ordenamiento: {"orden":null} 
-[2025-10-14 18:14:39] local.INFO: SQL generado: {"sql":"select `gp_ls_material_kilos`.`id`, `gp_ls_material_kilos`.`total_kg`, `gp_ls_proveedores`.`nombre_proveedor`, `gp_ls_materiales`.`descripcion` as `nombre_material`, `gp_ls_material_kilos`.`ctd_emdev`, `gp_ls_material_kilos`.`umb`, `gp_ls_material_kilos`.`ce`, `gp_ls_material_kilos`.`valor_emdev`, `gp_ls_material_kilos`.`factor_conversion`, `gp_ls_material_kilos`.`codigo_material`, `gp_ls_material_kilos`.`mes`, `gp_ls_material_kilos`.`proveedor_id` from `gp_ls_material_kilos` inner join `gp_ls_proveedores` on `gp_ls_material_kilos`.`proveedor_id` = `gp_ls_proveedores`.`id_proveedor` inner join `gp_ls_materiales` on `gp_ls_material_kilos`.`codigo_material` = `gp_ls_materiales`.`codigo` order by `gp_ls_material_kilos`.`id` asc","bindings":[]} 
-[2025-10-14 18:14:40] local.INFO: Total de registros encontrados con filtros: {"total":213495} 
-[2025-10-14 18:14:47] local.INFO: Parámetros recibidos: {"orden":null,"filtro":null} 
-[2025-10-14 18:14:47] local.INFO: Aplicando ordenamiento: {"orden":null} 
-[2025-10-14 18:14:47] local.INFO: SQL generado: {"sql":"select `gp_ls_material_kilos`.`id`, `gp_ls_material_kilos`.`total_kg`, `gp_ls_proveedores`.`nombre_proveedor`, `gp_ls_materiales`.`descripcion` as `nombre_material`, `gp_ls_material_kilos`.`ctd_emdev`, `gp_ls_material_kilos`.`umb`, `gp_ls_material_kilos`.`ce`, `gp_ls_material_kilos`.`valor_emdev`, `gp_ls_material_kilos`.`factor_conversion`, `gp_ls_material_kilos`.`codigo_material`, `gp_ls_material_kilos`.`mes`, `gp_ls_material_kilos`.`proveedor_id` from `gp_ls_material_kilos` inner join `gp_ls_proveedores` on `gp_ls_material_kilos`.`proveedor_id` = `gp_ls_proveedores`.`id_proveedor` inner join `gp_ls_materiales` on `gp_ls_material_kilos`.`codigo_material` = `gp_ls_materiales`.`codigo` where `gp_ls_material_kilos`.`codigo_material` LIKE ? order by `gp_ls_material_kilos`.`id` asc","bindings":["%30001%"]} 
-[2025-10-14 18:14:48] local.INFO: Total de registros encontrados con filtros: {"total":4} 
-[2025-10-14 18:23:12] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string"} 
-[2025-10-14 18:23:35] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"970","idProveedor_type":"string"} 
-[2025-10-14 18:23:53] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"74","idProveedor_type":"string"} 
-[2025-10-14 18:25:25] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"74","idProveedor_type":"string"} 
-[2025-10-14 18:25:28] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"74","idProveedor_type":"string"} 
-[2025-10-14 18:26:09] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string"} 
-[2025-10-14 18:39:13] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"74","idProveedor_type":"string"} 
-[2025-10-14 18:39:17] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"1422","idProveedor_type":"string"} 
-[2025-10-14 18:44:58] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string"} 
-[2025-10-14 19:00:55] local.ERROR: Class "App\Models\ProveedorMetric" not found {"exception":"[object] (Error(code: 0): Class \"App\\Models\\ProveedorMetric\" not found at C:\\xampp7\\htdocs\\lasirena\ecalcular_metricas_completo.php:101)
-[stacktrace]
-#0 {main}
-"} 
-[2025-10-14 19:04:11] local.INFO: Parámetros recibidos: {"orden":null,"filtro":null} 
-[2025-10-14 19:04:11] local.INFO: Aplicando ordenamiento: {"orden":null} 
-[2025-10-14 19:04:11] local.INFO: SQL generado: {"sql":"select `gp_ls_material_kilos`.`id`, `gp_ls_material_kilos`.`total_kg`, `gp_ls_proveedores`.`nombre_proveedor`, `gp_ls_materiales`.`descripcion` as `nombre_material`, `gp_ls_material_kilos`.`ctd_emdev`, `gp_ls_material_kilos`.`umb`, `gp_ls_material_kilos`.`ce`, `gp_ls_material_kilos`.`valor_emdev`, `gp_ls_material_kilos`.`factor_conversion`, `gp_ls_material_kilos`.`codigo_material`, `gp_ls_material_kilos`.`mes`, `gp_ls_material_kilos`.`proveedor_id` from `gp_ls_material_kilos` inner join `gp_ls_proveedores` on `gp_ls_material_kilos`.`proveedor_id` = `gp_ls_proveedores`.`id_proveedor` inner join `gp_ls_materiales` on `gp_ls_material_kilos`.`codigo_material` = `gp_ls_materiales`.`codigo` order by `gp_ls_material_kilos`.`id` asc","bindings":[]} 
-[2025-10-14 19:04:12] local.INFO: Total de registros encontrados con filtros: {"total":213495} 
-[2025-10-14 19:27:03] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string"} 
+[2025-10-16 22:56:42] local.ERROR: Error en guardarExcel: SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'año' cannot be null (SQL: insert into `gp_ls_devoluciones_proveedores` (`codigo_producto`, `codigo_proveedor`, `nombre_proveedor`, `descripcion_producto`, `descripcion_queja`, `fecha_reclamacion`, `fecha_inicio`, `fecha_fin`, `clasificacion_incidencia`, `nombre_tienda`, `origen`, `lote_sirena`, `lote_proveedor`, `abierto`, `año`, `mes`, `top100fy2`) values (0301, 970, ICELAND SEAFOOD IBERICA, S.A.U., Morro de bacalao desalado, (FQ: 02/10/25; FC: 26/09/25). En esta compra ve que el producto es de menor calidad, más pequeño y fino y se desmenuza con facilidad. No tiene la textura habitual., 2025-10-16 22:56:42, ?, ?, RL1, BCN-TOLRÀ, PV, 1000567751, 30_25   cad  01.01.2027, Si, ?, ?, Si)) {"trace":"#0 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('insert into `gp...', Array, Object(Closure))
+#1 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(502): Illuminate\\Database\\Connection->run('insert into `gp...', Array, Object(Closure))
+#2 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(454): Illuminate\\Database\\Connection->statement('insert into `gp...', Array)
+#3 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2980): Illuminate\\Database\\Connection->insert('insert into `gp...', Array)
+#4 C:\\xampp7\\htdocs\\lasirena\\app\\Http\\Controllers\\MainApp\\MaterialKiloController.php(432): Illuminate\\Database\\Query\\Builder->insert(Array)
+#5 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Controller.php(54): App\\Http\\Controllers\\MainApp\\MaterialKiloController->guardarExcel(Object(Illuminate\\Http\\Request))
+#6 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\ControllerDispatcher.php(45): Illuminate\\Routing\\Controller->callAction('guardarExcel', Array)
+#7 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(262): Illuminate\\Routing\\ControllerDispatcher->dispatch(Object(Illuminate\\Routing\\Route), Object(App\\Http\\Controllers\\MainApp\\MaterialKiloController), 'guardarExcel')
+#8 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(205): Illuminate\\Routing\\Route->runController()
+#9 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(721): Illuminate\\Routing\\Route->run()
+#10 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(128): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}(Object(Illuminate\\Http\\Request))
+#11 C:\\xampp7\\htdocs\\lasirena\\app\\Http\\Middleware\\CheckBanned.php(30): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#12 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): App\\Http\\Middleware\\CheckBanned->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#13 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#14 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#15 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Auth\\Middleware\\Authenticate.php(44): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#16 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Auth\\Middleware\\Authenticate->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#17 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken.php(78): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#18 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#19 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Middleware\\ShareErrorsFromSession.php(49): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#20 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\View\\Middleware\\ShareErrorsFromSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#21 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(121): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#22 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(64): Illuminate\\Session\\Middleware\\StartSession->handleStatefulRequest(Object(Illuminate\\Http\\Request), Object(Illuminate\\Session\\Store), Object(Closure))
+#23 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Session\\Middleware\\StartSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#24 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse.php(37): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#25 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#26 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\EncryptCookies.php(67): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#27 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Cookie\\Middleware\\EncryptCookies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#28 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(103): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#29 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(723): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#30 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(698): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#31 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(662): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#32 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(651): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#33 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(167): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#34 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(128): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#35 C:\\xampp7\\htdocs\\lasirena\\app\\Http\\Middleware\\HSTS.php(13): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#36 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): App\\Http\\Middleware\\HSTS->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#37 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#38 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#39 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#40 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#41 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(40): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#42 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#43 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#44 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#45 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(86): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#46 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#47 C:\\xampp7\\htdocs\\lasirena\\vendor\\fruitcake\\laravel-cors\\src\\HandleCors.php(38): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#48 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Fruitcake\\Cors\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#49 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(39): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#50 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(167): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#51 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(103): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#52 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(142): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#53 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(111): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#54 C:\\xampp7\\htdocs\\lasirena\\public\\index.php(52): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#55 {main}"} 

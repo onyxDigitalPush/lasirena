@@ -150,12 +150,6 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label for="np">NP:</label>
-                                    <input type="text" id="np" name="np" class="form-control" placeholder="NP" value="{{ old('np', isset($devolucion) ? $devolucion->np : '') }}">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
                                     <label for="fecha_reclamacion">Fecha Reclamación:</label>
                                     <input type="date" id="fecha_reclamacion" name="fecha_reclamacion" class="form-control" value="{{ old('fecha_reclamacion', isset($devolucion) && $devolucion->fecha_reclamacion ? \Carbon\Carbon::parse($devolucion->fecha_reclamacion)->format('Y-m-d') : '') }}">
                                 </div>
@@ -205,17 +199,6 @@
                                         <option value="">Seleccione una clasificación</option>
                                         <option value="RG1" {{ (isset($devolucion) && $devolucion->clasificacion_incidencia == 'RG1') ? 'selected' : '' }}>RG - Reclamación Grave</option>
                                         <option value="RL1" {{ (isset($devolucion) && $devolucion->clasificacion_incidencia == 'RL1') ? 'selected' : '' }}>RL - Reclamación Leve</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="tipo_reclamacion">Tipo Reclamación:</label>
-                                    <select id="tipo_reclamacion" name="tipo_reclamacion" class="form-control">
-                                        <option value="">Seleccione tipo</option>
-                                        <option value="Leve" {{ (isset($devolucion) && $devolucion->tipo_reclamacion == 'Leve') ? 'selected' : '' }}>Leve</option>
-                                        <option value="Grave" {{ (isset($devolucion) && $devolucion->tipo_reclamacion == 'Grave') ? 'selected' : '' }}>Grave</option>
-                                        <option value="Crítica" {{ (isset($devolucion) && $devolucion->tipo_reclamacion == 'Crítica') ? 'selected' : '' }}>Crítica</option>
                                     </select>
                                 </div>
                             </div>
@@ -603,6 +586,22 @@
 
         // Event listeners
         $(document).ready(function() {
+            // Actualizar año y mes automáticamente cuando cambie la fecha de reclamación
+            $('#fecha_reclamacion').on('change', function() {
+                var fecha = $(this).val();
+                if (fecha) {
+                    var partes = fecha.split('-');
+                    var año = partes[0];
+                    var mes = parseInt(partes[1], 10);
+                    
+                    // Actualizar el select de año
+                    $('#año_devolucion').val(año);
+                    
+                    // Actualizar el select de mes
+                    $('#mes_devolucion').val(mes);
+                }
+            });
+
             // Manejar selección de archivos
             $('#archivos_devolucion').on('change', function() {
                 var files = Array.from(this.files);

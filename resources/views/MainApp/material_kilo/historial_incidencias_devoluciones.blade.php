@@ -84,6 +84,10 @@
         if ($('#filtro_año').val()) params.append('año', $('#filtro_año').val());
         if ($('#filtro_proveedor').val()) params.append('proveedor', $('#filtro_proveedor').val());
         if ($('#filtro_tipo').val()) params.append('tipo', $('#filtro_tipo').val());
+        if ($('#filtro_codigo_proveedor').val()) params.append('codigo_proveedor', $('#filtro_codigo_proveedor').val());
+        if ($('#filtro_codigo_producto').val()) params.append('codigo_producto', $('#filtro_codigo_producto').val());
+        if ($('#filtro_gravedad').val()) params.append('gravedad', $('#filtro_gravedad').val());
+        if ($('#filtro_no_queja').val()) params.append('no_queja', $('#filtro_no_queja').val());
         
         window.location.href = '{{ route("material_kilo.historial_incidencias_devoluciones") }}?' + params.toString();
     });
@@ -192,10 +196,53 @@
                                 <select id="filtro_tipo" name="tipo" class="form-control">
                                     <option value="" {{ $tipo == '' ? 'selected' : '' }}>Todos</option>
                                     <option value="incidencia" {{ $tipo == 'incidencia' ? 'selected' : '' }}>Solo Incidencias</option>
-                                    <option value="devolucion" {{ $tipo == 'devolucion' ? 'selected' : '' }}>Solo DReclamaciones</option>
+                                    <option value="devolucion" {{ $tipo == 'devolucion' ? 'selected' : '' }}>Solo Reclamaciones</option>
                                 </select>
                             </div>
-                            <div class="col-md-3 d-flex align-items-end">
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros adicionales -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fa fa-search mr-2"></i>Filtros Avanzados
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="filtrosAvanzadosForm" class="row">
+                            <div class="col-md-2">
+                                <label for="filtro_codigo_proveedor">Código Proveedor:</label>
+                                <input type="text" id="filtro_codigo_proveedor" name="codigo_proveedor" 
+                                       class="form-control" placeholder="Ej: 12345" 
+                                       value="{{ $codigo_proveedor ?? '' }}">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="filtro_codigo_producto">Código Producto:</label>
+                                <input type="text" id="filtro_codigo_producto" name="codigo_producto" 
+                                       class="form-control" placeholder="Ej: PROD123" 
+                                       value="{{ $codigo_producto ?? '' }}">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="filtro_no_queja">No. Queja:</label>
+                                <input type="text" id="filtro_no_queja" name="no_queja" 
+                                       class="form-control" placeholder="Número de queja" 
+                                       value="{{ $no_queja ?? '' }}">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="filtro_gravedad">Gravedad:</label>
+                                <select id="filtro_gravedad" name="gravedad" class="form-control">
+                                    <option value="" {{ !isset($gravedad) || $gravedad == '' ? 'selected' : '' }}>Todas</option>
+                                    <option value="grave" {{ isset($gravedad) && $gravedad == 'grave' ? 'selected' : '' }}>Solo Graves </option>
+                                    <option value="leve" {{ isset($gravedad) && $gravedad == 'leve' ? 'selected' : '' }}>Solo Leves </option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
                                 <button type="button" id="aplicarFiltros" class="btn btn-primary mr-2">
                                     <i class="fa fa-search mr-1"></i>Aplicar Filtros
                                 </button>
@@ -221,7 +268,6 @@
                 </div>
             </div>
         </div>
-        
         <!-- Resumen de contadores -->
         <div class="row mb-4">
             <div class="col-md-3">
@@ -284,6 +330,8 @@
                     <th class="text-center">Tipo</th>
                     <th class="text-center">ID Proveedor</th>
                     <th class="text-center">Nombre Proveedor</th>
+                    <th class="text-center">Código Producto</th>
+                    <th class="text-center">No. Queja</th>
                     <th class="text-center">Fecha</th>
                     <th class="text-center">Mes/Año</th>
                     <th class="text-center">Clasificación</th>
@@ -314,6 +362,20 @@
                         </td>
                         <td class="text-center">{{ $registro->nombre_proveedor }}</td>
                         <td class="text-center">
+                            @if($registro->tipo_registro == 'incidencia')
+                                <span class="badge badge-light">{{ $registro->codigo ?? 'N/A' }}</span>
+                            @else
+                                <span class="badge badge-light">{{ $registro->codigo_producto ?? 'N/A' }}</span>
+                            @endif
+                        </td>
+                        <td class="text-center">
+                            @if($registro->tipo_registro == 'devolucion' && $registro->no_queja)
+                                <span class="badge badge-warning">{{ $registro->no_queja }}</span>
+                            @else
+                                <span class="text-muted">-</span>
+                            @endif
+                        </td>
+                        <td class="text-center">
                             @if($registro->fecha_principal)
                                 {{ \Carbon\Carbon::parse($registro->fecha_principal)->format('d/m/Y') }}
                             @else
@@ -333,8 +395,17 @@
                                 @php
                                     $clase = $registro->clasificacion_incidencia == 'RG1' ? 'danger' : ($registro->clasificacion_incidencia == 'RL1' ? 'warning' : 'info');
                                     $texto = preg_replace('/1$/', '', $registro->clasificacion_incidencia);
+                                    
+                                    // Agregar descripción
+                                    if ($registro->clasificacion_incidencia == 'RG1') {
+                                        $descripcion_clase = 'Reclamación Grave';
+                                    } elseif ($registro->clasificacion_incidencia == 'RL1') {
+                                        $descripcion_clase = 'Reclamación Leve';
+                                    } else {
+                                        $descripcion_clase = $texto;
+                                    }
                                 @endphp
-                                <span class="badge badge-{{ $clase }}">
+                                <span class="badge badge-{{ $clase }}" title="{{ $descripcion_clase }}">
                                     {{ $texto }}
                                 </span>
                             @else
@@ -367,6 +438,10 @@
                 if ($('#filtro_año').val()) params.append('año', $('#filtro_año').val());
                 if ($('#filtro_proveedor').val()) params.append('proveedor', $('#filtro_proveedor').val());
                 if ($('#filtro_tipo').val()) params.append('tipo', $('#filtro_tipo').val());
+                if ($('#filtro_codigo_proveedor').val()) params.append('codigo_proveedor', $('#filtro_codigo_proveedor').val());
+                if ($('#filtro_codigo_producto').val()) params.append('codigo_producto', $('#filtro_codigo_producto').val());
+                if ($('#filtro_gravedad').val()) params.append('gravedad', $('#filtro_gravedad').val());
+                if ($('#filtro_no_queja').val()) params.append('no_queja', $('#filtro_no_queja').val());
                 
                 window.location.href = '{{ route("material_kilo.historial_incidencias_devoluciones") }}?' + params.toString();
             });
