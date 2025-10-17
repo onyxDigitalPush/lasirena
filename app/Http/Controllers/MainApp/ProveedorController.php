@@ -341,6 +341,154 @@ class ProveedorController extends Controller
                     return back()->withErrors(['archivo' => 'Error al importar proveedores: ' . $e->getMessage()]);
                 }
             }
+
+            // Importación sin factor de conversión (formato especial con columnas desorganizadas)
+            if ($importType === 'sin_fconversion') {
+                try {
+                    Log::info('Iniciando importación sin factor de conversión');
+                    if ($extension === 'xlsx') {
+                        if (!file_exists($path) || !is_readable($path)) {
+                            throw new Exception("El archivo no existe o no es legible: " . $path);
+                        }
+
+                        $reader = IOFactory::createReader('Xlsx');
+                        $reader->setReadDataOnly(true);
+                        $spreadsheet = $reader->load($path);
+                        $sheet = $spreadsheet->getActiveSheet();
+                        $highestRow = $sheet->getHighestRow();
+                        
+                        $created = 0;
+                        $skipped = 0;
+                        $errors = [];
+                        
+                        Log::info("Archivo sin Fconversion - Total filas: {$highestRow}");
+                        
+                        // Columnas esperadas (índices de letras):
+                        // A=ML, B=Material(código), C=Jerarquía, D=Descripción, E=Proveedor(id), 
+                        // F=Nombre proveedor, G=Ce, H=Mes(formato 9.2025), I=Ctd.EM-DEV, J=UMB, K=Valor EM-DEV
+                        
+                        for ($row = 2; $row <= $highestRow; $row++) {
+                            try {
+                                // Leer valores de las celdas
+                                $codigo_material = trim((string)$sheet->getCell('B' . $row)->getCalculatedValue());
+                                $jerarquia = trim((string)$sheet->getCell('C' . $row)->getCalculatedValue());
+                                $descripcion = trim((string)$sheet->getCell('D' . $row)->getCalculatedValue());
+                                $id_proveedor = trim((string)$sheet->getCell('E' . $row)->getCalculatedValue());
+                                $nombre_proveedor = trim((string)$sheet->getCell('F' . $row)->getCalculatedValue());
+                                $ce = trim((string)$sheet->getCell('G' . $row)->getCalculatedValue());
+                                $mes_raw = trim((string)$sheet->getCell('H' . $row)->getCalculatedValue());
+                                $ctd_emdev = $sheet->getCell('I' . $row)->getCalculatedValue();
+                                $umb = trim((string)$sheet->getCell('J' . $row)->getCalculatedValue());
+                                $valor_emdev = $sheet->getCell('K' . $row)->getCalculatedValue();
+                                
+                                // Saltar filas vacías
+                                if (empty($codigo_material) && empty($id_proveedor)) {
+                                    continue;
+                                }
+                                
+                                // Parsear mes en formato "9.2025" -> mes=9, año=2025
+                                $mes = null;
+                                $año = null;
+                                if (preg_match('/^(\d{1,2})\.(\d{4})$/', $mes_raw, $matches)) {
+                                    $mes = (int)$matches[1];
+                                    $año = (int)$matches[2];
+                                } else {
+                                    Log::warning("Fila {$row}: formato de mes inválido '{$mes_raw}', saltando");
+                                    $skipped++;
+                                    continue;
+                                }
+                                
+                                // Validar datos mínimos
+                                if (empty($codigo_material) || empty($id_proveedor) || !$mes || !$año) {
+                                    Log::warning("Fila {$row}: datos incompletos, saltando");
+                                    $skipped++;
+                                    continue;
+                                }
+                                
+                                // Crear o actualizar proveedor
+                                Proveedor::firstOrCreate(
+                                    ['id_proveedor' => $id_proveedor],
+                                    ['nombre_proveedor' => $nombre_proveedor ?: 'Proveedor ' . $id_proveedor]
+                                );
+                                
+                                // Buscar material en BD para obtener factor_conversion
+                                $material_db = DB::table('materiales')
+                                    ->where('codigo', $codigo_material)
+                                    ->first();
+                                
+                                $factor_conversion = null;
+                                $total_kg = 0;
+                                
+                                if ($material_db && $material_db->factor_conversion) {
+                                    $factor_conversion = (float)$material_db->factor_conversion;
+                                    $total_kg = (float)$ctd_emdev * $factor_conversion;
+                                    Log::info("Fila {$row}: Material {$codigo_material} con factor {$factor_conversion}, total_kg={$total_kg}");
+                                } else {
+                                    // Si no existe el material o no tiene factor, crear material sin factor
+                                    if (!$material_db) {
+                                        DB::table('materiales')->insertOrIgnore([
+                                            'codigo' => $codigo_material,
+                                            'descripcion' => $descripcion,
+                                            'jerarquia' => $jerarquia,
+                                            'proveedor_id' => $id_proveedor,
+                                            'created_at' => now(),
+                                            'updated_at' => now()
+                                        ]);
+                                        Log::info("Fila {$row}: Material {$codigo_material} creado sin factor_conversion");
+                                    } else {
+                                        Log::info("Fila {$row}: Material {$codigo_material} existe pero sin factor_conversion");
+                                    }
+                                    $total_kg = 0; // Sin factor, total_kg = 0
+                                }
+                                
+                                // Insertar en material_kilos
+                                DB::table('material_kilos')->insert([
+                                    'codigo_material' => $codigo_material,
+                                    'proveedor_id' => $id_proveedor,
+                                    'ctd_emdev' => (float)$ctd_emdev,
+                                    'umb' => $umb,
+                                    'ce' => $ce,
+                                    'valor_emdev' => (float)$valor_emdev,
+                                    'factor_conversion' => $factor_conversion,
+                                    'total_kg' => $total_kg,
+                                    'mes' => $mes,
+                                    'año' => $año,
+                                    'created_at' => now(),
+                                    'updated_at' => now()
+                                ]);
+                                
+                                $created++;
+                                
+                            } catch (Exception $e) {
+                                Log::error("Error procesando fila {$row}: " . $e->getMessage());
+                                $errors[] = "Fila {$row}: " . $e->getMessage();
+                                $skipped++;
+                            }
+                        }
+                        
+                        $spreadsheet->disconnectWorksheets();
+                        unset($spreadsheet);
+                        gc_collect_cycles();
+                        
+                        $mensaje = "Importación sin Fconversion completada. Creados: {$created}, Omitidos: {$skipped}";
+                        if (count($errors) > 0 && count($errors) <= 10) {
+                            $mensaje .= ". Errores: " . implode('; ', $errors);
+                        } elseif (count($errors) > 10) {
+                            $mensaje .= ". Total errores: " . count($errors);
+                        }
+                        
+                        Log::info($mensaje);
+                        return back()->with('success', $mensaje);
+                        
+                    } else {
+                        return back()->withErrors(['archivo' => 'Para importación sin factor de conversión, debe usar archivo XLSX']);
+                    }
+                } catch (Exception $e) {
+                    Log::error('Error en importación sin factor de conversión: ' . $e->getMessage());
+                    return back()->withErrors(['archivo' => 'Error al importar sin factor de conversión: ' . $e->getMessage()]);
+                }
+            }
+
             if ($extension === 'xlsx') {// Procesar archivo XLSX
             try {
                 Log::info('Iniciando procesamiento de archivo XLSX');
@@ -1262,4 +1410,67 @@ class ProveedorController extends Controller
             }
         }
     }
+
+    /**
+     * Descargar formato ejemplo para importación de proveedores y artículos
+     */
+    public function descargarFormatoProveedoresEntradas()
+    {
+        // Buscar primero en public/docs por si se colocó ahí para acceso directo
+        $publicPath = public_path('docs/FormatoProveedoresEntradas.xlsx');
+        $resourcePath = resource_path('views/proveedores/FormatoProveedoresEntradas.xlsx');
+
+        if (file_exists($publicPath)) {
+            $rutaArchivo = $publicPath;
+        } elseif (file_exists($resourcePath)) {
+            $rutaArchivo = $resourcePath;
+        } else {
+            abort(404, 'Archivo de formato no encontrado');
+        }
+
+        // Evitar salidas previas que puedan corromper el binario
+        if (ob_get_level()) {
+            @ob_end_clean();
+        }
+
+        $headers = [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Transfer-Encoding' => 'binary',
+            'Content-Disposition' => 'attachment; filename="FormatoProveedoresEntradas.xlsx"'
+        ];
+
+        return response()->download($rutaArchivo, 'FormatoProveedoresEntradas.xlsx', $headers);
+    }
+
+    /**
+     * Descargar formato ejemplo para importación sin factor de conversión
+     */
+    public function descargarFormatoSinFconversion()
+    {
+        // Buscar primero en public/docs por si se colocó ahí para acceso directo
+        $publicPath = public_path('docs/FormatoEntradasSinFconversion.xlsx');
+        $resourcePath = resource_path('views/proveedores/FormatoEntradasSinFconversion.xlsx');
+
+        if (file_exists($publicPath)) {
+            $rutaArchivo = $publicPath;
+        } elseif (file_exists($resourcePath)) {
+            $rutaArchivo = $resourcePath;
+        } else {
+            abort(404, 'Archivo de formato no encontrado');
+        }
+
+        // Evitar salidas previas que puedan corromper el binario
+        if (ob_get_level()) {
+            @ob_end_clean();
+        }
+
+        $headers = [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Transfer-Encoding' => 'binary',
+            'Content-Disposition' => 'attachment; filename="FormatoEntradasSinFconversion.xlsx"'
+        ];
+
+        return response()->download($rutaArchivo, 'FormatoEntradasSinFconversion.xlsx', $headers);
+    }
 }
+

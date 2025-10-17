@@ -213,6 +213,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/material_kilo/guardar-metricas', 'MaterialKiloController@guardarMetricas')->name('material_kilo.guardar_metricas');
         Route::get('/material_kilo/recalcular-metricas', 'MaterialKiloController@recalcularMetricasWeb')->name('material_kilo.recalcular_metricas');
         Route::post('/material_kilo/ejecutar-recalculo-metricas', 'MaterialKiloController@ejecutarRecalculoMetricas')->name('material_kilo.ejecutar_recalculo_metricas');
+        Route::get('/material_kilo/descargar-formato-quejas', 'MaterialKiloController@descargarFormatoQuejas')->name('material_kilo.descargar_formato_quejas');
         Route::post('/material_kilo/data', 'MaterialKiloController@data')->name('material-kilo.data');
         Route::get('/material_kilo/buscar-proveedor/{id}', 'MaterialKiloController@buscarProveedor');
 
@@ -287,6 +288,14 @@ Route::group(['middleware' => ['auth']], function () {
 
         //excel material kilo devoluciones
         Route::post('/material_kilo/devolucion-excel', 'MaterialKiloController@guardarExcel')->name('material_kilo.guardarExcel');
+        
+        // Descargar formato de importación de proveedores (FormatoProveedoresEntradas.xlsx)
+        Route::get('/proveedores/descargar-formato-proveedores-entradas', 'ProveedorController@descargarFormatoProveedoresEntradas')
+            ->name('proveedores.descargar_formato_proveedores_entradas');
+        
+        // Descargar formato de importación sin factor de conversión (FormatoEntradasSinFconversion.xlsx)
+        Route::get('/proveedores/descargar-formato-sin-fconversion', 'ProveedorController@descargarFormatoSinFconversion')
+            ->name('proveedores.descargar_formato_sin_fconversion');
         
         // Ruta de prueba para verificar obtener-devolucion
         Route::get('/material_kilo/test-obtener-devolucion/{id}', function ($id) {

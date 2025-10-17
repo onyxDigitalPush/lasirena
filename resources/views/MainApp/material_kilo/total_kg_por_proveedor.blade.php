@@ -687,13 +687,39 @@
             <form method="POST" action="{{ route('material_kilo.guardarExcel') }}" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-body">
+                    <!-- Alerta informativa -->
+                    <div class="alert alert-info">
+                        <h6 class="mb-2"><i class="fa fa-info-circle"></i> Formato Requerido</h6>
+                        <p class="mb-2">
+                            El archivo Excel debe tener el formato correcto con las columnas necesarias.
+                            La primera fila debe contener las fechas en formato:
+                        </p>
+                        <ul class="mb-2">
+                            <li><strong>"SAC - Quejas producto del 01/10 al 02/10/25"</strong> (con mes en ambas fechas)</li>
+                            <li><strong>"SAC - Quejas producto del 25 al 31 de julio de 2025"</strong> (con nombre del mes)</li>
+                        </ul>
+                        <p class="mb-0">
+                            <a href="{{ route('material_kilo.descargar_formato_quejas') }}" 
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="fa fa-download mr-1"></i>Descargar Formato de Ejemplo
+                            </a>
+                        </p>
+                    </div>
+
                     <div class="form-group">
                         <label for="archivo_excel">Selecciona el archivo Excel (.xlsx):</label>
                         <input type="file" class="form-control" id="archivo_excel" name="archivo_excel"
                             accept=".xlsx" required>
+                        <small class="form-text text-muted">
+                            Solo archivos .xlsx. Asegúrate de que el formato coincida con el ejemplo.
+                        </small>
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <a href="{{ route('material_kilo.descargar_formato_quejas') }}" 
+                       class="btn btn-info mr-auto">
+                        <i class="fa fa-download mr-1"></i>Descargar Formato
+                    </a>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">
                         <i class="fa fa-times mr-1"></i>Cancelar
                     </button>

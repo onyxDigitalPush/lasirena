@@ -23,6 +23,9 @@
         <div class="page-title-actions text-white">
             <input type="hidden" value="0" name="tab_orders" id="tab_orders">
 
+            <a class="m-2 btn btn-warning" href="#" data-toggle="modal" data-target="#importarArchivoModal" data-import-type="sin_fconversion">
+                <i class="metismenu-icon fa fa-upload mr-2"></i>Importar Prov. Art. sin Fconversion
+            </a>
             <a class="m-2 btn btn-success" href="#" data-toggle="modal" data-target="#importarArchivoModal" data-import-type="general">
                 <i class="metismenu-icon fa fa-upload mr-2"></i>Importar Proveedores y Articulos
             </a>
@@ -129,6 +132,23 @@
                     <div class="modal-body">
                         <!-- Contenido normal del formulario -->
                         <div id="formContent">
+                            <div class="mb-3" id="download_format_general" style="display: none;">
+                                <a href="{{ route('proveedores.descargar_formato_proveedores_entradas') }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fa fa-download mr-1"></i>Descargar Formato de Ejemplo (.xlsx)
+                                </a>
+                                <small class="form-text text-muted d-inline-block ml-2">
+                                    Cabeceras en la fila 4; los datos (filas) deben comenzar abajo (fila 5 en general). Para importación de proveedores (botón "Importar Proveedores"), el import utiliza la fila 10 como inicio de datos.
+                                </small>
+                            </div>
+                            <div class="mb-3" id="download_format_sin_fconversion" style="display: none;">
+                                <a href="{{ route('proveedores.descargar_formato_sin_fconversion') }}" class="btn btn-sm btn-outline-warning">
+                                    <i class="fa fa-download mr-1"></i>Descargar Formato de Ejemplo (.xlsx)
+                                </a>
+                                <small class="form-text text-muted d-inline-block ml-2">
+                                    Formato sin factor de conversión. Cabeceras en la fila 1; los datos desde la fila 2. 
+                                    Columnas: ML, Material, Jerarquía product., Descripción de material, Proveedor, Nombre del proveedor, Ce., Mes (formato: 9.2025), Ctd. EM-DEV, UMB, Valor EM-DEV
+                                </small>
+                            </div>
                             <div class="form-group">
                                 <label for="archivo">Seleccionar Archivo</label>
                                 <div class="custom-file">
@@ -253,6 +273,9 @@
                 $('#importForm')[0].reset();
                 $('.custom-file-label').html('Elegir archivo...');
                 $('#importarArchivoModal').removeData('processing');
+                // Ocultar ambos botones de descarga por defecto
+                $('#download_format_general').hide();
+                $('#download_format_sin_fconversion').hide();
                 
                 // Restaurar configuración del modal
                 var modalConfig = $('#importarArchivoModal').data('bs.modal');
@@ -269,6 +292,15 @@
                 var button = $(event.relatedTarget); // Button that triggered the modal
                 var importType = button.data('import-type') || 'general';
                 $('#import_type_input').val(importType);
+                // Mostrar el botón de descarga apropiado según el tipo de importación
+                if (importType === 'general') {
+                    $('#download_format_general').show();
+                } else if (importType === 'sin_fconversion') {
+                    $('#download_format_sin_fconversion').show();
+                } else {
+                    $('#download_format_general').hide();
+                    $('#download_format_sin_fconversion').hide();
+                }
             });// Script para manejar el loader durante la importación
             $('#importForm').on('submit', function(e) {
                 // Verificar que se haya seleccionado un archivo

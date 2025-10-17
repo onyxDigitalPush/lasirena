@@ -517,8 +517,9 @@ class MaterialKiloController extends Controller
 
         // Intentar extraer fechas desde la cabecera en varios formatos.
         // 1) Formato textual: "del 25 al 31 de julio de 2025"
-        // 2) Formato mixto: "del 15 al 21/08/25" (inicio solo día, fin con dd/mm/yy)
-        // 3) Dos fechas completas: "15/08/2025 al 21/08/2025" o similares
+        // 2) Formato con ambas fechas completas: "del 01/10 al 02/10/25"
+        // 3) Formato mixto: "del 15 al 21/08/25" (inicio solo día, fin con dd/mm/yy)
+        // 4) Dos fechas completas: "15/08/2025 al 21/08/2025" o similares
         $fecha_inicio = null;
         $fecha_fin = null;
         $mes = null;
@@ -543,49 +544,84 @@ class MaterialKiloController extends Controller
                 $fecha_fin = sprintf('%04d-%02d-%02d', $año, $mes, $dia_fin);
             }
         } else {
-            // 2) Formato mixto: "del 15 al 21/08/25" -> tomar día inicio del primer número y mes/año del segundo
-            $regex_mixto = '/del\s+(\d{1,2})\s+al\s+(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/';
-            if (preg_match($regex_mixto, $texto_cabecera, $matches)) {
-                $dia_inicio = $matches[1];
-                $dia_fin = $matches[2];
-                $mes = (int)$matches[3];
-                $yr = (int)$matches[4];
-                // Normalizar años de 2 dígitos -> suponer 2000..2069 para 00..69, 1900..1999 para 70..99
-                if (strlen($matches[4]) === 2) {
-                    $año = ($yr < 70) ? (2000 + $yr) : (1900 + $yr);
+            // 2) Formato con ambas fechas completas: "del 01/10 al 02/10/25" o "del 01/10/25 al 02/10/25"
+            // Este nuevo regex captura ambas fechas completas con día/mes y opcionalmente año
+            $regex_ambas_fechas = '/del\s+(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?\s+al\s+(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/';
+            if (preg_match($regex_ambas_fechas, $texto_cabecera, $matches)) {
+                $dia_inicio = (int)$matches[1];
+                $mes_inicio = (int)$matches[2];
+                $yr_inicio = isset($matches[3]) && $matches[3] !== '' ? (int)$matches[3] : null;
+                $dia_fin = (int)$matches[4];
+                $mes_fin = (int)$matches[5];
+                $yr_fin = (int)$matches[6];
+                
+                // Normalizar año de fin (siempre presente)
+                if (strlen($matches[6]) === 2) {
+                    $año = ($yr_fin < 70) ? (2000 + $yr_fin) : (1900 + $yr_fin);
                 } else {
-                    $año = $yr;
+                    $año = $yr_fin;
                 }
-                if ($mes && $año) {
-                    $fecha_inicio = sprintf('%04d-%02d-%02d', $año, $mes, $dia_inicio);
-                    $fecha_fin = sprintf('%04d-%02d-%02d', $año, $mes, $dia_fin);
+                
+                // Si año de inicio no está presente, usar el año de fin
+                $año_inicio = $año;
+                if ($yr_inicio !== null) {
+                    if (strlen((string)$yr_inicio) === 2) {
+                        $año_inicio = ($yr_inicio < 70) ? (2000 + $yr_inicio) : (1900 + $yr_inicio);
+                    } else {
+                        $año_inicio = $yr_inicio;
+                    }
                 }
+                
+                // Usar el mes de fin como mes principal (como se hacía antes)
+                $mes = $mes_fin;
+                $fecha_inicio = sprintf('%04d-%02d-%02d', $año_inicio, $mes_inicio, $dia_inicio);
+                $fecha_fin = sprintf('%04d-%02d-%02d', $año, $mes_fin, $dia_fin);
+                
             } else {
-                // 3) Dos fechas completas en formato dd/mm/yy o dd/mm/yyyy (puede aparecer en cualquier parte)
-                $regex_dos_fechas = '/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4}).*?(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/';
-                if (preg_match($regex_dos_fechas, $texto_cabecera, $matches)) {
+                // 3) Formato mixto antiguo: "del 15 al 21/08/25" -> tomar día inicio del primer número y mes/año del segundo
+                $regex_mixto = '/del\s+(\d{1,2})\s+al\s+(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/';
+                if (preg_match($regex_mixto, $texto_cabecera, $matches)) {
                     $dia_inicio = $matches[1];
-                    $mes_inicio = (int)$matches[2];
-                    $yr1 = (int)$matches[3];
-                    $dia_fin = $matches[4];
-                    $mes_fin = (int)$matches[5];
-                    $yr2 = (int)$matches[6];
-                    // Normalizar años de 2 dígitos
-                    if (strlen($matches[3]) === 2) {
-                        $a1 = ($yr1 < 70) ? (2000 + $yr1) : (1900 + $yr1);
+                    $dia_fin = $matches[2];
+                    $mes = (int)$matches[3];
+                    $yr = (int)$matches[4];
+                    // Normalizar años de 2 dígitos -> suponer 2000..2069 para 00..69, 1900..1999 para 70..99
+                    if (strlen($matches[4]) === 2) {
+                        $año = ($yr < 70) ? (2000 + $yr) : (1900 + $yr);
                     } else {
-                        $a1 = $yr1;
+                        $año = $yr;
                     }
-                    if (strlen($matches[6]) === 2) {
-                        $a2 = ($yr2 < 70) ? (2000 + $yr2) : (1900 + $yr2);
-                    } else {
-                        $a2 = $yr2;
+                    if ($mes && $año) {
+                        $fecha_inicio = sprintf('%04d-%02d-%02d', $año, $mes, $dia_inicio);
+                        $fecha_fin = sprintf('%04d-%02d-%02d', $año, $mes, $dia_fin);
                     }
-                    // Preferir la fecha de inicio para año/mes; si meses coinciden usar ese mes
-                    $año = $a1;
-                    $mes = $mes_inicio;
-                    $fecha_inicio = sprintf('%04d-%02d-%02d', $a1, $mes_inicio, $dia_inicio);
-                    $fecha_fin = sprintf('%04d-%02d-%02d', $a2, $mes_fin, $dia_fin);
+                } else {
+                    // 4) Dos fechas completas en formato dd/mm/yy o dd/mm/yyyy (puede aparecer en cualquier parte)
+                    $regex_dos_fechas = '/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4}).*?(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/';
+                    if (preg_match($regex_dos_fechas, $texto_cabecera, $matches)) {
+                        $dia_inicio = $matches[1];
+                        $mes_inicio = (int)$matches[2];
+                        $yr1 = (int)$matches[3];
+                        $dia_fin = $matches[4];
+                        $mes_fin = (int)$matches[5];
+                        $yr2 = (int)$matches[6];
+                        // Normalizar años de 2 dígitos
+                        if (strlen($matches[3]) === 2) {
+                            $a1 = ($yr1 < 70) ? (2000 + $yr1) : (1900 + $yr1);
+                        } else {
+                            $a1 = $yr1;
+                        }
+                        if (strlen($matches[6]) === 2) {
+                            $a2 = ($yr2 < 70) ? (2000 + $yr2) : (1900 + $yr2);
+                        } else {
+                            $a2 = $yr2;
+                        }
+                        // Preferir la fecha de inicio para año/mes; si meses coinciden usar ese mes
+                        $año = $a1;
+                        $mes = $mes_inicio;
+                        $fecha_inicio = sprintf('%04d-%02d-%02d', $a1, $mes_inicio, $dia_inicio);
+                        $fecha_fin = sprintf('%04d-%02d-%02d', $a2, $mes_fin, $dia_fin);
+                    }
                 }
             }
         }
@@ -2264,4 +2300,31 @@ class MaterialKiloController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Descargar archivo de formato para Excel de reclamaciones
+     */
+    public function descargarFormatoQuejas()
+    {
+        $rutaArchivo = resource_path('views/MainApp/material_kilo/FormatoQuejas.xlsx');
+        
+        if (!file_exists($rutaArchivo)) {
+            abort(404, 'Archivo de formato no encontrado');
+        }
+
+        // Asegurar que no haya salida previa que pueda corromper el archivo
+        if (ob_get_level()) {
+            @ob_end_clean();
+        }
+
+        // Forzar la descarga con cabeceras apropiadas y transferencia binaria
+        $headers = [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Transfer-Encoding' => 'binary',
+            'Content-Disposition' => 'attachment; filename="FormatoQuejas.xlsx"'
+        ];
+
+        return response()->download($rutaArchivo, 'FormatoQuejas.xlsx', $headers);
+    }
 }
+
