@@ -153,7 +153,7 @@ class ProveedorController extends Controller
         // Verificar si hay errores de upload
         if (!$request->hasFile('archivo')) {
             Log::error('No se recibió ningún archivo en el campo "archivo"');
-            return back()->withErrors(['archivo' => 'No se recibió ningún archivo.']);
+            return redirect('/proveedores')->withErrors(['archivo' => 'No se recibió ningún archivo.']);
         }
         
         $archivo = $request->file('archivo');
@@ -168,7 +168,7 @@ class ProveedorController extends Controller
         if (!$archivo->isValid()) {
             Log::error('Error en el archivo: ' . $archivo->getError());
             Log::error('Código de error: ' . $archivo->getErrorMessage());
-            return back()->withErrors(['archivo' => 'Error en el archivo: ' . $archivo->getErrorMessage()]);
+            return redirect('/proveedores')->withErrors(['archivo' => 'Error en el archivo: ' . $archivo->getErrorMessage()]);
         }
         
         try {
@@ -178,7 +178,7 @@ class ProveedorController extends Controller
             
             if (!in_array($extension, $allowedExtensions)) {
                 Log::error('Extensión no permitida: ' . $extension);
-                return back()->withErrors(['archivo' => 'Extensión de archivo no permitida. Use: ' . implode(', ', $allowedExtensions)]);
+                return redirect('/proveedores')->withErrors(['archivo' => 'Extensión de archivo no permitida. Use: ' . implode(', ', $allowedExtensions)]);
             }
             
             Log::info('Validación de extensión pasada: ' . $extension);
@@ -289,7 +289,7 @@ class ProveedorController extends Controller
                             Log::info("Import progress ({$importId}): {$processedSoFar}/{$totalRows} ({$percent}%)");
                         }
                         Log::info("Importación proveedores completada. Creados: {$created}, Omitidos: {$skipped}");
-                        return back()->with('success', "Importación proveedores completada. Creados: {$created}, Omitidos: {$skipped}");
+                        return view('proveedores.import_complete', ['message' => "Importación proveedores completada. Creados: {$created}, Omitidos: {$skipped}"]);
                     } else {
                         // CSV/TXT fallback: leer columnas F (índice 5) y G (índice 6)
                         $delimitadores = [',', ';', "\t"];
@@ -311,7 +311,7 @@ class ProveedorController extends Controller
                             if ($count > $maxCount) { $maxCount = $count; $delimitadorDetectado = $delim; }
                         }
                         if (!$delimitadorDetectado) {
-                            return back()->withErrors(['archivo' => 'No se pudo detectar el delimitador del archivo CSV/TXT.']);
+                            return redirect('/proveedores')->withErrors(['archivo' => 'No se pudo detectar el delimitador del archivo CSV/TXT.']);
                         }
                         if (($handle = fopen($path, 'r')) !== false) {
                             $created = 0; $skipped = 0;
@@ -333,19 +333,18 @@ class ProveedorController extends Controller
                             }
                             fclose($handle);
                             Log::info("Importación proveedores CSV completada. Creados: {$created}, Omitidos: {$skipped}");
-                            return back()->with('success', "Importación proveedores completada. Creados: {$created}, Omitidos: {$skipped}");
+                            return view('proveedores.import_complete', ['message' => "Importación proveedores completada. Creados: {$created}, Omitidos: {$skipped}"]);
                         }
                     }
                 } catch (Exception $e) {
                     Log::error('Error en importación de proveedores: ' . $e->getMessage());
-                    return back()->withErrors(['archivo' => 'Error al importar proveedores: ' . $e->getMessage()]);
+                    return redirect('/proveedores')->withErrors(['archivo' => 'Error al importar proveedores: ' . $e->getMessage()]);
                 }
             }
 
             // Importación sin factor de conversión (formato especial con columnas desorganizadas)
             if ($importType === 'sin_fconversion') {
                 try {
-                    Log::info('Iniciando importación sin factor de conversión');
                     if ($extension === 'xlsx') {
                         if (!file_exists($path) || !is_readable($path)) {
                             throw new Exception("El archivo no existe o no es legible: " . $path);
@@ -353,15 +352,18 @@ class ProveedorController extends Controller
 
                         $reader = IOFactory::createReader('Xlsx');
                         $reader->setReadDataOnly(true);
+                        
                         $spreadsheet = $reader->load($path);
                         $sheet = $spreadsheet->getActiveSheet();
                         $highestRow = $sheet->getHighestRow();
                         
+                        Log::info('Iniciando importación sin Fconversion. Filas detectadas: ' . $highestRow);
+                        
                         $created = 0;
                         $skipped = 0;
                         $errors = [];
-                        
-                        Log::info("Archivo sin Fconversion - Total filas: {$highestRow}");
+                        $filasVaciasConsecutivas = 0;
+                        $maxFilasVacias = 3; // Detener si encuentra 3 filas vacías seguidas
                         
                         // Columnas esperadas (índices de letras):
                         // A=ML, B=Material(código), C=Jerarquía, D=Descripción, E=Proveedor(id), 
@@ -369,7 +371,7 @@ class ProveedorController extends Controller
                         
                         for ($row = 2; $row <= $highestRow; $row++) {
                             try {
-                                // Leer valores de las celdas
+                                // Leer SOLO las columnas que necesitamos (B-K)
                                 $codigo_material = trim((string)$sheet->getCell('B' . $row)->getCalculatedValue());
                                 $jerarquia = trim((string)$sheet->getCell('C' . $row)->getCalculatedValue());
                                 $descripcion = trim((string)$sheet->getCell('D' . $row)->getCalculatedValue());
@@ -381,26 +383,50 @@ class ProveedorController extends Controller
                                 $umb = trim((string)$sheet->getCell('J' . $row)->getCalculatedValue());
                                 $valor_emdev = $sheet->getCell('K' . $row)->getCalculatedValue();
                                 
-                                // Saltar filas vacías
+                                // Verificar si la fila está completamente vacía (todas las columnas B-K vacías)
+                                $filaVacia = empty($codigo_material) && empty($jerarquia) && empty($descripcion) && 
+                                             empty($id_proveedor) && empty($nombre_proveedor) && empty($ce) && 
+                                             empty($mes_raw) && empty($ctd_emdev) && empty($umb) && empty($valor_emdev);
+                                
+                                if ($filaVacia) {
+                                    $filasVaciasConsecutivas++;
+                                    // Si encontramos 3 filas vacías consecutivas, detener el procesamiento
+                                    if ($filasVaciasConsecutivas >= $maxFilasVacias) {
+                                        Log::info("Detectadas {$maxFilasVacias} filas vacías consecutivas en fila {$row}. Finalizando procesamiento.");
+                                        break;
+                                    }
+                                    continue;
+                                } else {
+                                    // Resetear contador si encontramos una fila con datos
+                                    $filasVaciasConsecutivas = 0;
+                                }
+                                
+                                // Saltar filas sin datos mínimos requeridos
                                 if (empty($codigo_material) && empty($id_proveedor)) {
                                     continue;
                                 }
                                 
-                                // Parsear mes en formato "9.2025" -> mes=9, año=2025
+                                // Parsear mes en formato "09.2025" o "9.2025" o "09,2025" -> mes="09.2025", año=2025
+                                // Acepta tanto punto (.) como coma (,) como separador
                                 $mes = null;
                                 $año = null;
-                                if (preg_match('/^(\d{1,2})\.(\d{4})$/', $mes_raw, $matches)) {
-                                    $mes = (int)$matches[1];
+                                $mes_formateado = null; // Para guardar en formato "MM.YYYY"
+                                
+                                if (preg_match('/^(\d{1,2})[.,](\d{4})$/', $mes_raw, $matches)) {
+                                    $mes_numero = (int)$matches[1];
                                     $año = (int)$matches[2];
+                                    // Formatear mes con cero a la izquierda: 9 -> 09
+                                    $mes_formateado = str_pad($mes_numero, 2, '0', STR_PAD_LEFT) . '.' . $año;
+                                    $mes = $mes_numero; // Para búsquedas/comparaciones numéricas
                                 } else {
-                                    Log::warning("Fila {$row}: formato de mes inválido '{$mes_raw}', saltando");
+                                    Log::warning("Fila {$row}: formato de mes inválido '{$mes_raw}'");
+                                    $errors[] = "Fila {$row}: formato mes inválido '{$mes_raw}'";
                                     $skipped++;
                                     continue;
                                 }
                                 
                                 // Validar datos mínimos
                                 if (empty($codigo_material) || empty($id_proveedor) || !$mes || !$año) {
-                                    Log::warning("Fila {$row}: datos incompletos, saltando");
                                     $skipped++;
                                     continue;
                                 }
@@ -416,52 +442,68 @@ class ProveedorController extends Controller
                                     ->where('codigo', $codigo_material)
                                     ->first();
                                 
-                                $factor_conversion = null;
-                                $total_kg = 0;
-                                
-                                if ($material_db && $material_db->factor_conversion) {
-                                    $factor_conversion = (float)$material_db->factor_conversion;
-                                    $total_kg = (float)$ctd_emdev * $factor_conversion;
-                                    Log::info("Fila {$row}: Material {$codigo_material} con factor {$factor_conversion}, total_kg={$total_kg}");
-                                } else {
-                                    // Si no existe el material o no tiene factor, crear material sin factor
-                                    if (!$material_db) {
-                                        DB::table('materiales')->insertOrIgnore([
-                                            'codigo' => $codigo_material,
-                                            'descripcion' => $descripcion,
-                                            'jerarquia' => $jerarquia,
-                                            'proveedor_id' => $id_proveedor,
-                                            'created_at' => now(),
-                                            'updated_at' => now()
-                                        ]);
-                                        Log::info("Fila {$row}: Material {$codigo_material} creado sin factor_conversion");
-                                    } else {
-                                        Log::info("Fila {$row}: Material {$codigo_material} existe pero sin factor_conversion");
-                                    }
-                                    $total_kg = 0; // Sin factor, total_kg = 0
+                                // Si no existe el material, crearlo
+                                if (!$material_db) {
+                                    DB::table('materiales')->insertOrIgnore([
+                                        'codigo' => $codigo_material,
+                                        'descripcion' => $descripcion,
+                                        'jerarquia' => $jerarquia,
+                                        'proveedor_id' => $id_proveedor,
+                                        'factor_conversion' => null, // NULL hasta que se configure
+                                        'created_at' => now(),
+                                        'updated_at' => now()
+                                    ]);
+                                    
+                                    // Volver a consultar para obtener el registro recién creado
+                                    $material_db = DB::table('materiales')
+                                        ->where('codigo', $codigo_material)
+                                        ->first();
                                 }
                                 
-                                // Insertar en material_kilos
-                                DB::table('material_kilos')->insert([
-                                    'codigo_material' => $codigo_material,
-                                    'proveedor_id' => $id_proveedor,
-                                    'ctd_emdev' => (float)$ctd_emdev,
-                                    'umb' => $umb,
-                                    'ce' => $ce,
-                                    'valor_emdev' => (float)$valor_emdev,
-                                    'factor_conversion' => $factor_conversion,
-                                    'total_kg' => $total_kg,
-                                    'mes' => $mes,
-                                    'año' => $año,
-                                    'created_at' => now(),
-                                    'updated_at' => now()
-                                ]);
+                                // Calcular factor_conversion y total_kg
+                                $factor_conversion = 0;
+                                $total_kg = 0;
                                 
-                                $created++;
+                                // Si el material existe y tiene factor_conversion definido (incluso si es 0)
+                                if ($material_db && isset($material_db->factor_conversion) && $material_db->factor_conversion !== null) {
+                                    $factor_conversion = (float)$material_db->factor_conversion;
+                                    // Solo calcular total_kg si el factor es mayor que 0
+                                    if ($factor_conversion > 0) {
+                                        $total_kg = (float)$ctd_emdev * $factor_conversion;
+                                    }
+                                }
+                                // Si factor_conversion es NULL, se usa 0 (valor por defecto)
+                                
+                                // Insertar TODOS los registros sin verificar duplicados
+                                // Pueden existir múltiples registros con el mismo material, proveedor, mes y año
+                                // pero con diferentes valores en otras columnas
+                                
+                                try {
+                                    DB::table('material_kilos')->insert([
+                                        'codigo_material' => $codigo_material,
+                                        'proveedor_id' => $id_proveedor,
+                                        'ctd_emdev' => (float)$ctd_emdev,
+                                        'umb' => $umb,
+                                        'ce' => $ce,
+                                        'valor_emdev' => (float)$valor_emdev,
+                                        'factor_conversion' => $factor_conversion,
+                                        'total_kg' => $total_kg,
+                                        'mes' => $mes_formateado,  // Guardar en formato "MM.YYYY"
+                                        'año' => $año,
+                                        'created_at' => now(),
+                                        'updated_at' => now()
+                                    ]);
+                                    
+                                    $created++;
+                                    
+                                } catch (\Exception $insertEx) {
+                                    Log::error("Fila {$row}: Error al insertar - " . $insertEx->getMessage());
+                                    $errors[] = "Fila {$row}: " . substr($insertEx->getMessage(), 0, 100);
+                                    $skipped++;
+                                }
                                 
                             } catch (Exception $e) {
-                                Log::error("Error procesando fila {$row}: " . $e->getMessage());
-                                $errors[] = "Fila {$row}: " . $e->getMessage();
+                                $errors[] = "Fila {$row}: " . substr($e->getMessage(), 0, 80);
                                 $skipped++;
                             }
                         }
@@ -470,22 +512,28 @@ class ProveedorController extends Controller
                         unset($spreadsheet);
                         gc_collect_cycles();
                         
-                        $mensaje = "Importación sin Fconversion completada. Creados: {$created}, Omitidos: {$skipped}";
-                        if (count($errors) > 0 && count($errors) <= 10) {
-                            $mensaje .= ". Errores: " . implode('; ', $errors);
-                        } elseif (count($errors) > 10) {
-                            $mensaje .= ". Total errores: " . count($errors);
+                        $total_procesados = $created + $skipped;
+                        $mensaje = "Importación completada. ✓ Insertados: {$created} de {$total_procesados} filas";
+                        if ($skipped > 0) {
+                            $mensaje .= " | ✗ Omitidos: {$skipped}";
+                        }
+                        if (count($errors) > 0 && count($errors) <= 5) {
+                            $mensaje .= " | Errores: " . implode('; ', array_slice($errors, 0, 5));
+                        } elseif (count($errors) > 5) {
+                            $mensaje .= " | Ver log para detalles de " . count($errors) . " errores";
+                            Log::warning("Errores de importación sin Fconversion: " . implode('; ', $errors));
                         }
                         
-                        Log::info($mensaje);
-                        return back()->with('success', $mensaje);
+                        // Retornar vista simple sin headers extras que puedan interferir
+                        Log::info('Importación sin Fconversion completada. Insertados: ' . $created . ', Omitidos: ' . $skipped);
+                        return view('proveedores.import_complete', ['message' => $mensaje]);
                         
                     } else {
-                        return back()->withErrors(['archivo' => 'Para importación sin factor de conversión, debe usar archivo XLSX']);
+                        return redirect('/proveedores')->withErrors(['archivo' => 'Para importación sin factor de conversión, debe usar archivo XLSX']);
                     }
                 } catch (Exception $e) {
                     Log::error('Error en importación sin factor de conversión: ' . $e->getMessage());
-                    return back()->withErrors(['archivo' => 'Error al importar sin factor de conversión: ' . $e->getMessage()]);
+                    return redirect('/proveedores')->withErrors(['archivo' => 'Error al importar sin factor de conversión: ' . $e->getMessage()]);
                 }
             }
 
@@ -644,13 +692,13 @@ class ProveedorController extends Controller
                 
                 // Marcar completado y salir con éxito
                 @file_put_contents($progressPath, json_encode(['status' => 'completed', 'processed' => $procesadas, 'total' => $procesadas, 'percent' => 100, 'id' => $importId]));
-                return back()->with('success', "Archivo XLSX importado con procesamiento optimizado. Filas procesadas: {$procesadas}")->with('import_id', $importId);
+                return view('proveedores.import_complete', ['message' => "Archivo XLSX importado con procesamiento optimizado. Filas procesadas: {$procesadas}"]);
                 
             } catch (Exception $e) {
                 Log::error('Error al procesar archivo XLSX: ' . $e->getMessage());
                 Log::error('Stack trace: ' . $e->getTraceAsString());
                 @file_put_contents($progressPath, json_encode(['status' => 'error', 'message' => $e->getMessage(), 'id' => $importId]));
-                return back()->withErrors(array('archivo' => 'Error al procesar el archivo XLSX: ' . $e->getMessage()));
+                return redirect('/proveedores')->withErrors(array('archivo' => 'Error al procesar el archivo XLSX: ' . $e->getMessage()));
             }        } else {
             // Procesar archivo CSV (lógica original)
             try {
@@ -692,11 +740,11 @@ class ProveedorController extends Controller
 
                 if (!$delimitadorDetectado) {
                     Log::error('No se pudo detectar el delimitador del archivo CSV');
-                    return back()->withErrors(array('archivo' => 'No se pudo detectar el delimitador del archivo CSV.'));
+                    return redirect('/proveedores')->withErrors(array('archivo' => 'No se pudo detectar el delimitador del archivo CSV.'));
                 }
             } catch (Exception $e) {
                 Log::error('Error en procesamiento inicial de CSV: ' . $e->getMessage());
-                return back()->withErrors(array('archivo' => 'Error al procesar archivo CSV: ' . $e->getMessage()));
+                return redirect('/proveedores')->withErrors(array('archivo' => 'Error al procesar archivo CSV: ' . $e->getMessage()));
             }
 
             // 2. Leer el archivo CSV con el delimitador detectado
@@ -770,7 +818,7 @@ class ProveedorController extends Controller
                 
             } catch (Exception $e) {
                 Log::error('Error leyendo archivo CSV: ' . $e->getMessage());
-                return back()->withErrors(array('archivo' => 'Error al leer archivo CSV: ' . $e->getMessage()));
+                return redirect('/proveedores')->withErrors(array('archivo' => 'Error al leer archivo CSV: ' . $e->getMessage()));
             }
         }
 
@@ -1075,17 +1123,17 @@ class ProveedorController extends Controller
             }
         }
           Log::info("Procesamiento completado. Filas procesadas: {$procesadas}, Errores: {$errores}");
-        
+            
     // marcar completado y limpiar archivo de progreso
     @file_put_contents($progressPath, json_encode(['status' => 'completed', 'processed' => $procesadas, 'total' => $totalRows ?? count($datos), 'percent' => 100, 'id' => $importId]));
     Log::info('=== FIN IMPORTAR ARCHIVO EXITOSO ===');
-    return back()->with('success', "Archivo importado correctamente. Filas procesadas: {$procesadas}")->with('import_id', $importId);
+    return view('proveedores.import_complete', ['message' => "Archivo importado correctamente. Filas procesadas: {$procesadas}"]);
         
         } catch (Exception $e) {
             Log::error('Error general en importarArchivo: ' . $e->getMessage());
             Log::error('Stack trace: ' . $e->getTraceAsString());
             Log::error('=== FIN IMPORTAR ARCHIVO CON ERROR ===');
-            return back()->withErrors(['archivo' => 'Error al procesar el archivo: ' . $e->getMessage()]);
+            return redirect('/proveedores')->withErrors(['archivo' => 'Error al procesar el archivo: ' . $e->getMessage()]);
         }
     }
 
