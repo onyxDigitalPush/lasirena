@@ -136,38 +136,14 @@ class ProveedorController extends Controller
     // Quitar límite de tiempo para evitar errores con archivos grandes
     ini_set('max_execution_time', 0); // 0 = ilimitado
         
-        Log::info('=== INICIO IMPORTAR ARCHIVO ===');
-        Log::info('Método: ' . $request->method());
-        Log::info('Content-Type: ' . $request->header('Content-Type'));
-        Log::info('Archivos recibidos: ' . json_encode($request->allFiles()));
-        Log::info('Todos los inputs: ' . json_encode($request->all()));
-        
-        // Verificar límites de PHP
-        Log::info('Configuración PHP:');
-        Log::info('- upload_max_filesize: ' . ini_get('upload_max_filesize'));
-        Log::info('- post_max_size: ' . ini_get('post_max_size'));
-        Log::info('- max_file_uploads: ' . ini_get('max_file_uploads'));
-        Log::info('- memory_limit: ' . ini_get('memory_limit'));
-        Log::info('- max_execution_time: ' . ini_get('max_execution_time'));
-        
         // Verificar si hay errores de upload
         if (!$request->hasFile('archivo')) {
-            Log::error('No se recibió ningún archivo en el campo "archivo"');
             return redirect('/proveedores')->withErrors(['archivo' => 'No se recibió ningún archivo.']);
         }
         
         $archivo = $request->file('archivo');
         
-        Log::info('Detalles del archivo recibido:');
-        Log::info('- Nombre original: ' . $archivo->getClientOriginalName());
-        Log::info('- Extensión: ' . $archivo->getClientOriginalExtension());
-        Log::info('- Tamaño: ' . $archivo->getSize() . ' bytes');
-        Log::info('- MIME type: ' . $archivo->getMimeType());
-        Log::info('- Es válido: ' . ($archivo->isValid() ? 'true' : 'false'));
-        
         if (!$archivo->isValid()) {
-            Log::error('Error en el archivo: ' . $archivo->getError());
-            Log::error('Código de error: ' . $archivo->getErrorMessage());
             return redirect('/proveedores')->withErrors(['archivo' => 'Error en el archivo: ' . $archivo->getErrorMessage()]);
         }
         
@@ -177,11 +153,8 @@ class ProveedorController extends Controller
             $allowedExtensions = ['csv', 'txt', 'xlsx'];
             
             if (!in_array($extension, $allowedExtensions)) {
-                Log::error('Extensión no permitida: ' . $extension);
                 return redirect('/proveedores')->withErrors(['archivo' => 'Extensión de archivo no permitida. Use: ' . implode(', ', $allowedExtensions)]);
             }
-            
-            Log::info('Validación de extensión pasada: ' . $extension);
             
             // Validación de MIME type para XLSX
             if ($extension === 'xlsx') {
@@ -192,11 +165,9 @@ class ProveedorController extends Controller
                 ];
                 
                 if (!in_array($archivo->getMimeType(), $allowedMimes)) {
-                    Log::warning('MIME type no reconocido para XLSX: ' . $archivo->getMimeType() . ', pero continuando...');
+                    // Continuar de todos modos, algunos servidores reportan MIME types incorrectos
                 }
             }
-            
-            Log::info('Validación pasada correctamente');
 
     $path = $archivo->getRealPath();
     // Generar ID de import para seguimiento de progreso
@@ -204,9 +175,8 @@ class ProveedorController extends Controller
     $progressPath = storage_path('app/import_progress_' . $importId . '.json');
     // Inicializar progreso
     file_put_contents($progressPath, json_encode(['status' => 'started', 'processed' => 0, 'total' => 0, 'percent' => 0, 'id' => $importId]));
-        Log::info('Ruta real del archivo: ' . $path);
+        
         $importType = $request->input('import_type', 'general');
-        Log::info('Tipo de importación solicitado: ' . $importType);
         $cabeceras = [];
             $datos = [];
 
@@ -221,16 +191,12 @@ class ProveedorController extends Controller
             ];
             
             if (in_array($mimeType, $excelMimeTypes) && $extension === 'csv') {
-                Log::warning('Archivo con extensión .csv pero MIME type de Excel detectado. Procesando como Excel.');
                 $extension = 'xlsx'; // Forzar procesamiento como Excel
             }
-            
-            Log::info('Procesando archivo: ' . $archivo->getClientOriginalName() . ' - Extensión: ' . $extension . ' - MIME: ' . $mimeType);
             
             if ($importType === 'proveedores') {
                 // Importar solo proveedores desde la tercera hoja (LISTADO GENERAL) - columnas F (id) y G (nombre)
                 try {
-                    Log::info('Iniciando importación de proveedores desde XLSX/CSV');
                     if ($extension === 'xlsx') {
                         if (!file_exists($path) || !is_readable($path)) {
                             throw new Exception("El archivo no existe o no es legible: " . $path);
@@ -357,8 +323,6 @@ class ProveedorController extends Controller
                         $sheet = $spreadsheet->getActiveSheet();
                         $highestRow = $sheet->getHighestRow();
                         
-                        Log::info('Iniciando importación sin Fconversion. Filas detectadas: ' . $highestRow);
-                        
                         $created = 0;
                         $skipped = 0;
                         $errors = [];
@@ -392,7 +356,6 @@ class ProveedorController extends Controller
                                     $filasVaciasConsecutivas++;
                                     // Si encontramos 3 filas vacías consecutivas, detener el procesamiento
                                     if ($filasVaciasConsecutivas >= $maxFilasVacias) {
-                                        Log::info("Detectadas {$maxFilasVacias} filas vacías consecutivas en fila {$row}. Finalizando procesamiento.");
                                         break;
                                     }
                                     continue;
@@ -420,7 +383,7 @@ class ProveedorController extends Controller
                                     $mes = $mes_numero; // Para búsquedas/comparaciones numéricas
                                 } else {
                                     Log::warning("Fila {$row}: formato de mes inválido '{$mes_raw}'");
-                                    $errors[] = "Fila {$row}: formato mes inválido '{$mes_raw}'";
+                                    $errors[] = "Fila {$row}: mes inválido";
                                     $skipped++;
                                     continue;
                                 }
@@ -497,7 +460,6 @@ class ProveedorController extends Controller
                                     $created++;
                                     
                                 } catch (\Exception $insertEx) {
-                                    Log::error("Fila {$row}: Error al insertar - " . $insertEx->getMessage());
                                     $errors[] = "Fila {$row}: " . substr($insertEx->getMessage(), 0, 100);
                                     $skipped++;
                                 }
@@ -521,11 +483,8 @@ class ProveedorController extends Controller
                             $mensaje .= " | Errores: " . implode('; ', array_slice($errors, 0, 5));
                         } elseif (count($errors) > 5) {
                             $mensaje .= " | Ver log para detalles de " . count($errors) . " errores";
-                            Log::warning("Errores de importación sin Fconversion: " . implode('; ', $errors));
                         }
                         
-                        // Retornar vista simple sin headers extras que puedan interferir
-                        Log::info('Importación sin Fconversion completada. Insertados: ' . $created . ', Omitidos: ' . $skipped);
                         return view('proveedores.import_complete', ['message' => $mensaje]);
                         
                     } else {
