@@ -56,6 +56,8 @@ class ProveedorController extends Controller
             $proveedor = new Proveedor();
             $proveedor->id_proveedor = $request->id_proveedor;
             $proveedor->nombre_proveedor = $request->nombre_proveedor;
+            $proveedor->familia = $request->familia;
+            $proveedor->subfamilia = $request->subfamilia;
             $proveedor->save();
             return redirect()->back()->with('success', 'Proveedor creado correctamente.');
         } catch (\Illuminate\Database\QueryException $e) {
@@ -100,6 +102,8 @@ class ProveedorController extends Controller
 
         $proveedor->id_proveedor = $request->input('id_proveedor');
         $proveedor->nombre_proveedor = $request->input('nombre_proveedor_edit');
+        $proveedor->familia = $request->input('familia_edit');
+        $proveedor->subfamilia = $request->input('subfamilia_edit');
         $proveedor->save();
         return redirect()->back()->with('success', 'Proveedor actualizado correctamente.');
     }

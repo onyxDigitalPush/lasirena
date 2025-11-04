@@ -17,7 +17,7 @@ class Proveedor extends Model
     public $incrementing = false;   
     protected $keyType = 'int';
 
-    protected $fillable = ['id_proveedor', 'nombre_proveedor'];
+    protected $fillable = ['id_proveedor', 'nombre_proveedor', 'familia', 'subfamilia'];
 
     public function materiales(): HasMany
     {
