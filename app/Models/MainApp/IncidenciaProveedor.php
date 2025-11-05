@@ -46,7 +46,8 @@ class IncidenciaProveedor extends Model
         'fecha_reclamacion_respuesta2',
         'fecha_decision_destino_producto',
         'tipo_incidencia',
-        'archivos'
+        'archivos',
+        'estado'
     ];
 
     protected $dates = [
@@ -66,4 +67,9 @@ class IncidenciaProveedor extends Model
         'año' => 'integer',
         'mes' => 'integer'
     ];
+
+    public function proveedor()
+    {
+        return $this->belongsTo(Proveedor::class, 'id_proveedor', 'id_proveedor');
+    }
 }

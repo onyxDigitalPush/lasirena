@@ -14,10 +14,10 @@ class Proveedor extends Model
 
     protected $table = 'proveedores';
     protected $primaryKey = 'id_proveedor';
-    public $incrementing = false;   
+    public $incrementing = false;
     protected $keyType = 'int';
 
-    protected $fillable = ['id_proveedor', 'nombre_proveedor'];
+    protected $fillable = ['id_proveedor', 'nombre_proveedor', 'email_proveedor'];
 
     public function materiales(): HasMany
     {
@@ -27,5 +27,10 @@ class Proveedor extends Model
     public function materialKilos(): HasMany
     {
         return $this->hasMany(MaterialKilo::class, 'proveedor_id', 'id_proveedor');
+    }
+
+    public function emailsProveedor()
+    {
+        return $this->hasMany(EmailProveedor::class, 'id_proveedor', 'id_proveedor');
     }
 }

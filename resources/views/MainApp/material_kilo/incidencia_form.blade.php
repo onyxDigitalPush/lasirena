@@ -93,11 +93,21 @@
 
     <div class="col-12">
         <div class="card">
-            <div class="card-header bg-warning text-dark">
-                <h5 class="card-title mb-0">
+            <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
                     <i class="fa fa-exclamation-triangle mr-2"></i>
-                    {{ isset($incidencia) ? 'Editar Incidencia' : 'Nueva Incidencia' }}
-                </h5>
+                    <h5 class="card-title mb-0">
+                        {{ isset($incidencia) ? 'Editar Incidencia' : 'Nueva Incidencia' }}
+                    </h5>
+                </div>
+
+                @if (isset($incidencia))
+                    <div class="text-right">
+                        <button type="button" id="btnAbrirModalCorreo" class="btn btn-primary" data-toggle="modal" data-target="#modalEnviarCorreo">
+                            <i class="fas fa-envelope"></i> Enviar correo
+                        </button>
+                    </div>
+                @endif
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ isset($incidencia) ? route('material_kilo.actualizar_incidencia', $incidencia->id) : route('material_kilo.guardar_incidencia_completa') }}" enctype="multipart/form-data">
@@ -151,6 +161,17 @@
                                         <option value="10" {{ (isset($incidencia) && $incidencia->mes == 10) ? 'selected' : ($mes == 10 ? 'selected' : '') }}>Octubre</option>
                                         <option value="11" {{ (isset($incidencia) && $incidencia->mes == 11) ? 'selected' : ($mes == 11 ? 'selected' : '') }}>Noviembre</option>
                                         <option value="12" {{ (isset($incidencia) && $incidencia->mes == 12) ? 'selected' : ($mes == 12 ? 'selected' : '') }}>Diciembre</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="estado">Estado:</label>
+                                    <select id="estado" name="estado" class="form-control" required>
+                                        <option value="Registrada" {{ (isset($incidencia) && $incidencia->estado == 'Registrada') ? 'selected' : '' }}>Registrada</option>
+                                        <option value="Gestionada" {{ (isset($incidencia) && $incidencia->estado == 'Gestionada') ? 'selected' : '' }}>Gestionada</option>
+                                        <option value="En Pausa" {{ (isset($incidencia) && $incidencia->estado == 'En Pausa') ? 'selected' : '' }}>En Pausa</option>
+                                        <option value="Cerrada" {{ (isset($incidencia) && $incidencia->estado == 'Cerrada') ? 'selected' : '' }}>Cerrada</option>
                                     </select>
                                 </div>
                             </div>
@@ -499,12 +520,161 @@
         </div>
     </div>
 
+    @if (isset($incidencia))
+        @php
+            $code = old('codigo', $incidencia->codigo ?? '');
+            $producto = old('producto', $incidencia->producto ?? '');
+            $tipoInc = strtolower(old('tipo_incidencia', $incidencia->tipo_incidencia ?? ''));
+
+            $plantilla_general = <<<EOT
+                Buenos días/Buenas tardes,
+
+                Se adjunta informe de incidencia sobre su producto:
+                
+                {CODE} - {PRODUCT}.
+                
+                Se ruega contestación a la incidencia en el plazo máximo de 2 días. La respuesta debe ser enviada al siguiente e-mail: calidad.proveedores@lasirena.es; inspcalidad@lasirena.es
+                
+                El informe de respuesta debe tener el siguiente formato:
+                
+                Análisis de la incidencia, que incluya:
+                · Explicación sobre el posible origen de la incidencia.
+                · Plan de control establecido para la característica origen de la incidencia (frecuencia de control, cantidad de muestreo, etc.).
+                · Resultados de los controles de producción relacionados con la incidencia.
+                
+                Medidas correctivas, que incluyan:
+                · Descripción de las medidas correctivas adoptadas para eliminar el origen de la incidencia.
+                · Descripción de las medidas de seguimiento adoptadas, en caso necesario.
+                
+                Gracias.
+                
+                Saludos,
+            EOT;
+
+            $plantilla_temperatura = <<<EOT
+                Buenos días/Buenas tardes,
+
+                Se adjunta informe de incidencia sobre su producto:
+                
+                {CODE} - {PRODUCT}.
+                
+                Se ha procedido a la devolución de los pallets.
+                El lote rechazado por temperatura se bloquea automáticamente y no se permitirá su entrada en un futuro.
+                Se ruega contestación a la incidencia en el plazo máximo de 24 horas. La respuesta debe ser enviada al siguiente e-mail: calidad.proveedores@lasirena.es; inspcalidad@lasirena.es
+                
+                El informe de respuesta debe incluir:
+                
+                Trazabilidad del producto: Cantidad fabricada / Cantidad servida.
+                Temperatura de expedición del producto.
+                Temperaturas del viaje y plataformas.
+                Explicación sobre el posible origen de la incidencia.
+                Plan de control establecido para eliminar el origen de la incidencia.
+                Certificado de destino del producto rechazado. En caso de destrucción, documento firmado por el gestor autorizado.
+                
+                Gracias.
+                
+                Saludos,
+            EOT;
+
+            $mensajePlantilla = (strpos($tipoInc, 'temperatur') !== false) ? $plantilla_temperatura : $plantilla_general;
+            $mensajePlantilla = str_replace(['{CODE}','{PRODUCT}'], [($code ?: 'N/D'), ($producto ?: 'producto')], $mensajePlantilla);
+            $asuntoDefault = 'Incidencia ' . ($code ? ($code . ' - ') : '') . ($producto ?: 'producto');
+        @endphp
+
+        <!-- Modal Enviar Correo (servidor rellena asunto y mensaje) -->
+        <div class="modal fade" id="modalEnviarCorreo" tabindex="-1" role="dialog" aria-labelledby="modalCorreoLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <form id="formEnviarCorreoProveedor" method="POST" enctype="multipart/form-data" action="{{ route('proveedores.emails.enviar') }}">
+                        @csrf
+                        <input type="hidden" name="id_proveedor" value="{{ $incidencia->proveedor->id_proveedor ?? '' }}">
+                        <input type="hidden" name="id_devolucion_proveedor" value="">
+                        <input type="hidden" name="id_incidencia_proveedor" value="{{ $incidencia->id ?? '' }}">
+
+                        <div class="modal-header bg-primary text-white">
+                            <h4 class="modal-title">Enviar correo al proveedor</h4>
+                            <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="form-group col-md-6">
+                                    <label>Asunto</label>
+                                    <input type="text" class="form-control" name="asunto" id="correo_asunto" placeholder="Asunto del correo" required maxlength="255" value="{{ old('asunto', $asuntoDefault) }}">
+                                </div>
+
+                                <div class="form-group col-md-6">
+                                    <label>Correo Remitente</label>
+                                    <input type="email" class="form-control" name="email_remitente" id="correo_remitente" value="{{ old('email_remitente', auth()->user()->email) }}" required>
+                                </div>
+
+                                <div class="form-group col-md-12">
+                                    <label>Mensaje</label>
+                                    <textarea class="form-control" name="mensaje" id="correo_mensaje" rows="8" placeholder="Escriba el mensaje..." required>{{ old('mensaje', $mensajePlantilla) }}</textarea>
+                                    <small class="form-text text-muted">Puede editar el texto antes de enviar. Los saltos se preservan en el textarea.</small>
+                                </div>
+
+                                <div class="form-group col-md-6">
+                                    <label>Correo del proveedor</label>
+                                    <input type="email" class="form-control" name="emails_destinatarios" id="correo_destinatarios" value="{{ old('emails_destinatarios', $incidencia->proveedor->email_proveedor ?? '') }}" required>
+                                </div>
+
+                                <div class="form-group col-md-6">
+                                    <label>Copias (BCC, separadas por ;)</label>
+                                    <input type="text" class="form-control" name="emails_bcc" id="correo_bcc" placeholder="bcc1@dominio.com;bcc2@dominio.com" value="{{ old('emails_bcc') }}">
+                                </div>
+
+                                <!-- Archivos adjuntos al enviar (3 slots) -->
+                                <div class="form-group col-md-4">
+                                    <label>Archivo 1</label>
+                                    <input type="file" class="form-control archivo-input" name="archivo1" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.txt,.zip,.rar">
+                                    <div class="preview mt-2"></div>
+                                    <div class="file-actions mt-1" style="display: none;">
+                                        <button type="button" class="btn btn-xs btn-danger" onclick="limpiarArchivoModal(1)">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="form-group col-md-4">
+                                    <label>Archivo 2</label>
+                                    <input type="file" class="form-control archivo-input" name="archivo2" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.txt,.zip,.rar">
+                                    <div class="preview mt-2"></div>
+                                    <div class="file-actions mt-1" style="display: none;">
+                                        <button type="button" class="btn btn-xs btn-danger" onclick="limpiarArchivoModal(2)">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="form-group col-md-4">
+                                    <label>Archivo 3</label>
+                                    <input type="file" class="form-control archivo-input" name="archivo3" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.txt,.zip,.rar">
+                                    <div class="preview mt-2"></div>
+                                    <div class="file-actions mt-1" style="display: none;">
+                                        <button type="button" class="btn btn-xs btn-danger" onclick="limpiarArchivoModal(3)">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-success">Enviar</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <script>
-        // Variables globales para manejo de archivos de incidencia
+        // Mantener solo JS necesario: manejo de archivos y previews (sin plantillas ni apertura forzada)
         var archivosSeleccionadosIncidencia = [];
         var archivosExistentesIncidencia = [];
 
-        // Función para formatear tamaño de archivo
         function formatFileSize(bytes) {
             if (bytes === 0) return '0 Bytes';
             var k = 1024;
@@ -513,11 +683,25 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
-        // Función para mostrar archivos seleccionados de incidencia
+        function limpiarArchivoModal(numero) {
+            var input = document.querySelector('input[name="archivo' + numero + '"]');
+            var preview = input.parentElement.querySelector('.preview');
+            var actions = input.parentElement.querySelector('.file-actions');
+            
+            // Limpiar input y preview
+            input.value = "";
+            input.disabled = false;
+            preview.innerHTML = "";
+            
+            // Ocultar botones de acción
+            if (actions) {
+                actions.style.display = 'none';
+            }
+        }
+
         function mostrarArchivosSeleccionadosIncidencia() {
             var container = $('#lista_archivos_seleccionados_incidencia');
             container.empty();
-            
             if (archivosSeleccionadosIncidencia.length > 0) {
                 var html = '<div class="mt-2"><strong>Archivos seleccionados:</strong><ul class="list-group mt-1">';
                 archivosSeleccionadosIncidencia.forEach(function(archivo, index) {
@@ -531,85 +715,15 @@
             }
         }
 
-        // Función para mostrar archivos existentes de incidencia
-        function mostrarArchivosExistentesIncidencia() {
-            var container = $('#lista_archivos_existentes_incidencia');
-            container.empty();
-            
-            if (archivosExistentesIncidencia.length > 0) {
-                var html = '<div class="mt-2"><strong>Archivos existentes:</strong><ul class="list-group mt-1">';
-                archivosExistentesIncidencia.forEach(function(archivo, index) {
-                    if (typeof archivo === 'object' && archivo.nombre_original && archivo.nombre) {
-                        html += '<li class="list-group-item d-flex justify-content-between align-items-center py-2">';
-                        html += '<div class="d-flex align-items-center">';
-                        html += '<i class="fas fa-file text-primary mr-2"></i>';
-                        html += '<div>';
-                        html += '<strong>' + archivo.nombre_original + '</strong><br>';
-                        html += '<small class="text-muted">' + (archivo.fecha_subida || 'Fecha desconocida') + '</small>';
-                        html += '</div>';
-                        html += '</div>';
-                        html += '<div class="btn-group">';
-                        @if(isset($incidencia))
-                        html += '<a href="{{ url("material_kilo/incidencia") }}/{{ $incidencia->id }}/archivo/' + archivo.nombre + '/descargar" target="_blank" class="btn btn-sm btn-info" title="Descargar"><i class="fas fa-download"></i></a>';
-                        @else
-                        html += '<span class="btn btn-sm btn-secondary disabled" title="Guarde primero para descargar"><i class="fas fa-download"></i></span>';
-                        @endif
-                        html += '<button type="button" class="btn btn-sm btn-danger" onclick="eliminarArchivoExistenteIncidencia(\'' + archivo.nombre + '\')" title="Eliminar"><i class="fas fa-times"></i></button>';
-                        html += '</div>';
-                        html += '</li>';
-                    }
-                });
-                html += '</ul></div>';
-                container.html(html);
-            }
-        }
-
-        // Función para remover archivo seleccionado
         function removerArchivoSeleccionadoIncidencia(index) {
             archivosSeleccionadosIncidencia.splice(index, 1);
             actualizarInputArchivosIncidencia();
             mostrarArchivosSeleccionadosIncidencia();
         }
 
-        // Función para eliminar archivo existente
-        function eliminarArchivoExistenteIncidencia(nombreArchivo) {
-            if (!nombreArchivo || !{{ isset($incidencia) ? $incidencia->id : 'null' }}) {
-                alert('Error: datos de archivo incompletos');
-                return;
-            }
-            
-            if (!confirm('¿Está seguro de eliminar este archivo?')) return;
-            
-            $.ajax({
-                url: '{{ route("material_kilo.eliminar_archivo_incidencia") }}',
-                type: 'DELETE',
-                data: {
-                    incidencia_id: {{ isset($incidencia) ? $incidencia->id : 'null' }},
-                    nombre_archivo: nombreArchivo,
-                    _token: '{{ csrf_token() }}'
-                },
-                success: function(response) {
-                    if (response.success) {
-                        // Remover de la lista de archivos existentes
-                        archivosExistentesIncidencia = archivosExistentesIncidencia.filter(function(archivo) {
-                            return archivo.nombre !== nombreArchivo;
-                        });
-                        mostrarArchivosExistentesIncidencia();
-                        alert('Archivo eliminado correctamente');
-                    } else {
-                        alert('Error al eliminar archivo: ' + response.message);
-                    }
-                },
-                error: function(xhr) {
-                    alert('Error al eliminar archivo');
-                    console.error(xhr);
-                }
-            });
-        }
-
-        // Función para actualizar el input de archivos
         function actualizarInputArchivosIncidencia() {
             var input = $('#archivos_incidencia')[0];
+            if (!input) return;
             var dt = new DataTransfer();
             archivosSeleccionadosIncidencia.forEach(function(archivo) {
                 dt.items.add(archivo);
@@ -617,38 +731,63 @@
             input.files = dt.files;
         }
 
-        // Event listeners
         $(document).ready(function() {
-            // Manejar selección de archivos
+            if ($('#modalEnviarCorreo').length) $('#modalEnviarCorreo').appendTo('body');
+
             $('#archivos_incidencia').on('change', function() {
-                var files = Array.from(this.files);
+                var files = Array.from(this.files || []);
                 archivosSeleccionadosIncidencia = files;
                 mostrarArchivosSeleccionadosIncidencia();
             });
 
-            // Botón para previsualizar archivos
             $('#btn_previsualizar_archivos_incidencia').on('click', function() {
-                if (archivosSeleccionadosIncidencia.length === 0 && archivosExistentesIncidencia.length === 0) {
+                if (archivosSeleccionadosIncidencia.length === 0 && (!archivosExistentesIncidencia || archivosExistentesIncidencia.length === 0)) {
                     alert('No hay archivos seleccionados o existentes');
                     return;
                 }
-                
-                // Mostrar en ventana separada
-                var ventana = window.open('', '_blank', 'width=600,height=400');
+                var ventana = window.open('', '_blank', 'width=800,height=600');
                 var html = '<html><head><title>Archivos de Incidencia</title></head><body>';
-                html += '<h3>Archivos Seleccionados</h3>';
-                html += $('#lista_archivos_seleccionados_incidencia').html();
-                html += '<h3>Archivos Existentes</h3>';
-                html += $('#lista_archivos_existentes_incidencia').html();
+                html += '<h3>Archivos Seleccionados</h3>' + ($('#lista_archivos_seleccionados_incidencia').html() || '<p>No hay</p>');
+                html += '<h3>Archivos Existentes</h3>' + ($('#lista_archivos_existentes_incidencia').html() || '<p>No hay</p>');
                 html += '</body></html>';
                 ventana.document.write(html);
             });
 
-            // Si estamos en modo edición, cargar archivos existentes
             @if(isset($incidencia) && $incidencia->archivos)
                 archivosExistentesIncidencia = @json($incidencia->archivos);
-                mostrarArchivosExistentesIncidencia();
+                // Si quieres mostrar archivos existentes aquí, implementa mostrarArchivosExistentesIncidencia similar a la función de arriba.
             @endif
+
+            $(document).on('change', '.archivo-input', function() {
+                let preview = $(this).siblings('.preview');
+                let actions = $(this).siblings('.file-actions');
+                preview.html('');
+                actions.hide();
+                
+                if (this.files && this.files[0]) {
+                    let file = this.files[0];
+                    let ext = file.name.split('.').pop().toLowerCase();
+                    
+                    if (['jpg','jpeg','png','bmp','webp'].includes(ext)) {
+                        let reader = new FileReader();
+                        reader.onload = function(e) {
+                            preview.html('<img src="' + e.target.result + '" style="max-width:80px;max-height:80px;border-radius:4px;border:1px solid #ddd;">');
+                        }
+                        reader.readAsDataURL(file);
+                    } else {
+                        let icon = 'fa-file';
+                        if (ext === 'pdf') icon = 'fa-file-pdf';
+                        else if (['doc','docx'].includes(ext)) icon = 'fa-file-word';
+                        else if (['xls','xlsx'].includes(ext)) icon = 'fa-file-excel';
+                        else if (['zip','rar'].includes(ext)) icon = 'fa-file-archive';
+                        else if (ext === 'txt') icon = 'fa-file-text';
+                        preview.html('<i class="fas ' + icon + ' fa-2x text-secondary"></i><div style="font-size:0.85em">' + file.name + '</div>');
+                    }
+                    
+                    // Mostrar botón de eliminar cuando hay archivo
+                    actions.show();
+                }
+            });
         });
     </script>
 @endsection

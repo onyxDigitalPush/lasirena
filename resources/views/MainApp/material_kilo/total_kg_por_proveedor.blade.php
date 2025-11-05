@@ -317,7 +317,7 @@
                     @csrf
                     <div class="row">
                         <!-- Código del producto -->
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="form-group">
                                 <label for="codigo_producto">Código del Producto:</label>
                                 <input type="text" id="codigo_producto" name="codigo_producto"
@@ -326,18 +326,29 @@
                         </div>
 
                         <!-- Descripción del producto -->
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="form-group">
                                 <label for="descripcion_producto">Descripción del Producto:</label>
                                 <input type="text" id="descripcion_producto" name="descripcion_producto"
                                     class="form-control" placeholder="Descripción del producto">
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="form-group">
                                 <label for="codigo_proveedor_devolucion">Código Proveedor:</label>
                                 <input type="text" id="codigo_proveedor_devolucion" name="codigo_proveedor"
                                     class="form-control" placeholder="Código del proveedor">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="estado">Estado:</label>
+                                <select id="estado" name="estado" class="form-control" required>
+                                    <option value="Registrada" {{ (isset($incidencia) && $incidencia->estado == 'Registrada') ? 'selected' : '' }}>Registrada</option>
+                                    <option value="Gestionada" {{ (isset($incidencia) && $incidencia->estado == 'Gestionada') ? 'selected' : '' }}>Gestionada</option>
+                                    <option value="En Pausa" {{ (isset($incidencia) && $incidencia->estado == 'En Pausa') ? 'selected' : '' }}>En Pausa</option>
+                                    <option value="Cerrada" {{ (isset($incidencia) && $incidencia->estado == 'Cerrada') ? 'selected' : '' }}>Cerrada</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -757,7 +768,7 @@
                                     placeholder="Código del proveedor">
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="proveedor_incidencia">Proveedor:</label>
                                 <select id="proveedor_incidencia" name="id_proveedor" class="form-control" required>
@@ -766,6 +777,17 @@
                                         <option value="{{ $proveedor->id_proveedor }}">
                                             {{ $proveedor->nombre_proveedor }}</option>
                                     @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="estado">Estado:</label>
+                                <select id="estado" name="estado" class="form-control" required>
+                                    <option value="Registrada" {{ (isset($incidencia) && $incidencia->estado == 'Registrada') ? 'selected' : '' }}>Registrada</option>
+                                    <option value="Gestionada" {{ (isset($incidencia) && $incidencia->estado == 'Gestionada') ? 'selected' : '' }}>Gestionada</option>
+                                    <option value="En Pausa" {{ (isset($incidencia) && $incidencia->estado == 'En Pausa') ? 'selected' : '' }}>En Pausa</option>
+                                    <option value="Cerrada" {{ (isset($incidencia) && $incidencia->estado == 'Cerrada') ? 'selected' : '' }}>Cerrada</option>
                                 </select>
                             </div>
                         </div>

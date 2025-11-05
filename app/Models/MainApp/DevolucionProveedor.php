@@ -62,4 +62,9 @@ class DevolucionProveedor extends Model
         'mes' => 'integer',
         'archivos' => 'array'
     ];
+
+    public function proveedor()
+    {
+        return $this->belongsTo(Proveedor::class, 'codigo_proveedor', 'id_proveedor');
+    }
 }
