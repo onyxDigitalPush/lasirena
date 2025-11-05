@@ -698,7 +698,7 @@
         });
     });
 
-    // PREVIEW ARCHIVOS INDIVIDUALES CON VISTA PREVIA REAL DE IMÁGENES
+    // PREVIEW ARCHIVOS SIMPLE - SIN COMPLICACIONES
     function previewArchivo(numero) {
         var input = document.getElementById('archivo' + numero);
         var preview = $('#preview' + numero);
@@ -731,62 +731,36 @@
             var fileName = file.name.length > 20 ? file.name.substring(0, 20) + '...' : file.name;
             var ext = file.name.split('.').pop().toLowerCase();
             
-            // Para imágenes, mostrar preview real
-            if (['jpg','jpeg','png','bmp','webp'].includes(ext)) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.html(
-                        '<div class="text-center">' +
-                        '<img src="' + e.target.result + '" style="max-width: 100px; max-height: 100px; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 5px;" onclick="mostrarImagenCompleta(\'' + e.target.result + '\', \'' + file.name + '\')">' +
-                        '<br><small class="text-success">' + fileName + '<br>(' + fileSize + ' MB)</small>' +
-                        '<br><button type="button" class="btn btn-xs btn-danger mt-1" onclick="limpiarArchivo(' + numero + ')">' +
-                        '<i class="fa fa-trash"></i></button>' +
-                        '</div>'
-                    );
-                };
-                reader.readAsDataURL(file);
-            } else {
-                // Para otros archivos, mostrar icono
-                var iconClass = "fa-file";
-                if (file.type.includes("pdf")) iconClass = "fa-file-pdf-o";
-                else if (file.type.includes("word")) iconClass = "fa-file-word-o";
-                else if (file.type.includes("excel")) iconClass = "fa-file-excel-o";
-                
-                preview.html(
-                    '<div class="text-success text-center">' +
-                    '<i class="fa ' + iconClass + ' fa-2x"></i><br>' +
-                    '<small>' + fileName + '<br>(' + fileSize + ' MB)</small>' +
-                    '<br><button type="button" class="btn btn-xs btn-danger mt-1" onclick="limpiarArchivo(' + numero + ')">' +
-                    '<i class="fa fa-trash"></i></button>' +
-                    '</div>'
-                );
+            // ICONO SIMPLE PARA TODOS LOS ARCHIVOS - NO MÁS PREVIEW DE IMÁGENES
+            var iconClass = "fa-file";
+            var color = "text-success";
+            
+            if (['jpg','jpeg','png','gif','bmp','webp'].includes(ext)) {
+                iconClass = "fa-image";
+                color = "text-primary";
+            } else if (file.type.includes("pdf")) {
+                iconClass = "fa-file-pdf-o";
+                color = "text-danger";
+            } else if (file.type.includes("word")) {
+                iconClass = "fa-file-word-o";
+                color = "text-info";
+            } else if (file.type.includes("excel")) {
+                iconClass = "fa-file-excel-o";
+                color = "text-success";
             }
+            
+            preview.html(
+                '<div class="text-center ' + color + '">' +
+                '<i class="fa ' + iconClass + ' fa-3x"></i><br>' +
+                '<small><strong>' + fileName + '</strong><br>(' + fileSize + ' MB)</small>' +
+                '<br><button type="button" class="btn btn-xs btn-danger mt-2" onclick="limpiarArchivo(' + numero + ')">' +
+                '<i class="fa fa-trash"></i> Quitar</button>' +
+                '</div>'
+            );
         }
     }
 
-    // Función para mostrar imagen en modal completo
-    function mostrarImagenCompleta(src, nombre) {
-        var modal = $('<div class="modal fade" id="modalImagenPreview" tabindex="-1">' +
-            '<div class="modal-dialog modal-lg">' +
-            '<div class="modal-content">' +
-            '<div class="modal-header">' +
-            '<h5 class="modal-title">Vista Previa: ' + nombre + '</h5>' +
-            '<button type="button" class="close" data-dismiss="modal">&times;</button>' +
-            '</div>' +
-            '<div class="modal-body text-center">' +
-            '<img src="' + src + '" style="max-width: 100%; height: auto;">' +
-            '</div>' +
-            '</div>' +
-            '</div>' +
-            '</div>');
-        
-        $('body').append(modal);
-        modal.modal('show');
-        
-        modal.on('hidden.bs.modal', function() {
-            modal.remove();
-        });
-    }
+    // ELIMINADO: Función de modal de imagen - no es necesaria
 
     function limpiarArchivo(numero) {
         var input = document.getElementById('archivo' + numero);
@@ -885,20 +859,16 @@
     });
     
     function mostrarArchivosExistentesEnEdicion(archivos) {
-        // Show existing files in edit mode
-        
         // Limpiar todos los previews
         for (var i = 1; i <= 3; i++) {
             $('#preview' + i).empty();
-            // También limpiar los inputs para evitar conflictos
-            $('#archivo' + i).val('');
+            $('#archivo' + i).val('').prop('disabled', false);
         }
         
         // Procesar archivos existentes
         if (Array.isArray(archivos) && archivos.length > 0) {
             archivos.forEach(function(archivo, index) {
                 if (archivo && archivo.nombre_original) {
-                    // Usar el índice del array como slot (1-based)
                     var slot = index + 1;
                     if (slot >= 1 && slot <= 3) {
                         mostrarArchivoEnSlot(archivo, slot, archivo.nombre_original);
@@ -914,22 +884,20 @@
         var preview = $('#preview' + slot);
         var input = $('#archivo' + slot)[0];
         
-        // Deshabilitar el input para indicar que hay un archivo existente
-        input.disabled = true;
+        // NO deshabilitar el input - permitir cambios
+        input.disabled = false;
         
-        // Extraer información del archivo (nuevo sistema usa URL completa)
-        var fileName = archivo.nombre_original || nombreArchivo || basename(archivo.url || archivo.ruta_completa || 'archivo_existente');
-        var fileUrl = archivo.url || "{{ url('storage') }}/" + (archivo.ruta_completa || '');
-        var esImagen = archivo.es_imagen || false;
+        // Extraer información del archivo
+        var fileName = archivo.nombre_original || nombreArchivo || basename(archivo.url || archivo.ruta_completa || 'archivo');
         var extension = archivo.extension || fileName.toLowerCase().split('.').pop();
         
-        if (esImagen && ['jpg','jpeg','png','gif','bmp','webp'].includes(extension)) {
+        // VISTA PREVIA SIMPLE - SIN MODAL ADICIONAL
+        if (['jpg','jpeg','png','gif','bmp','webp'].includes(extension)) {
             preview.html(
                 '<div class="text-center">' +
-                '<img src="' + fileUrl + '" style="max-width: 100px; max-height: 100px; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 5px; cursor: pointer;" ' +
-                'onclick="mostrarImagenCompleta(\'' + fileUrl + '\', \'' + fileName + '\')">' +
-                '<br><small class="text-info"><strong>Existente</strong><br>' + fileName + '</small>' +
-                '<br><button type="button" class="btn btn-xs btn-danger mt-1" onclick="eliminarArchivoExistente(' + slot + ', \'' + fileName + '\')" title="Eliminar archivo">' +
+                '<i class="fa fa-image fa-2x text-success"></i><br>' +
+                '<small class="text-success">' + fileName + '</small>' +
+                '<br><button type="button" class="btn btn-xs btn-danger mt-1" onclick="eliminarArchivoExistente(' + slot + ', \'' + fileName + '\')" title="Eliminar">' +
                 '<i class="fa fa-trash"></i></button>' +
                 '</div>'
             );
@@ -940,10 +908,10 @@
             else if (['xls','xlsx'].includes(extension)) iconClass = "fa-file-excel-o";
             
             preview.html(
-                '<div class="text-info text-center">' +
-                '<i class="fa ' + iconClass + ' fa-2x"></i><br>' +
-                '<small><strong>Existente</strong><br>' + fileName + '</small>' +
-                '<br><button type="button" class="btn btn-xs btn-danger mt-1" onclick="eliminarArchivoExistente(' + slot + ', \'' + fileName + '\')" title="Eliminar archivo">' +
+                '<div class="text-center">' +
+                '<i class="fa ' + iconClass + ' fa-2x text-success"></i><br>' +
+                '<small class="text-success">' + fileName + '</small>' +
+                '<br><button type="button" class="btn btn-xs btn-danger mt-1" onclick="eliminarArchivoExistente(' + slot + ', \'' + fileName + '\')" title="Eliminar">' +
                 '<i class="fa fa-trash"></i></button>' +
                 '</div>'
             );
