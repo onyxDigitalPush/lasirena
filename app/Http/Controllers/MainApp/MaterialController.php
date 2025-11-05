@@ -14,7 +14,24 @@ class MaterialController extends Controller
 
     public function index()
     {
-        //
+        $query = Material::join('proveedores', 'materiales.proveedor_id', '=', 'proveedores.id_proveedor')
+            ->select('materiales.*', 'proveedores.nombre_proveedor');
+
+        // Aplicar filtros
+        $filtro = request('filtro');
+        if ($filtro == 'con_factor') {
+            $query->whereNotNull('materiales.factor_conversion')
+                  ->where('materiales.factor_conversion', '>', 0);
+        } elseif ($filtro == 'sin_factor') {
+            $query->whereNull('materiales.factor_conversion');
+        } elseif ($filtro == 'factor_cero') {
+            $query->where('materiales.factor_conversion', '=', 0);
+        }
+
+        $materiales = $query->orderBy('materiales.proveedor_id')->orderBy('materiales.codigo')->paginate(20);
+        $proveedores = Proveedor::orderBy('nombre_proveedor')->get();
+
+        return view('material.materiales_global_list', compact('materiales', 'proveedores'));
     }
 
     public function create()
@@ -44,6 +61,27 @@ class MaterialController extends Controller
         return redirect()->back()->with('success', 'Material creado correctamente.');
     }
 
+    public function storeGlobal(Request $request)
+    {
+        $material = new Material();
+        $material->descripcion = $request->input('descripcion');
+        $material->codigo = $request->input('codigo');
+        $material->jerarquia = $request->input('jerarquia');
+        $material->proveedor_id = $request->input('id_proveedor');
+        $material->factor_conversion = $request->input('factor_conversion');
+        $material->save();
+        
+        // Si se proporcionó un factor de conversión, actualizar material_kilos
+        if ($request->input('factor_conversion')) {
+            $registros_actualizados = $this->actualizarFactorConversionEnMaterialKilos($material->codigo, $request->input('factor_conversion'));
+            return redirect()->route('materiales.index')->with('success', 
+                "Material creado correctamente. Se actualizaron {$registros_actualizados} registros en material_kilos con el factor de conversión y se recalculó el total_kg."
+            );
+        }
+        
+        return redirect()->route('materiales.index')->with('success', 'Material creado correctamente.');
+    }
+
 
     public function show(Material $material)
     {
@@ -52,7 +90,7 @@ class MaterialController extends Controller
 
     public function edit($id)
     {
-        $material = Material::find($id);
+        $material = Material::with('proveedor')->find($id);
 
         if (!$material) {
             // Si es AJAX, devolvemos error en formato JSON
@@ -60,7 +98,7 @@ class MaterialController extends Controller
                 return response()->json(['error' => 'Material no encontrado.'], 404);
             }
             // Si no es AJAX, redirige con mensaje
-            return redirect()->route('materiales.list', ['id' => $material->proveedor_id])->with('error', 'Material no encontrado.');
+            return redirect()->route('materiales.index')->with('error', 'Material no encontrado.');
         }
 
         // Si es una petición AJAX, devolver JSON

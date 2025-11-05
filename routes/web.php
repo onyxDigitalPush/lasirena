@@ -188,6 +188,8 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/tiendas/buscar', [TiendasController::class, 'buscar'])->name('tiendas.buscar');
 
     //Materiales
+    Route::get('/materiales', 'MainApp\MaterialController@index')->name('materiales.index');
+    Route::post('/materiales/store-global', 'MainApp\MaterialController@storeGlobal')->name('materiales.store.global');
     Route::get('/material/{id}/list', 'MainApp\MaterialController@list')->name('materiales.list');
     Route::post('/material/store', 'MainApp\MaterialController@store')->name('materiales.store');
     Route::get('/material/{id}/edit', 'MainApp\MaterialController@edit')->name('materials.edit');

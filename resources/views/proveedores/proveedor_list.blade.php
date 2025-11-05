@@ -378,6 +378,39 @@
                         </div>
 
                         <div class="form-group">
+                            <label for="familia">Familia</label>
+                            <select class="form-control" id="familia" name="familia">
+                                <option value="">Seleccionar...</option>
+                                <option value="ELABORADOS">ELABORADOS</option>
+                                <option value="PRODUCTOS DEL MAR">PRODUCTOS DEL MAR</option>
+                                <option value="CONSUMIBLES">CONSUMIBLES</option>
+                                <option value="Otros">Otros</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="subfamilia">Subfamilia</label>
+                            <select class="form-control" id="subfamilia" name="subfamilia">
+                                <option value="">Seleccionar...</option>
+                                <option value="Ambient">Ambient</option>
+                                <option value="Carne">Carne</option>
+                                <option value="Consumible">Consumible</option>
+                                <option value="Helados y Postres">Helados y Postres</option>
+                                <option value="Marisco">Marisco</option>
+                                <option value="Pescado">Pescado</option>
+                                <option value="Pescado y Marisco">Pescado y Marisco</option>
+                                <option value="Plato preparado">Plato preparado</option>
+                                <option value="postres">postres</option>
+                                <option value="precocinados">precocinados</option>
+                                <option value="precocinado y plato preparados">precocinado y plato preparados</option>
+                                <option value="Repostería">Repostería</option>
+                                <option value="servicios">servicios</option>
+                                <option value="Verdura">Verdura</option>
+                                <option value="Otros">Otros</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
                             <label for="email_proveedor">Email Proveedor</label>
                             <input type="email" class="form-control" id="email_proveedor" name="email_proveedor"
                                 required>
@@ -414,11 +447,6 @@
                             <label for="nombre_proveedor_edit">Nombre Proveedor</label>
                             <input type="text" class="form-control" id="nombre_proveedor_edit"
                                 name="nombre_proveedor_edit">
-                        </div>
-                        <div class="form-group">
-                            <label for="email_proveedor_edit">Email Proveedor</label>
-                            <input type="email" class="form-control" id="email_proveedor_edit"
-                                name="email_proveedor_edit">
                         </div>
                         <button type="submit" class="btn btn-primary">Guardar
                             Cambios</button>

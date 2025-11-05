@@ -167,6 +167,8 @@
           $("#codigo_proveedor_old").val(proveedor.id_proveedor);
           $("#codigo_proveedor_edit").val(proveedor.id_proveedor);
           $("#nombre_proveedor_edit").val(proveedor.nombre_proveedor);
+      $("#familia_edit").val(proveedor.familia || "");
+      $("#subfamilia_edit").val(proveedor.subfamilia || "");
           $("#email_proveedor_edit").val(proveedor.email_proveedor);
           $("#userModal").modal("show");
         })
