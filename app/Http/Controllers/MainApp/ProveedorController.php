@@ -112,6 +112,7 @@ class ProveedorController extends Controller
 
         $proveedor->id_proveedor = $request->input('id_proveedor');
         $proveedor->nombre_proveedor = $request->input('nombre_proveedor_edit');
+        $proveedor->email_proveedor = $email;
         $proveedor->save();
         return redirect()->back()->with('success', 'Proveedor actualizado correctamente.');
     }

@@ -80,51 +80,74 @@
     $("#tabla_historial_container").html(html);
   }
 
-  // Inicializa el DataTable
+  // Inicializa el DataTable - VERSIÓN MEJORADA
   function initHistorialTable() {
     try {
       var $table = $("#historial_emails_table");
       if ($table.length === 0) {
-        console.error("❌ Tabla no encontrada en DOM");
+        console.error("Tabla de historial no encontrada en DOM");
+        return;
+      }
+
+      // Verificar si DataTable está disponible
+      if (typeof $.fn.DataTable === 'undefined') {
+        console.error("DataTable plugin no está cargado");
         return;
       }
 
       setTimeout(function () {
         try {
+          // Verificar si ya hay filas de datos
+          var $tbody = $table.find('tbody');
+          var rowCount = $tbody.find('tr').length;
+
+          // Si sólo hay una fila que contiene un td con colspan (mensaje "No hay emails"),
+          // evitar inicializar DataTable para prevenir errores de DataTables en producción
+          if (rowCount === 1) {
+            var $firstTd = $tbody.find('tr').first().find('td');
+            if ($firstTd.length === 1 && $firstTd.attr('colspan')) {
+              console.info('Omitiendo inicialización de DataTable: sólo hay fila de mensaje con colspan.');
+              return;
+            }
+          }
+          
           historialDataTable = $table.DataTable({
-            order: [[7, "desc"]],
+            order: [[7, "desc"]], // Ordenar por fecha descendente
             pageLength: 10,
-            lengthMenu: [
-              [10, 25, 50],
-              [10, 25, 50],
+            lengthMenu: [[10, 25, 50], [10, 25, 50]],
+            columnDefs: [
+              { orderable: false, targets: [5, 6] }, // Botones no ordenables
+              { className: "text-center", targets: [0, 5, 6, 7] } // Centrar ciertas columnas
             ],
-            columnDefs: [{ orderable: false, targets: [5, 6] }],
             responsive: true,
             destroy: true,
             searching: true,
             paging: true,
             info: true,
             autoWidth: false,
+            processing: false,
             language: {
-              emptyTable: "No hay registros disponibles",
-              zeroRecords: "No se encontraron registros coincidentes",
-              info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
-              infoEmpty: "Mostrando 0 a 0 de 0 registros",
-              infoFiltered: "(filtrado de _MAX_ registros totales)",
-              search: "Buscar:",
+              emptyTable: "No hay emails registrados para este proveedor",
+              zeroRecords: "No se encontraron emails coincidentes con la búsqueda",
+              info: "Mostrando _START_ a _END_ de _TOTAL_ emails",
+              infoEmpty: "Mostrando 0 a 0 de 0 emails",
+              infoFiltered: "(filtrado de _MAX_ emails totales)",
+              search: "Buscar emails:",
               paginate: {
                 first: "Primero",
-                last: "Último",
+                last: "Último", 
                 next: "Siguiente",
                 previous: "Anterior",
               },
-              lengthMenu: "Mostrar _MENU_ registros",
+              lengthMenu: "Mostrar _MENU_ emails por página",
             },
           });
+          
         } catch (e) {
-          console.error("❌ Error al crear DataTable:", e);
+          console.error("❌ Error al inicializar DataTable:", e);
+          console.error("Stack trace:", e.stack);
         }
-      }, 100);
+      }, 150); // Aumentar el delay ligeramente
     } catch (e) {
       console.error("❌ Error en initHistorialTable:", e);
     }
@@ -181,25 +204,42 @@
         });
     });
 
-  // MODAL HISTORIAL
+  // MODAL HISTORIAL - VERSIÓN MEJORADA PARA PRODUCCIÓN
   $(document)
     .off("click.historyModal")
     .on("click.historyModal", ".open-history", function (e) {
       e.preventDefault();
       var $btn = $(this);
-      if ($btn.hasClass("loading") || loadingHistory) return false;
+      
+      // Prevenir múltiples clicks
+      if ($btn.hasClass("loading") || loadingHistory) {
+        return false;
+      }
+      
       $btn.addClass("loading").prop("disabled", true);
       loadingHistory = true;
 
       var id = $btn.data("id");
-      var nombre = $btn.data("nombre") || "";
+      var nombre = $btn.data("nombre") || "Sin nombre";
 
-      if (!id) {
+      // Validar ID más robustamente
+      if (!id || id === "" || isNaN(id)) {
+        console.error("ID de proveedor inválido:", id);
         $btn.removeClass("loading").prop("disabled", false);
         loadingHistory = false;
-        return alert("ID proveedor no especificado");
+        return alert("Error: ID de proveedor no válido");
       }
 
+      // Verificar que el modal existe
+      var $modal = $("#historialEmailsModal");
+      if ($modal.length === 0) {
+        console.error("Modal de historial no encontrado en DOM");
+        $btn.removeClass("loading").prop("disabled", false);
+        loadingHistory = false;
+        return alert("Error: Modal de historial no disponible");
+      }
+
+      // Configurar información del proveedor
       $("#hist_proveedor_nombre").text(nombre);
       $("#mensaje_preview").empty();
       $("#mensaje_preview_container").hide();
@@ -213,23 +253,39 @@
       // 3. Mostrar loading en tbody
       var $tbody = $("#historial_emails_table tbody");
       $tbody.html(
-        '<tr><td colspan="8" class="text-center py-4"><i class="fa fa-spinner fa-spin"></i> Cargando...</td></tr>'
+        '<tr><td colspan="8" class="text-center py-4"><i class="fa fa-spinner fa-spin"></i> Cargando historial de emails...</td></tr>'
       );
 
       // 4. Abrir modal
-      $("#historialEmailsModal").modal("show");
+      try {
+        $modal.modal("show");
+      } catch (error) {
+        console.error("Error al abrir modal:", error);
+        $btn.removeClass("loading").prop("disabled", false);
+        loadingHistory = false;
+        return alert("Error al abrir el modal del historial");
+      }
 
-      // 5. Cargar datos
-      $.get("/proveedor/" + id + "/historial")
+      // 5. Cargar datos con manejo robusto de errores
+      $.ajax({
+        url: "/proveedor/" + id + "/historial",
+        method: "GET",
+        timeout: 15000, // 15 segundos timeout
+        dataType: "json"
+      })
         .done(function (res) {
           $tbody.empty();
           var emails = res && res.data ? res.data : [];
 
           if (!emails.length) {
             $tbody.html(
-              '<tr><td colspan="8" class="text-center">No hay emails disponibles</td></tr>'
+              '<tr><td colspan="8" class="text-center text-muted">' +
+              '<i class="fa fa-inbox"></i><br>' +
+              'No hay emails registrados para este proveedor<br>' +
+              '<small class="text-muted">' + nombre + '</small></td></tr>'
             );
           } else {
+            var emailsProcessed = 0;
             emails.forEach(function (email) {
               var tipo = email.id_incidencia_proveedor
                 ? "Incidencia"
@@ -285,16 +341,52 @@
           </tr>`;
 
               $tbody.append(row);
+              emailsProcessed++;
             });
           }
 
-          // 6. Inicializar DataTable
-          initHistorialTable();
+          // 6. Inicializar DataTable (sólo si hay emails reales)
+          if (emails.length > 0) {
+            setTimeout(function() {
+              initHistorialTable();
+            }, 100);
+          } else {
+            console.info('No se inicializa DataTable porque no hay emails.');
+          }
         })
         .fail(function (xhr, status, error) {
-          console.error("❌ Error cargando historial:", error);
+          console.error("Error cargando historial de emails:");
+          console.error("- Status HTTP:", xhr.status);
+          console.error("- Error:", error);
+          console.error("- Response Text:", xhr.responseText);
+          
+          var errorMessage = "Error desconocido";
+          var errorDetails = "";
+          
+          if (xhr.status === 404) {
+            errorMessage = "Proveedor no encontrado";
+            errorDetails = "El proveedor con ID " + id + " no existe";
+          } else if (xhr.status === 500) {
+            errorMessage = "Error interno del servidor";
+            errorDetails = "Por favor, contacte al administrador";
+          } else if (xhr.status === 0) {
+            errorMessage = "Error de conexión";
+            errorDetails = "Verifique su conexión a internet";
+          } else if (status === "timeout") {
+            errorMessage = "Tiempo de espera agotado";
+            errorDetails = "La consulta tardó demasiado tiempo";
+          } else {
+            errorMessage = "Error al cargar historial";
+            errorDetails = "Código: " + xhr.status + " | " + error;
+          }
+          
           $tbody.html(
-            '<tr><td colspan="8" class="text-center text-danger">Error al cargar el historial</td></tr>'
+            '<tr><td colspan="8" class="text-center text-danger p-4">' +
+            '<i class="fa fa-exclamation-triangle mb-2" style="font-size: 24px;"></i><br>' +
+            '<strong>' + errorMessage + '</strong><br>' +
+            '<small>' + errorDetails + '</small><br><br>' +
+            '<button class="btn btn-sm btn-outline-secondary" onclick="$(this).closest(\'.modal\').modal(\'hide\')">Cerrar</button>' +
+            '</td></tr>'
           );
         })
         .always(function () {

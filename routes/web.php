@@ -238,7 +238,7 @@ Route::group(['middleware' => ['auth']], function () {
         // Rutas para respuestas de incidencias y devoluciones
         Route::post('/material_kilo/guardar-respuesta', 'MaterialKiloController@guardarRespuesta')->name('material_kilo.guardar_respuesta');
         Route::get('/material_kilo/historial-respuestas/{tipo}/{id}', 'MaterialKiloController@obtenerHistorialRespuestas')->name('material_kilo.historial_respuestas');
-        Route::get('/material_kilo/respuesta/{respuestaId}/archivo/{indice}/descargar', 'MaterialKiloController@descargarArchivoRespuesta')->name('material_kilo.descargar_archivo_respuesta');
+        // RUTA MOVIDA AL FINAL DEL ARCHIVO PARA EVITAR DUPLICADOS
         
         // Rutas para edición de respuestas
         Route::get('/material_kilo/respuesta/{respuestaId}/datos', 'MaterialKiloController@obtenerDatosRespuesta')->name('material_kilo.obtener_datos_respuesta');
@@ -368,7 +368,7 @@ Route::group(['middleware' => ['auth']], function () {
         // Rutas para respuestas
         Route::get('/material_kilo/obtener-datos-respuesta/{respuestaId}', 'MaterialKiloController@obtenerDatosRespuesta')->name('material_kilo.obtener_datos_respuesta');
         Route::post('/material_kilo/eliminar-respuesta/{respuestaId}', 'MaterialKiloController@eliminarRespuesta')->name('material_kilo.eliminar_respuesta');
-        Route::post('/material_kilo/eliminar-archivo-respuesta', 'MaterialKiloController@eliminarArchivoIndividualRespuesta')->name('material_kilo.eliminar_archivo_respuesta');
-        Route::get('/material_kilo/descargar-archivo-respuesta/{respuestaId}/{indice}', 'MaterialKiloController@descargarArchivoRespuesta')->name('material_kilo.descargar_archivo_respuesta');
+        Route::post('/material_kilo/eliminar-archivo-respuesta', 'MaterialKiloController@eliminarArchivoIndividualRespuesta')->name('material_kilo.eliminar_archivo_individual_respuesta');
+        Route::get('/material_kilo/descargar-archivo-respuesta/{respuestaId}/{indice}', 'MaterialKiloController@descargarArchivoRespuesta')->name('material_kilo.descargar_archivo_respuesta_final');
     });
 });

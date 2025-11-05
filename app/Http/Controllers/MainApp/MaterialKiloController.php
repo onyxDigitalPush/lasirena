@@ -2666,36 +2666,97 @@ class MaterialKiloController extends Controller
     }
 
     /**
-     * Descargar archivo de respuesta
+     * Descargar archivo de respuesta - VERSIÓN MEJORADA
      */
     public function descargarArchivoRespuesta($respuestaId, $indice)
     {
         try {
+            Log::info("Solicitando descarga de archivo - Respuesta ID: {$respuestaId}, Índice: {$indice}");
+            
+            // Validar parámetros de entrada
+            if (!is_numeric($respuestaId) || !is_numeric($indice)) {
+                Log::warning("Parámetros inválidos - respuestaId: {$respuestaId}, indice: {$indice}");
+                abort(400, 'Parámetros inválidos');
+            }
+
             $respuesta = \App\Models\MainApp\RespuestaIncidenciaReclamacion::findOrFail($respuestaId);
+            Log::info("Respuesta encontrada - ID: {$respuesta->id}");
             
             if (!$respuesta->rutas_archivos) {
+                Log::warning("No hay archivos en la respuesta ID: {$respuestaId}");
                 abort(404, 'No hay archivos en esta respuesta');
             }
             
             $archivos = json_decode($respuesta->rutas_archivos, true);
-            if (!is_array($archivos) || !isset($archivos[$indice])) {
-                abort(404, 'Archivo no encontrado');
+            Log::info("Archivos decodificados", ['archivos' => $archivos, 'total' => count($archivos ?? [])]);
+            
+            if (!is_array($archivos)) {
+                Log::error("Error al decodificar JSON de archivos - Respuesta ID: {$respuestaId}");
+                abort(500, 'Error en formato de archivos');
+            }
+            
+            if (!isset($archivos[$indice])) {
+                Log::warning("Índice {$indice} no existe en archivos - Total disponibles: " . count($archivos));
+                abort(404, 'Archivo no encontrado en el índice especificado');
             }
 
             $rutaArchivo = $archivos[$indice];
-            $rutaCompleta = storage_path('app/public/' . $rutaArchivo);
+            Log::info("Ruta de archivo obtenida: {$rutaArchivo}");
             
-            if (!file_exists($rutaCompleta)) {
-                abort(404, 'Archivo físico no encontrado');
+            // Intentar diferentes ubicaciones para el archivo
+            $posiblesRutas = [
+                storage_path('app/public/' . $rutaArchivo),
+                storage_path('app/' . $rutaArchivo),
+                public_path('storage/' . $rutaArchivo),
+                $rutaArchivo // Ruta absoluta si ya está completa
+            ];
+            
+            $rutaCompleta = null;
+            foreach ($posiblesRutas as $ruta) {
+                if (file_exists($ruta)) {
+                    $rutaCompleta = $ruta;
+                    Log::info("Archivo encontrado en: {$rutaCompleta}");
+                    break;
+                }
+            }
+            
+            if (!$rutaCompleta) {
+                Log::error("Archivo no encontrado en ninguna ubicación", [
+                    'rutas_intentadas' => $posiblesRutas,
+                    'ruta_original' => $rutaArchivo
+                ]);
+                abort(404, 'Archivo físico no encontrado en el sistema');
             }
 
             $nombreOriginal = basename($rutaArchivo);
+            $extension = pathinfo($rutaCompleta, PATHINFO_EXTENSION);
+            $tamaño = filesize($rutaCompleta);
+            
+            Log::info("Iniciando descarga", [
+                'archivo' => $nombreOriginal,
+                'tamaño' => $tamaño,
+                'extension' => $extension
+            ]);
+            
+            // Verificar que el archivo no esté corrupto (tamaño > 0)
+            if ($tamaño === 0) {
+                Log::warning("Archivo está vacío: {$rutaCompleta}");
+                abort(422, 'El archivo está vacío o corrupto');
+            }
             
             return response()->download($rutaCompleta, $nombreOriginal);
 
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::error("Respuesta no encontrada - ID: {$respuestaId}");
+            abort(404, 'Respuesta no encontrada');
         } catch (\Exception $e) {
-            Log::error('Error al descargar archivo de respuesta: ' . $e->getMessage());
-            abort(500, 'Error al descargar archivo');
+            Log::error('Error al descargar archivo de respuesta', [
+                'respuesta_id' => $respuestaId,
+                'indice' => $indice,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            abort(500, 'Error interno al procesar la descarga: ' . $e->getMessage());
         }
     }
 
