@@ -246,6 +246,11 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/material_kilo/devolucion/{devolucionId}/archivo/{nombreArchivo}/descargar', 'MaterialKiloController@descargarArchivoDevolucion')->name('material_kilo.descargar_archivo_devolucion');
         Route::delete('/material_kilo/incidencia/archivo/eliminar', 'MaterialKiloController@eliminarArchivoIncidencia')->name('material_kilo.eliminar_archivo_incidencia');
         Route::delete('/material_kilo/devolucion/archivo/eliminar', 'MaterialKiloController@eliminarArchivoDevolucion')->name('material_kilo.eliminar_archivo_devolucion');
+        
+        // Rutas para eliminar incidencias y devoluciones completas
+        Route::delete('/material_kilo/incidencia/eliminar/{id}', 'MaterialKiloController@eliminarIncidencia')->name('material_kilo.eliminar_incidencia');
+        Route::delete('/material_kilo/devolucion/eliminar/{id}', 'MaterialKiloController@eliminarDevolucion')->name('material_kilo.eliminar_devolucion');
+        
         Route::get('/test-descarga', 'MaterialKiloController@testDescargaArchivo')->name('test.descarga');
 
         //Rutas para evaluacion analisis producto 

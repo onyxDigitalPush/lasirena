@@ -203,9 +203,9 @@
                 <thead>
                     <tr>
                         <th class="text-center">Codigo Material</th>
+                        <th class="text-center">Descripcion</th>
                         <th class="text-center">ID Proveedor</th>
-                        <th class="text-center">Proveedor </th>
-                        <th class="text-center">Descripcion </th>
+                        <th class="text-center">Proveedor</th>
                         <th class="text-center">Ctd. EM-DEV</th>
                         <th class="text-center">UMB</th>
                         <th class="text-center">Valor EM-DEV</th>
@@ -217,9 +217,9 @@
                     </tr>
                     <tr>
                         <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Buscar Código" /></th>
+                        <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Buscar Descripción" /></th>
                         <th><input type="text" class="form-control form-control-sm filter-input" placeholder="ID Proveedor" /></th>
                         <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Buscar Proveedor" /></th>
-                        <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Buscar Descripción" /></th>
                         <th></th>
                         <th></th>
                         <th></th>
@@ -235,19 +235,19 @@
                              
                     <tr class="material-row" data-id="{{ $material_kilo->id }}" style="cursor: pointer;">
                         <td class="text-center">{{ $material_kilo->codigo_material }}</td>
+                        <td class="text-center">{{ $material_kilo->nombre_material }}</td>
                         <td class="text-center">{{ $material_kilo['proveedor_id'] }}</td>
                         <td class="text-center">{{ $material_kilo->nombre_proveedor }}</td>
-                            <td class="text-center">{{ $material_kilo->nombre_material }}</td>
-                            <td class="text-center">{{ $material_kilo->ctd_emdev }}</td>
-                            <td class="text-center">{{ $material_kilo->umb }}</td>
+                        <td class="text-center">{{ $material_kilo->ctd_emdev }}</td>
+                        <td class="text-center">{{ $material_kilo->umb }}</td>
                         <td class="text-center">{{ number_format($material_kilo->valor_emdev, 2, ',', '.') }}</td>
-                            <td class="text-center">{{ $material_kilo->umb }}</td>
-                            <td class="text-center">{{ $material_kilo->mes }}</td>
-                            <td class="text-center">
-                                @if($material_kilo->factor_conversion !== null && $material_kilo->factor_conversion > 0)
-                                    <span class="badge badge-success">{{ number_format($material_kilo->factor_conversion, 2, ',', '.') }}</span>
-                                @elseif($material_kilo->factor_conversion == 0)
-                                    <span class="badge badge-danger">{{ number_format($material_kilo->factor_conversion, 2, ',', '.') }}</span>
+                        <td class="text-center">{{ $material_kilo->umb }}</td>
+                        <td class="text-center">{{ $material_kilo->mes }}</td>
+                        <td class="text-center">
+                            @if($material_kilo->factor_conversion !== null && $material_kilo->factor_conversion > 0)
+                                <span class="badge badge-success">{{ number_format($material_kilo->factor_conversion, 2, ',', '.') }}</span>
+                            @elseif($material_kilo->factor_conversion == 0)
+                                <span class="badge badge-danger">{{ number_format($material_kilo->factor_conversion, 2, ',', '.') }}</span>
                                 @else
                                     <span class="badge badge-warning">Sin Factor</span>
                                 @endif
@@ -296,7 +296,7 @@
         @endsection
         <!-- Modal Edicion de Material -->
         <div class="modal fade" id="editMaterialModal" tabindex="-1" role="dialog" aria-labelledby="editMaterialModalLabel">
-            <div class="modal-dialog" role="document">
+            <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h4 class="modal-title" id="editMaterialModalLabel">Editar Material</h4>
@@ -324,33 +324,113 @@
 
                             <div class="form-group">
                                 <label for="factor_conversion">Factor Conversión</label>
-                                <input type="number" step="0.00001" class="form-control" id="factor_conversion" name="factor_conversion" placeholder="Ingrese el factor de conversión">
+                                <input type="number" step="0.00001" class="form-control" id="factor_conversion" name="factor_conversion" placeholder="Ingrese el factor de conversión" required>
                             </div>
 
+                            <hr>
+                            
                             <div class="form-group">
-                                <label for="ctd_emdev">Cantidad EM-DEV</label>
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="aplicar_rango" name="aplicar_rango" value="1">
+                                    <label class="custom-control-label" for="aplicar_rango">
+                                        <strong>Aplicar factor a múltiples registros (rango de fechas)</strong>
+                                    </label>
+                                </div>
+                                <small class="form-text text-muted">
+                                    Si no marca esta opción, solo se actualizará el registro actual.
+                                </small>
+                            </div>
+
+                            <div id="rango_fechas_container" style="display: none;">
+                                <h5>Rango de Fechas para Aplicar Factor</h5>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="mes_inicio">Mes Inicio</label>
+                                        <select class="form-control" id="mes_inicio" name="mes_inicio">
+                                            <option value="">Seleccione mes</option>
+                                            <option value="1">Enero</option>
+                                            <option value="2">Febrero</option>
+                                            <option value="3">Marzo</option>
+                                            <option value="4">Abril</option>
+                                            <option value="5">Mayo</option>
+                                            <option value="6">Junio</option>
+                                            <option value="7">Julio</option>
+                                            <option value="8">Agosto</option>
+                                            <option value="9">Septiembre</option>
+                                            <option value="10">Octubre</option>
+                                            <option value="11">Noviembre</option>
+                                            <option value="12">Diciembre</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="anio_inicio">Año Inicio</label>
+                                        <input type="number" class="form-control" id="anio_inicio" name="anio_inicio" min="2020" max="2030" placeholder="2024">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="mes_fin">Mes Fin</label>
+                                        <select class="form-control" id="mes_fin" name="mes_fin">
+                                            <option value="">Seleccione mes</option>
+                                            <option value="1">Enero</option>
+                                            <option value="2">Febrero</option>
+                                            <option value="3">Marzo</option>
+                                            <option value="4">Abril</option>
+                                            <option value="5">Mayo</option>
+                                            <option value="6">Junio</option>
+                                            <option value="7">Julio</option>
+                                            <option value="8">Agosto</option>
+                                            <option value="9">Septiembre</option>
+                                            <option value="10">Octubre</option>
+                                            <option value="11">Noviembre</option>
+                                            <option value="12">Diciembre</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="anio_fin">Año Fin</label>
+                                        <input type="number" class="form-control" id="anio_fin" name="anio_fin" min="2020" max="2030" placeholder="2024">
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                            <hr>
+
+                            <div class="form-group">
+                                <label for="ctd_emdev">Cantidad EM-DEV (registro actual)</label>
                                 <input type="number" step="0.01" class="form-control" id="ctd_emdev" name="ctd_emdev" readonly>
                             </div>
 
                             <div class="form-group">
-                                <label for="valor_emdev">Valor EM-DEV</label>
+                                <label for="valor_emdev">Valor EM-DEV (registro actual)</label>
                                 <input type="number" step="0.01" class="form-control" id="valor_emdev" name="valor_emdev" readonly>
                             </div>
 
                             <div class="form-group">
-                                <label for="mes">Mes</label>
+                                <label for="mes">Mes (registro actual)</label>
                                 <input type="text" class="form-control" id="mes" name="mes" readonly>
                             </div>
 
                             <div class="form-group">
-                                <label for="total_kg">Total KG</label>
+                                <label for="total_kg">Total KG (registro actual)</label>
                                 <input type="text" class="form-control" id="total_kg" name="total_kg" readonly>
                             </div>
 
                             <input type="hidden" id="material_kilo_id" name="material_kilo_id">
+                            <input type="hidden" id="codigo_material_hidden" name="codigo_material_hidden">
                             
                             <div class="modal-footer">
-                                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                                <button type="submit" class="btn btn-primary" id="btn_guardar_material">
+                                    <i class="fa fa-save mr-1"></i><span id="btn_text">Guardar Cambios</span>
+                                </button>
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
                             </div>
                         </form>

@@ -347,9 +347,22 @@ class ProveedorController extends Controller
                                 $nombre_proveedor = trim((string)$sheet->getCell('F' . $row)->getCalculatedValue());
                                 $ce = trim((string)$sheet->getCell('G' . $row)->getCalculatedValue());
                                 $mes_raw = trim((string)$sheet->getCell('H' . $row)->getCalculatedValue());
-                                $ctd_emdev = $sheet->getCell('I' . $row)->getCalculatedValue();
+                                
+                                // Obtener ctd_emdev de forma segura preservando decimales
+                                $ctd_emdev_raw = $sheet->getCell('I' . $row)->getCalculatedValue();
+                                // Limpiar y convertir, preservando decimales con punto
+                                $ctd_emdev = is_numeric($ctd_emdev_raw) ? (float)$ctd_emdev_raw : 0;
+                                
+                                // Debug log para valores con decimales (solo primeras 5 filas para no saturar logs)
+                                if ($row <= 6) {
+                                    Log::info("Fila {$row}: ctd_emdev original='{$ctd_emdev_raw}', convertido={$ctd_emdev}");
+                                }
+                                
                                 $umb = trim((string)$sheet->getCell('J' . $row)->getCalculatedValue());
-                                $valor_emdev = $sheet->getCell('K' . $row)->getCalculatedValue();
+                                
+                                // Obtener valor_emdev de forma segura preservando decimales
+                                $valor_emdev_raw = $sheet->getCell('K' . $row)->getCalculatedValue();
+                                $valor_emdev = is_numeric($valor_emdev_raw) ? (float)$valor_emdev_raw : 0;
                                 
                                 // Verificar si la fila está completamente vacía (todas las columnas B-K vacías)
                                 $filaVacia = empty($codigo_material) && empty($jerarquia) && empty($descripcion) && 
@@ -449,10 +462,10 @@ class ProveedorController extends Controller
                                     DB::table('material_kilos')->insert([
                                         'codigo_material' => $codigo_material,
                                         'proveedor_id' => $id_proveedor,
-                                        'ctd_emdev' => (float)$ctd_emdev,
+                                        'ctd_emdev' => $ctd_emdev, // Ya es float, preserva decimales
                                         'umb' => $umb,
                                         'ce' => $ce,
-                                        'valor_emdev' => (float)$valor_emdev,
+                                        'valor_emdev' => $valor_emdev, // Ya es float, preserva decimales
                                         'factor_conversion' => $factor_conversion,
                                         'total_kg' => $total_kg,
                                         'mes' => $mes_formateado,  // Guardar en formato "MM.YYYY"

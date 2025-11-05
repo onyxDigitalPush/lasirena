@@ -4,6 +4,8 @@
 
 @section('custom_head')
 <meta name="csrf-token" content="{{ csrf_token() }}">
+<!-- SweetAlert2 CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <style>
     .btn-group .btn {
         margin-left: 5px;
@@ -20,7 +22,6 @@
     
     /* Estilos para filas clickeables */
     .table tbody tr {
-        cursor: pointer;
         transition: background-color 0.2s;
     }
     .table tbody tr:hover {
@@ -36,7 +37,15 @@
         background-color: #17a2b8 !important;
         color: #fff !important;
     }
+    
+    /* Botones de acción */
+    .btn-action {
+        padding: 5px 10px;
+        margin: 0 2px;
+    }
 </style>
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     // URLs globales
     window.appBaseUrl = '{{ url("/") }}';
@@ -74,6 +83,84 @@
         } else if (tipo === 'devolucion') {
             window.location.href = '{{ url("material_kilo/devolucion/editar") }}/' + id;
         }
+    }
+    
+    // Función para eliminar registros con SweetAlert
+    function eliminarRegistro(event, tipo, id, nombreProveedor) {
+        event.stopPropagation(); // Evitar que se dispare el click de la fila
+        
+        const tipoTexto = tipo === 'incidencia' ? 'Incidencia' : 'Reclamación';
+        
+        Swal.fire({
+            title: '¿Está seguro?',
+            html: `¿Desea eliminar esta <strong>${tipoTexto}</strong> del proveedor <strong>${nombreProveedor}</strong>?<br><small class="text-muted">Esta acción no se puede deshacer.</small>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: '<i class="fa fa-trash mr-1"></i>Sí, eliminar',
+            cancelButtonText: '<i class="fa fa-times mr-1"></i>Cancelar',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Mostrar loading
+                Swal.fire({
+                    title: 'Eliminando...',
+                    text: 'Por favor espere',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Realizar petición AJAX para eliminar
+                const url = tipo === 'incidencia' 
+                    ? '{{ url("material_kilo/incidencia/eliminar") }}/' + id
+                    : '{{ url("material_kilo/devolucion/eliminar") }}/' + id;
+                
+                fetch(url, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            title: '¡Eliminado!',
+                            text: data.message || `${tipoTexto} eliminada correctamente`,
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            // Recargar la página para actualizar la lista
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: data.message || 'No se pudo eliminar el registro',
+                            icon: 'error',
+                            confirmButtonText: 'Aceptar'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Ocurrió un error al intentar eliminar el registro',
+                        icon: 'error',
+                        confirmButtonText: 'Aceptar'
+                    });
+                });
+            }
+        });
     }
     
     // Manejar filtros
@@ -335,7 +422,8 @@
                     <th class="text-center">Fecha</th>
                     <th class="text-center">Mes/Año</th>
                     <th class="text-center">Clasificación</th>
-                    <th class="text-center">Descripción/Producto</th>
+                    <th class="text-center">Nombre Producto</th>
+                    <th class="text-center">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -343,10 +431,8 @@
                     <tr class="registro-fila" 
                         data-tipo="{{ $registro->tipo_registro }}" 
                         data-id="{{ $registro->id }}"
-                        data-proveedor-id="{{ $registro->tipo_registro == 'incidencia' ? $registro->id_proveedor : $registro->codigo_proveedor }}"
-                        style="cursor: pointer;"
-                        onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})">
-                        <td class="text-center">
+                        data-proveedor-id="{{ $registro->tipo_registro == 'incidencia' ? $registro->id_proveedor : $registro->codigo_proveedor }}">
+                        <td class="text-center" style="cursor: pointer;" onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})">
                             @if($registro->tipo_registro == 'incidencia')
                                 <span class="badge badge-incidencia">
                                     <i class="fa fa-exclamation-triangle mr-1"></i>Incidencia
@@ -357,32 +443,32 @@
                                 </span>
                             @endif
                         </td>
-                        <td class="text-center">
+                        <td class="text-center" style="cursor: pointer;" onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})">
                             {{ $registro->tipo_registro == 'incidencia' ? $registro->id_proveedor : $registro->codigo_proveedor }}
                         </td>
-                        <td class="text-center">{{ $registro->nombre_proveedor }}</td>
-                        <td class="text-center">
+                        <td class="text-center" style="cursor: pointer;" onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})">{{ $registro->nombre_proveedor }}</td>
+                        <td class="text-center" style="cursor: pointer;" onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})">
                             @if($registro->tipo_registro == 'incidencia')
                                 <span class="badge badge-light">{{ $registro->codigo ?? 'N/A' }}</span>
                             @else
                                 <span class="badge badge-light">{{ $registro->codigo_producto ?? 'N/A' }}</span>
                             @endif
                         </td>
-                        <td class="text-center">
+                        <td class="text-center" style="cursor: pointer;" onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})">
                             @if($registro->tipo_registro == 'devolucion' && $registro->no_queja)
                                 <span class="badge badge-warning">{{ $registro->no_queja }}</span>
                             @else
                                 <span class="text-muted">-</span>
                             @endif
                         </td>
-                        <td class="text-center">
+                        <td class="text-center" style="cursor: pointer;" onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})">
                             @if($registro->fecha_principal)
                                 {{ \Carbon\Carbon::parse($registro->fecha_principal)->format('d/m/Y') }}
                             @else
                                 <span class="text-muted">Sin fecha</span>
                             @endif
                         </td>
-                        <td class="text-center">
+                        <td class="text-center" style="cursor: pointer;" onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})">
                             <span class="badge badge-secondary">
                                 @php
                                     $meses_cortos = ['', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
@@ -390,7 +476,7 @@
                                 {{ $meses_cortos[$registro->mes] ?? 'N/A' }}/{{ $registro->año }}
                             </span>
                         </td>
-                        <td class="text-center">
+                        <td class="text-center" style="cursor: pointer;" onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})">
                             @if($registro->clasificacion_incidencia)
                                 @php
                                     $clase = $registro->clasificacion_incidencia == 'RG1' ? 'danger' : ($registro->clasificacion_incidencia == 'RL1' ? 'warning' : 'info');
@@ -412,12 +498,28 @@
                                 <span class="text-muted">Sin clasificar</span>
                             @endif
                         </td>
-                        <td class="text-center">
+                        <td class="text-center" style="cursor: pointer;" onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})">
                             @if($registro->tipo_registro == 'incidencia')
                                 {{ $registro->descripcion_incidencia ?? $registro->producto ?? 'Sin descripción' }}
                             @else
                                 {{ $registro->descripcion_producto ?? $registro->codigo_producto ?? 'Sin descripción' }}
                             @endif
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group" role="group">
+                                <button type="button" 
+                                        class="btn btn-sm btn-primary btn-action" 
+                                        onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})"
+                                        title="Editar">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                                <button type="button" 
+                                        class="btn btn-sm btn-danger btn-action" 
+                                        onclick="eliminarRegistro(event, '{{ $registro->tipo_registro }}', {{ $registro->id }}, '{{ addslashes($registro->nombre_proveedor) }}')"
+                                        title="Eliminar">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 @endforeach

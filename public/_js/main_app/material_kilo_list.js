@@ -6,6 +6,22 @@ $(document).ready(function () {
     // Variables para manejar timeouts de búsqueda
     var searchTimeouts = {};
     
+    // Manejar el checkbox de aplicar rango
+    $('#aplicar_rango').on('change', function() {
+        var isChecked = $(this).is(':checked');
+        if (isChecked) {
+            $('#rango_fechas_container').slideDown();
+            $('#btn_text').text('Aplicar Factor al Rango');
+            // Hacer campos de fecha requeridos
+            $('#mes_inicio, #anio_inicio, #mes_fin, #anio_fin').prop('required', true);
+        } else {
+            $('#rango_fechas_container').slideUp();
+            $('#btn_text').text('Guardar Cambios');
+            // Quitar required de los campos de fecha
+            $('#mes_inicio, #anio_inicio, #mes_fin, #anio_fin').prop('required', false);
+        }
+    });
+    
     // Configurar eventos de búsqueda en los inputs de filtro
     $('#table_material_kilo thead tr:eq(1) th').each(function (i) {
         var input = $(this).find('input');
@@ -43,11 +59,11 @@ $(document).ready(function () {
     // Función para obtener el nombre de la columna según su índice
     function getColumnName(columnIndex) {
         var columnNames = {
-            0: 'codigo_material',
-            1: 'proveedor_id', 
-            2: 'nombre_proveedor',
-            3: 'nombre_material',
-            8: 'mes'
+            0: 'codigo_material',      // Código Material
+            1: 'nombre_material',       // Descripción
+            2: 'proveedor_id',          // ID Proveedor
+            3: 'nombre_proveedor',      // Proveedor
+            8: 'mes'                    // MES
         };
         return columnNames[columnIndex] || null;
     }
@@ -196,13 +212,34 @@ $(document).ready(function () {
                     // Llenar los campos del modal
                     $('#material_kilo_id').val(material.id);
                     $('#codigo_material').val(material.codigo_material);
+                    $('#codigo_material_hidden').val(material.codigo_material);
                     $('#nombre_material').val(material.nombre_material);
                     $('#nombre_proveedor').val(material.nombre_proveedor);
                     $('#factor_conversion').val(material.factor_conversion);
                     $('#ctd_emdev').val(material.ctd_emdev);
                     $('#valor_emdev').val(material.valor_emdev);
-                    $('#mes').val(material.mes);
+                    
+                    // Mostrar mes y año del registro actual
+                    var mesDisplay = material.mes + '/' + material.año;
+                    $('#mes').val(mesDisplay);
                     $('#total_kg').val(material.total_kg + ' KG');
+                    
+                    // Resetear checkbox y ocultar rango
+                    $('#aplicar_rango').prop('checked', false);
+                    $('#rango_fechas_container').hide();
+                    $('#btn_text').text('Guardar Cambios');
+                    $('#mes_inicio, #anio_inicio, #mes_fin, #anio_fin').prop('required', false);
+                    
+                    // Inicializar los campos de rango de fechas con el mes/año actual del registro
+                    if (material.mes && material.año) {
+                        // Establecer mes y año inicio
+                        $('#mes_inicio').val(parseInt(material.mes));
+                        $('#anio_inicio').val(parseInt(material.año));
+                        
+                        // Establecer mes y año fin (por defecto igual al inicio)
+                        $('#mes_fin').val(parseInt(material.mes));
+                        $('#anio_fin').val(parseInt(material.año));
+                    }
                     
                     // Mostrar el modal
                     $('#editMaterialModal').modal('show');
@@ -222,6 +259,48 @@ $(document).ready(function () {
     $('#editMaterialForm').on('submit', function(e) {
         e.preventDefault();
         
+        var aplicarRango = $('#aplicar_rango').is(':checked');
+        
+        // Si se aplica a rango, validar las fechas
+        if (aplicarRango) {
+            var mesInicio = parseInt($('#mes_inicio').val());
+            var anioInicio = parseInt($('#anio_inicio').val());
+            var mesFin = parseInt($('#mes_fin').val());
+            var anioFin = parseInt($('#anio_fin').val());
+            
+            if (!mesInicio || !anioInicio || !mesFin || !anioFin) {
+                alert('Por favor complete todos los campos del rango de fechas');
+                return;
+            }
+            
+            var fechaInicio = anioInicio * 100 + mesInicio;
+            var fechaFin = anioFin * 100 + mesFin;
+            
+            if (fechaInicio > fechaFin) {
+                alert('La fecha de inicio no puede ser posterior a la fecha fin');
+                return;
+            }
+            
+            // Mostrar confirmación con el rango de fechas
+            var meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                         'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            var confirmMsg = '¿Está seguro de aplicar el factor de conversión ' + $('#factor_conversion').val() + 
+                             ' a todos los registros del material ' + $('#codigo_material').val() + 
+                             ' desde ' + meses[mesInicio - 1] + ' ' + anioInicio + 
+                             ' hasta ' + meses[mesFin - 1] + ' ' + anioFin + '?';
+            
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+        } else {
+            // Solo actualizar el registro actual
+            var confirmMsg = '¿Está seguro de actualizar el factor de conversión de este registro a ' + 
+                           $('#factor_conversion').val() + '?';
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+        }
+        
         var formData = new FormData(this);
         
         $.ajax({
@@ -234,9 +313,14 @@ $(document).ready(function () {
                 if (response.success) {
                     $('#editMaterialModal').modal('hide');
                     
-                    // Mostrar mensaje de éxito
+                    // Mostrar mensaje de éxito con número de registros actualizados
+                    var mensaje = response.message;
+                    if (response.registros_actualizados) {
+                        mensaje += ' (' + response.registros_actualizados + ' registros actualizados)';
+                    }
+                    
                     var alertHtml = '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
-                        response.message +
+                        mensaje +
                         '<button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">' +
                         '<span aria-hidden="true">&times;</span>' +
                         '</button>' +
