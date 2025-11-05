@@ -151,6 +151,12 @@
                     </li>
 
                     <li class="active">
+                        <a href="{{ route('materiales.index') }}" title="Materiales" class="active">
+                            <i class="metismenu-icon fa fa-cubes icon-proveedores"></i>
+                        </a>
+                    </li>
+
+                    <li class="active">
                         <a href="{{ route('material_kilo.index') }}" title="Lista Material Kilos" class="active">
                             <i class="metismenu-icon fa fa-truck icon-proveedores"></i>
                         </a>
