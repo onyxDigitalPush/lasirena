@@ -1,0 +1,7 @@
+[2025-10-20 18:25:21] local.INFO: Parámetros recibidos: {"orden":null,"filtro":null} 
+[2025-10-20 18:25:21] local.INFO: Filtro mes aplicado: {"mes_input":"9","type":"string"} 
+[2025-10-20 18:25:22] local.INFO: Valores existentes de mes en BD: {"meses":[1,2,3,4,5,6,7,8]} 
+[2025-10-20 18:25:22] local.INFO: Aplicando filtro numérico exacto: {"mes":9} 
+[2025-10-20 18:25:22] local.INFO: Aplicando ordenamiento: {"orden":null} 
+[2025-10-20 18:25:22] local.INFO: SQL generado: {"sql":"select `gp_ls_material_kilos`.`id`, `gp_ls_material_kilos`.`total_kg`, `gp_ls_proveedores`.`nombre_proveedor`, `gp_ls_materiales`.`descripcion` as `nombre_material`, `gp_ls_material_kilos`.`ctd_emdev`, `gp_ls_material_kilos`.`umb`, `gp_ls_material_kilos`.`ce`, `gp_ls_material_kilos`.`valor_emdev`, `gp_ls_material_kilos`.`factor_conversion`, `gp_ls_material_kilos`.`codigo_material`, `gp_ls_material_kilos`.`mes`, `gp_ls_material_kilos`.`proveedor_id` from `gp_ls_material_kilos` inner join `gp_ls_proveedores` on `gp_ls_material_kilos`.`proveedor_id` = `gp_ls_proveedores`.`id_proveedor` inner join `gp_ls_materiales` on `gp_ls_material_kilos`.`codigo_material` = `gp_ls_materiales`.`codigo` where `gp_ls_material_kilos`.`mes` = ? order by `gp_ls_material_kilos`.`id` asc","bindings":[9]} 
+[2025-10-20 18:25:22] local.INFO: Total de registros encontrados con filtros: {"total":0} 
