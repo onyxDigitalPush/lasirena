@@ -2530,7 +2530,7 @@ class MaterialKiloController extends Controller
 
             // Crear respuesta primero para obtener el ID
             $fechaRespuesta = $request->fecha_respuesta ? $request->fecha_respuesta : now()->toDateString();
-            
+
             $respuestaData = [
                 'fecha_respuesta' => $fechaRespuesta,
                 'descripcion' => $request->descripcion,
@@ -2554,12 +2554,20 @@ class MaterialKiloController extends Controller
                 if ($request->hasFile($input)) {
                     $archivo = $request->file($input);
                     if ($archivo && $archivo->isValid()) {
-                        // Guardar en carpeta específica con el ID de la respuesta (como emails_proveedores)
-                        $rutaArchivo = $archivo->store("emails_respuesta/{$respuesta->id}", 'public');
+                        // Generar nombre único conservando la extensión original
+                        $nombreOriginal = $archivo->getClientOriginalName();
+                        $extension = $archivo->getClientOriginalExtension();
+                        $nombreSinExtension = pathinfo($nombreOriginal, PATHINFO_FILENAME);
                         
+                        // Crear nombre único: nombreOriginal_timestamp.extension
+                        $nombreUnico = $nombreSinExtension . '_' . time() . '_' . uniqid() . '.' . $extension;
+                        
+                        // Guardar con nombre específico
+                        $rutaArchivo = $archivo->storeAs("emails_respuesta/{$respuesta->id}", $nombreUnico, 'public');
+
                         if ($rutaArchivo) {
-                            // USAR EL ÍNDICE DEL SLOT (0, 1, 2)
-                            $archivosGuardados[$index] = $rutaArchivo;
+                            // USAR EL NOMBRE ORIGINAL COMO CLAVE, pero almacenar la ruta con nombre único
+                            $archivosGuardados[$nombreOriginal] = $rutaArchivo;
                         }
                     }
                 }
@@ -2584,11 +2592,10 @@ class MaterialKiloController extends Controller
                     'total_archivos' => count($archivosGuardados)
                 ]
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error al guardar respuesta: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Error interno del servidor: ' . $e->getMessage()
@@ -2612,25 +2619,23 @@ class MaterialKiloController extends Controller
 
             $respuestas = $query->orderBy('fecha_respuesta', 'desc')
                 ->get()
-                ->map(function($respuesta) {
+                ->map(function ($respuesta) {
                     $archivos = [];
                     if ($respuesta->rutas_archivos) {
                         $archivosData = json_decode($respuesta->rutas_archivos, true);
                         if (is_array($archivosData)) {
-                            foreach ($archivosData as $index => $rutaArchivo) {
+                            foreach ($archivosData as $nombreOriginal => $rutaArchivo) {
                                 if (!empty($rutaArchivo)) {
-                                    $nombreArchivo = basename($rutaArchivo);
                                     $url = asset('storage/' . $rutaArchivo);
-                                    
-                                    // Detectar si es imagen
-                                    $extension = strtolower(pathinfo($nombreArchivo, PATHINFO_EXTENSION));
+
+                                    // Detectar si es imagen usando el nombre original
+                                    $extension = strtolower(pathinfo($nombreOriginal, PATHINFO_EXTENSION));
                                     $esImagen = in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
-                                    
+
                                     $archivos[] = [
-                                        'nombre_original' => $nombreArchivo,
+                                        'nombre_original' => $nombreOriginal,
                                         'ruta_completa' => $rutaArchivo,
                                         'url' => $url,
-                                        'indice' => $index,
                                         'es_imagen' => $esImagen,
                                         'extension' => $extension
                                     ];
@@ -2638,7 +2643,7 @@ class MaterialKiloController extends Controller
                             }
                         }
                     }
-                    
+
                     return [
                         'id' => $respuesta->id,
                         'descripcion' => $respuesta->descripcion,
@@ -2655,7 +2660,6 @@ class MaterialKiloController extends Controller
                 'success' => true,
                 'data' => $respuestas
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error al obtener historial de respuestas: ' . $e->getMessage());
             return response()->json([
@@ -2666,93 +2670,111 @@ class MaterialKiloController extends Controller
     }
 
     /**
-     * Descargar archivo de respuesta - VERSIÓN MEJORADA
+     * Descargar archivo de respuesta usando nombre directo
      */
-    public function descargarArchivoRespuesta($respuestaId, $indice)
+    public function descargarArchivoRespuesta($respuestaId, $nombreArchivo)
     {
         try {
-            Log::info("Solicitando descarga de archivo - Respuesta ID: {$respuestaId}, Índice: {$indice}");
-            
+
             // Validar parámetros de entrada
-            if (!is_numeric($respuestaId) || !is_numeric($indice)) {
-                Log::warning("Parámetros inválidos - respuestaId: {$respuestaId}, indice: {$indice}");
+            if (!is_numeric($respuestaId) || empty($nombreArchivo)) {
+                Log::warning("Parámetros inválidos - respuestaId: {$respuestaId}, nombreArchivo: {$nombreArchivo}");
                 abort(400, 'Parámetros inválidos');
             }
 
             $respuesta = \App\Models\MainApp\RespuestaIncidenciaReclamacion::findOrFail($respuestaId);
-            Log::info("Respuesta encontrada - ID: {$respuesta->id}");
-            
+
+            // Obtener la ruta real del archivo desde el JSON
             if (!$respuesta->rutas_archivos) {
                 Log::warning("No hay archivos en la respuesta ID: {$respuestaId}");
                 abort(404, 'No hay archivos en esta respuesta');
             }
-            
+
             $archivos = json_decode($respuesta->rutas_archivos, true);
-            Log::info("Archivos decodificados", ['archivos' => $archivos, 'total' => count($archivos ?? [])]);
-            
-            if (!is_array($archivos)) {
-                Log::error("Error al decodificar JSON de archivos - Respuesta ID: {$respuestaId}");
-                abort(500, 'Error en formato de archivos');
-            }
-            
-            if (!isset($archivos[$indice])) {
-                Log::warning("Índice {$indice} no existe en archivos - Total disponibles: " . count($archivos));
-                abort(404, 'Archivo no encontrado en el índice especificado');
+            if (!is_array($archivos) || !isset($archivos[$nombreArchivo])) {
+                Log::warning("Archivo no encontrado: {$nombreArchivo} en respuesta {$respuestaId}");
+                abort(404, 'Archivo no encontrado');
             }
 
-            $rutaArchivo = $archivos[$indice];
-            Log::info("Ruta de archivo obtenida: {$rutaArchivo}");
+            $rutaArchivo = $archivos[$nombreArchivo];
+
+            // Normalizar la ruta del archivo (convertir / a \ para Windows)
+            $rutaArchivoNormalizada = str_replace('/', DIRECTORY_SEPARATOR, $rutaArchivo);
             
             // Intentar diferentes ubicaciones para el archivo
             $posiblesRutas = [
-                storage_path('app/public/' . $rutaArchivo),
-                storage_path('app/' . $rutaArchivo),
-                public_path('storage/' . $rutaArchivo),
-                $rutaArchivo // Ruta absoluta si ya está completa
+                storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $rutaArchivoNormalizada),
+                storage_path('app' . DIRECTORY_SEPARATOR . $rutaArchivoNormalizada),
+                public_path('storage' . DIRECTORY_SEPARATOR . $rutaArchivoNormalizada)
             ];
-            
+
             $rutaCompleta = null;
             foreach ($posiblesRutas as $ruta) {
-                if (file_exists($ruta)) {
-                    $rutaCompleta = $ruta;
-                    Log::info("Archivo encontrado en: {$rutaCompleta}");
+                // Normalizar la ruta completa también
+                $rutaNormalizada = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $ruta);
+                if (file_exists($rutaNormalizada)) {
+                    $rutaCompleta = $rutaNormalizada;
                     break;
                 }
             }
-            
+
             if (!$rutaCompleta) {
-                Log::error("Archivo no encontrado en ninguna ubicación", [
-                    'rutas_intentadas' => $posiblesRutas,
-                    'ruta_original' => $rutaArchivo
-                ]);
                 abort(404, 'Archivo físico no encontrado en el sistema');
             }
 
-            $nombreOriginal = basename($rutaArchivo);
             $extension = pathinfo($rutaCompleta, PATHINFO_EXTENSION);
             $tamaño = filesize($rutaCompleta);
-            
-            Log::info("Iniciando descarga", [
-                'archivo' => $nombreOriginal,
-                'tamaño' => $tamaño,
-                'extension' => $extension
-            ]);
-            
+
             // Verificar que el archivo no esté corrupto (tamaño > 0)
             if ($tamaño === 0) {
                 Log::warning("Archivo está vacío: {$rutaCompleta}");
                 abort(422, 'El archivo está vacío o corrupto');
             }
             
-            return response()->download($rutaCompleta, $nombreOriginal);
-
+            // Determinar MIME type basado en la extensión
+            $mimeTypes = [
+                'jpg' => 'image/jpeg',
+                'jpeg' => 'image/jpeg',
+                'png' => 'image/png',
+                'gif' => 'image/gif',
+                'bmp' => 'image/bmp',
+                'webp' => 'image/webp',
+                'pdf' => 'application/pdf',
+                'doc' => 'application/msword',
+                'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'xls' => 'application/vnd.ms-excel',
+                'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'txt' => 'text/plain',
+                'zip' => 'application/zip',
+                'rar' => 'application/x-rar-compressed'
+            ];
+            
+            $mimeType = $mimeTypes[$extension] ?? 'application/octet-stream';
+            
+            // Limpiar cualquier buffer anterior
+            if (ob_get_level()) {
+                ob_end_clean();
+            }
+            
+            // Configurar headers HTTP directamente
+            header('Content-Type: ' . $mimeType);
+            header('Content-Disposition: attachment; filename="' . $nombreArchivo . '"');
+            header('Content-Length: ' . $tamaño);
+            header('Cache-Control: no-cache, no-store, must-revalidate');
+            header('Pragma: no-cache');
+            header('Expires: 0');
+            
+            // Leer y enviar el archivo directamente
+            readfile($rutaCompleta);
+            
+            exit;
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             Log::error("Respuesta no encontrada - ID: {$respuestaId}");
             abort(404, 'Respuesta no encontrada');
         } catch (\Exception $e) {
             Log::error('Error al descargar archivo de respuesta', [
                 'respuesta_id' => $respuestaId,
-                'indice' => $indice,
+                'nombre_archivo' => $nombreArchivo,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -2767,24 +2789,22 @@ class MaterialKiloController extends Controller
     {
         try {
             $respuesta = \App\Models\MainApp\RespuestaIncidenciaReclamacion::findOrFail($respuestaId);
-            
+
             // Procesar archivos si los hay
             $archivos = [];
             if ($respuesta->rutas_archivos) {
                 $archivosData = json_decode($respuesta->rutas_archivos, true);
                 if (is_array($archivosData)) {
-                    foreach ($archivosData as $indice => $rutaArchivo) {
+                    foreach ($archivosData as $nombreOriginal => $rutaArchivo) {
                         if (!empty($rutaArchivo)) {
-                            $nombreArchivo = basename($rutaArchivo);
                             $url = asset('storage/' . $rutaArchivo);
-                            
-                            // Detectar si es imagen
-                            $extension = strtolower(pathinfo($nombreArchivo, PATHINFO_EXTENSION));
+
+                            // Detectar si es imagen usando el nombre original
+                            $extension = strtolower(pathinfo($nombreOriginal, PATHINFO_EXTENSION));
                             $esImagen = in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
-                            
+
                             $archivos[] = [
-                                'indice' => $indice,
-                                'nombre_original' => $nombreArchivo,
+                                'nombre_original' => $nombreOriginal,
                                 'ruta_completa' => $rutaArchivo,
                                 'url' => $url,
                                 'es_imagen' => $esImagen,
@@ -2794,7 +2814,7 @@ class MaterialKiloController extends Controller
                     }
                 }
             }
-            
+
             return response()->json([
                 'success' => true,
                 'id' => $respuesta->id,
@@ -2805,7 +2825,6 @@ class MaterialKiloController extends Controller
                 'email' => $respuesta->email,
                 'archivos' => $archivos
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error al obtener datos de respuesta: ' . $e->getMessage());
             return response()->json([
@@ -2821,7 +2840,7 @@ class MaterialKiloController extends Controller
     public function actualizarRespuesta(Request $request, $respuestaId)
     {
         try {
-            
+
             $request->validate([
                 'fecha_respuesta' => 'required|date',
                 'descripcion' => 'required|string',
@@ -2834,7 +2853,7 @@ class MaterialKiloController extends Controller
             ]);
 
             $respuesta = \App\Models\MainApp\RespuestaIncidenciaReclamacion::findOrFail($respuestaId);
-            
+
             // Actualizar datos básicos
             $respuesta->fecha_respuesta = $request->fecha_respuesta;
             $respuesta->descripcion = $request->descripcion;
@@ -2849,55 +2868,38 @@ class MaterialKiloController extends Controller
                 $archivosExistentes = is_array($decoded) ? $decoded : [];
             }
 
-            // Inicializar array con 3 posiciones vacías
-            $archivosFinales = [null, null, null];
-            
-            // Copiar archivos existentes manteniendo posiciones
-            foreach ($archivosExistentes as $index => $rutaArchivo) {
-                if ($index >= 0 && $index < 3 && !empty($rutaArchivo)) {
-                    $archivosFinales[$index] = $rutaArchivo;
-                }
-            }
-            
             // Procesar nuevos archivos subidos
+            $archivosFinales = $archivosExistentes; // Mantener archivos existentes
+            
             foreach (['archivo1', 'archivo2', 'archivo3'] as $index => $campo) {
                 if ($request->hasFile($campo)) {
-                    
                     $archivo = $request->file($campo);
+
+                    // Generar nombre único conservando la extensión original
+                    $nombreOriginal = $archivo->getClientOriginalName();
+                    $extension = $archivo->getClientOriginalExtension();
+                    $nombreSinExtension = pathinfo($nombreOriginal, PATHINFO_FILENAME);
                     
-                    // Eliminar archivo anterior en esta posición si existe
-                    if ($archivosFinales[$index]) {
-                        $rutaAnterior = storage_path('app/public/' . $archivosFinales[$index]);
-                        if (file_exists($rutaAnterior)) {
-                            unlink($rutaAnterior);
-                        }
-                    }
+                    // Crear nombre único: nombreOriginal_timestamp.extension
+                    $nombreUnico = $nombreSinExtension . '_' . time() . '_' . uniqid() . '.' . $extension;
                     
-                    // Guardar nuevo archivo en carpeta con ID de respuesta
-                    $rutaArchivo = $archivo->store("emails_respuesta/{$respuestaId}", 'public');
-                    
+                    // Guardar con nombre específico
+                    $rutaArchivo = $archivo->storeAs("emails_respuesta/{$respuestaId}", $nombreUnico, 'public');
+
                     if ($rutaArchivo) {
-                        $archivosFinales[$index] = $rutaArchivo;
+                        // USAR EL NOMBRE ORIGINAL COMO CLAVE, pero almacenar la ruta con nombre único
+                        $archivosFinales[$nombreOriginal] = $rutaArchivo;
                     }
                 }
             }
 
-            // Limpiar nulls y reindexar solo archivos válidos
-            $archivosLimpios = [];
-            foreach ($archivosFinales as $index => $archivo) {
-                if ($archivo !== null && !empty($archivo)) {
-                    $archivosLimpios[$index] = $archivo;
-                }
-            }
-
-            $respuesta->rutas_archivos = !empty($archivosLimpios) ? json_encode($archivosLimpios) : null;
+            $respuesta->rutas_archivos = !empty($archivosFinales) ? json_encode($archivosFinales) : null;
             $respuesta->save();
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Respuesta actualizada correctamente'
             ]);
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('❌ Error de validación: ' . json_encode($e->errors()));
             return response()->json([
@@ -2918,11 +2920,11 @@ class MaterialKiloController extends Controller
     /**
      * Eliminar archivo individual de una respuesta
      */
-    public function eliminarArchivoRespuesta(Request $request, $respuestaId, $indice)
+    public function eliminarArchivoRespuesta(Request $request, $respuestaId, $nombreArchivo)
     {
         try {
             $respuesta = \App\Models\MainApp\RespuestaIncidenciaReclamacion::findOrFail($respuestaId);
-            
+
             if (!$respuesta->rutas_archivos) {
                 Log::warning("⚠️ No hay archivos en respuesta $respuestaId");
                 return response()->json([
@@ -2930,7 +2932,7 @@ class MaterialKiloController extends Controller
                     'message' => 'No hay archivos en esta respuesta'
                 ], 404);
             }
-            
+
             $archivos = json_decode($respuesta->rutas_archivos, true);
             if (!is_array($archivos)) {
                 Log::error("❌ Error decodificando JSON de archivos");
@@ -2940,49 +2942,46 @@ class MaterialKiloController extends Controller
                 ], 400);
             }
 
-            // Convertir índice a entero
-            $indice = intval($indice);
-            
-            if (!isset($archivos[$indice])) {
-                Log::warning("⚠️ Archivo no encontrado en índice $indice");
+            if (!isset($archivos[$nombreArchivo])) {
+                Log::warning("⚠️ Archivo no encontrado: $nombreArchivo");
                 return response()->json([
                     'success' => false,
-                    'message' => 'Archivo no encontrado en la posición especificada'
+                    'message' => 'Archivo no encontrado'
                 ], 404);
             }
 
             // Obtener info del archivo antes de eliminar
-            $rutaArchivo = $archivos[$indice];
+            $rutaArchivo = $archivos[$nombreArchivo];
 
             // Eliminar archivo físico si existe
             if (!empty($rutaArchivo)) {
-                $rutaCompleta = storage_path('app/public/' . $rutaArchivo);
+                // Normalizar ruta para Windows
+                $rutaArchivoNormalizada = str_replace('/', DIRECTORY_SEPARATOR, $rutaArchivo);
+                $rutaCompleta = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $rutaArchivoNormalizada);
+                
                 if (file_exists($rutaCompleta)) {
                     unlink($rutaCompleta);
-                    Log::info("💾 Archivo físico eliminado: $rutaCompleta");
                 } else {
                     Log::warning("⚠️ Archivo físico no encontrado: $rutaCompleta");
                 }
             }
 
-            // Eliminar del array manteniendo la estructura de índices
-            unset($archivos[$indice]);
-            
-            // NO reindexar - mantener posiciones originales para los 3 slots
+            // Eliminar del array usando nombre como clave
+            unset($archivos[$nombreArchivo]);
+
             // Solo limpiar si está completamente vacío
             if (empty($archivos)) {
                 $respuesta->rutas_archivos = null;
             } else {
                 $respuesta->rutas_archivos = json_encode($archivos);
             }
-            
+
             $respuesta->save();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Archivo eliminado correctamente'
             ]);
-
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             Log::error("❌ Respuesta no encontrada: $respuestaId");
             return response()->json([
@@ -3006,20 +3005,23 @@ class MaterialKiloController extends Controller
     {
         try {
             $respuesta = \App\Models\MainApp\RespuestaIncidenciaReclamacion::findOrFail($respuestaId);
-            
+
             // Eliminar todos los archivos asociados
             if ($respuesta->rutas_archivos) {
                 $archivos = json_decode($respuesta->rutas_archivos, true);
                 if (is_array($archivos)) {
                     foreach ($archivos as $rutaArchivo) {
                         if (!empty($rutaArchivo)) {
-                            $rutaCompleta = storage_path('app/public/' . $rutaArchivo);
+                            // Normalizar ruta para Windows
+                            $rutaArchivoNormalizada = str_replace('/', DIRECTORY_SEPARATOR, $rutaArchivo);
+                            $rutaCompleta = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $rutaArchivoNormalizada);
+                            
                             if (file_exists($rutaCompleta)) {
                                 unlink($rutaCompleta);
                             }
                         }
                     }
-                    
+
                     // Intentar eliminar la carpeta si está vacía
                     $directorioRespuesta = storage_path('app/public/emails_respuesta/' . $respuestaId);
                     if (is_dir($directorioRespuesta) && count(scandir($directorioRespuesta)) == 2) {
@@ -3027,15 +3029,14 @@ class MaterialKiloController extends Controller
                     }
                 }
             }
-            
+
             // Eliminar el registro de la base de datos
             $respuesta->delete();
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Respuesta eliminada correctamente'
             ]);
-
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             Log::error("❌ Respuesta no encontrada: $respuestaId");
             return response()->json([
@@ -3052,48 +3053,94 @@ class MaterialKiloController extends Controller
     }
 
     /**
+     * Debug - Verificar estructura de archivos de respuesta
+     */
+    public function debugRespuestaArchivos($respuestaId)
+    {
+        try {
+            $respuesta = \App\Models\MainApp\RespuestaIncidenciaReclamacion::findOrFail($respuestaId);
+            
+            $archivos = [];
+            if ($respuesta->rutas_archivos) {
+                $archivos = json_decode($respuesta->rutas_archivos, true);
+            }
+            
+            $debug = [
+                'respuesta_id' => $respuesta->id,
+                'json_raw' => $respuesta->rutas_archivos,
+                'archivos_decoded' => $archivos,
+                'archivos_fisica' => []
+            ];
+            
+            // Verificar archivos físicos
+            if (is_array($archivos)) {
+                foreach ($archivos as $nombreOriginal => $rutaArchivo) {
+                    // Normalizar ruta para Windows
+                    $rutaArchivoNormalizada = str_replace('/', DIRECTORY_SEPARATOR, $rutaArchivo);
+                    $rutaCompleta = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $rutaArchivoNormalizada);
+                    
+                    $debug['archivos_fisica'][$nombreOriginal] = [
+                        'ruta_json' => $rutaArchivo,
+                        'ruta_normalizada' => $rutaArchivoNormalizada,
+                        'ruta_completa' => $rutaCompleta,
+                        'existe' => file_exists($rutaCompleta),
+                        'tamaño' => file_exists($rutaCompleta) ? filesize($rutaCompleta) : 0
+                    ];
+                }
+            }
+            
+            return response()->json($debug);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
      * Eliminar archivo individual de respuesta
      */
     public function eliminarArchivoIndividualRespuesta(Request $request)
     {
         try {
             $respuestaId = $request->input('respuesta_id');
-            $indice = $request->input('indice');
-            
-            if (!$respuestaId || $indice === null) {
+            $nombreArchivo = $request->input('nombre_archivo');
+
+            if (!$respuestaId || empty($nombreArchivo)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Parámetros inválidos'
                 ], 400);
             }
-            
+
             $respuesta = \App\Models\MainApp\RespuestaIncidenciaReclamacion::findOrFail($respuestaId);
-            
+
             if (!$respuesta->rutas_archivos) {
                 return response()->json([
                     'success' => false,
                     'message' => 'No hay archivos en esta respuesta'
                 ], 404);
             }
-            
+
             $archivos = json_decode($respuesta->rutas_archivos, true);
-            if (!is_array($archivos) || !isset($archivos[$indice])) {
+            if (!is_array($archivos) || !isset($archivos[$nombreArchivo])) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Archivo no encontrado'
                 ], 404);
             }
-            
+
             // Eliminar archivo físico
-            $rutaArchivo = $archivos[$indice];
-            $rutaCompleta = storage_path('app/public/' . $rutaArchivo);
+            $rutaArchivo = $archivos[$nombreArchivo];
+            // Normalizar ruta para Windows
+            $rutaArchivoNormalizada = str_replace('/', DIRECTORY_SEPARATOR, $rutaArchivo);
+            $rutaCompleta = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $rutaArchivoNormalizada);
+            
             if (file_exists($rutaCompleta)) {
                 unlink($rutaCompleta);
             }
-            
-            // Remover del array manteniendo índices
-            unset($archivos[$indice]);
-            
+
+            // Remover del array usando el nombre del archivo como clave
+            unset($archivos[$nombreArchivo]);
+
             // Actualizar en la base de datos
             if (empty($archivos)) {
                 $respuesta->rutas_archivos = null;
@@ -3101,12 +3148,11 @@ class MaterialKiloController extends Controller
                 $respuesta->rutas_archivos = json_encode($archivos);
             }
             $respuesta->save();
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Archivo eliminado correctamente'
             ]);
-
         } catch (\Exception $e) {
             Log::error('❌ Error al eliminar archivo: ' . $e->getMessage());
             return response()->json([
@@ -3124,7 +3170,7 @@ class MaterialKiloController extends Controller
         try {
             // Crear registro de job de exportación
             $jobId = uniqid('export_', true);
-            
+
             // Obtener filtros
             $filtros = [
                 'mes' => $request->get('mes'),
@@ -3136,22 +3182,22 @@ class MaterialKiloController extends Controller
                 'gravedad' => $request->get('gravedad', ''),
                 'no_queja' => $request->get('no_queja', ''),
             ];
-            
+
             // Contar total de registros
             $totalRegistros = $this->contarRegistrosExport($filtros);
-            
+
             if ($totalRegistros === 0) {
                 return response()->json([
                     'error' => 'No se encontraron datos para exportar con los filtros aplicados'
                 ], 404);
             }
-            
+
             // Crear directorio temporal para el job
             $tempDir = storage_path('app/exports/' . $jobId);
             if (!file_exists($tempDir)) {
                 mkdir($tempDir, 0755, true);
             }
-            
+
             // Guardar configuración del job
             $jobConfig = [
                 'id' => $jobId,
@@ -3165,9 +3211,9 @@ class MaterialKiloController extends Controller
                 'created_at' => now()->toISOString(),
                 'updated_at' => now()->toISOString()
             ];
-            
+
             file_put_contents($tempDir . '/config.json', json_encode($jobConfig, JSON_PRETTY_PRINT));
-            
+
             return response()->json([
                 'success' => true,
                 'job_id' => $jobId,
@@ -3175,7 +3221,6 @@ class MaterialKiloController extends Controller
                 'lotes_totales' => $jobConfig['lotes_totales'],
                 'mensaje' => 'Exportación iniciada. Procesando por lotes...'
             ]);
-            
         } catch (\Exception $e) {
             Log::error('Error iniciando exportación por lotes: ' . $e->getMessage());
             return response()->json([
@@ -3191,48 +3236,48 @@ class MaterialKiloController extends Controller
     {
         try {
             $jobId = $request->get('job_id');
-            
+
             $tempDir = storage_path('app/exports/' . $jobId);
             $configFile = $tempDir . '/config.json';
-            
+
             if (!file_exists($configFile)) {
                 return response()->json(['error' => 'Job no encontrado'], 404);
             }
-            
+
             // Leer configuración actual
             $jobConfig = json_decode(file_get_contents($configFile), true);
-            
+
             if ($jobConfig['estado'] === 'completado') {
                 return response()->json([
                     'completado' => true,
                     'archivo_final' => $jobConfig['archivo_final']
                 ]);
             }
-            
+
             // Procesar siguiente lote
             $loteActual = $jobConfig['lote_actual'];
             $offset = $loteActual * 1000;
             $limit = 1000;
-            
+
             // Obtener datos del lote
             $datosLote = $this->obtenerDatosLote($jobConfig['filtros'], $offset, $limit);
-            
+
             // Guardar lote como archivo temporal
             $archivoLote = $tempDir . '/lote_' . $loteActual . '.json';
             file_put_contents($archivoLote, json_encode($datosLote));
-            
+
             // Actualizar progreso
             $jobConfig['registros_procesados'] += count($datosLote);
             $jobConfig['lote_actual']++;
             $jobConfig['updated_at'] = now()->toISOString();
-            
+
             // Verificar si es el último lote
             if ($jobConfig['lote_actual'] >= $jobConfig['lotes_totales']) {
                 $jobConfig['estado'] = 'listo_para_generar';
             }
-            
+
             file_put_contents($configFile, json_encode($jobConfig, JSON_PRETTY_PRINT));
-            
+
             return response()->json([
                 'success' => true,
                 'progreso' => [
@@ -3244,7 +3289,6 @@ class MaterialKiloController extends Controller
                 ],
                 'completado' => $jobConfig['estado'] === 'listo_para_generar'
             ]);
-            
         } catch (\Exception $e) {
             Log::error('Error procesando lote: ' . $e->getMessage());
             return response()->json([
@@ -3260,42 +3304,51 @@ class MaterialKiloController extends Controller
     {
         try {
             $jobId = $request->get('job_id');
-            
+
             $tempDir = storage_path('app/exports/' . $jobId);
             $configFile = $tempDir . '/config.json';
-            
+
             $jobConfig = json_decode(file_get_contents($configFile), true);
             $jobConfig['estado'] = 'generando_excel';
             file_put_contents($configFile, json_encode($jobConfig, JSON_PRETTY_PRINT));
-            
+
             // Crear Excel
             $spreadsheet = new Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
             $sheet->setTitle('Historial');
-            
+
             // Headers
-            $headers = ['Tipo', 'ID Proveedor', 'Nombre Proveedor', 'Fecha Reclamación', 
-                       'Clasificación', 'Descripción', 'Estado', 'Código Producto', 'No. Queja'];
-            
+            $headers = [
+                'Tipo',
+                'ID Proveedor',
+                'Nombre Proveedor',
+                'Fecha Reclamación',
+                'Clasificación',
+                'Descripción',
+                'Estado',
+                'Código Producto',
+                'No. Queja'
+            ];
+
             foreach ($headers as $col => $header) {
                 $sheet->setCellValueByColumnAndRow($col + 1, 1, $header);
             }
-            
+
             // Estilo para encabezados
             $headerStyle = [
                 'font' => ['bold' => true],
                 'fill' => ['fillType' => Fill::FILL_SOLID, 'color' => ['rgb' => 'CCCCCC']]
             ];
             $sheet->getStyle('A1:I1')->applyFromArray($headerStyle);
-            
+
             // Procesar todos los lotes guardados
             $row = 2;
             for ($lote = 0; $lote < $jobConfig['lotes_totales']; $lote++) {
                 $archivoLote = $tempDir . '/lote_' . $lote . '.json';
-                
+
                 if (file_exists($archivoLote)) {
                     $datosLote = json_decode(file_get_contents($archivoLote), true);
-                    
+
                     foreach ($datosLote as $dato) {
                         // Aplicar misma lógica que la vista para descripción/producto
                         $descripcionFinal = '';
@@ -3304,7 +3357,7 @@ class MaterialKiloController extends Controller
                         } else {
                             $descripcionFinal = $dato['descripcion_producto'] ?? $dato['codigo_producto'] ?? 'Sin descripción';
                         }
-                        
+
                         $sheet->setCellValue('A' . $row, $dato['tipo']);
                         $sheet->setCellValue('B' . $row, $dato['id_proveedor'] ?? '');
                         $sheet->setCellValue('C' . $row, $dato['nombre_proveedor'] ?? '');
@@ -3318,42 +3371,54 @@ class MaterialKiloController extends Controller
                     }
                 }
             }
-            
+
             // Ajustar ancho de columnas
             foreach (range('A', 'I') as $column) {
                 $sheet->getColumnDimension($column)->setAutoSize(true);
             }
-            
+
             // Nombre de archivo
             $año = $jobConfig['filtros']['año'];
             $mes = $jobConfig['filtros']['mes'];
             $filename = 'Incidencias_Devoluciones_' . $año;
             if ($mes) {
-                $meses = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
-                         'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+                $meses = [
+                    '',
+                    'Enero',
+                    'Febrero',
+                    'Marzo',
+                    'Abril',
+                    'Mayo',
+                    'Junio',
+                    'Julio',
+                    'Agosto',
+                    'Septiembre',
+                    'Octubre',
+                    'Noviembre',
+                    'Diciembre'
+                ];
                 $filename .= '_' . $meses[$mes];
             }
             $filename .= '.xlsx';
-            
+
             // Guardar Excel final
             $archivoFinal = $tempDir . '/' . $filename;
             $writer = new Xlsx($spreadsheet);
             $writer->save($archivoFinal);
-            
+
             // Actualizar configuración
             $jobConfig['estado'] = 'completado';
             $jobConfig['archivo_final'] = $archivoFinal;
             $jobConfig['filename'] = $filename;
             $jobConfig['updated_at'] = now()->toISOString();
             file_put_contents($configFile, json_encode($jobConfig, JSON_PRETTY_PRINT));
-            
+
             return response()->json([
                 'success' => true,
                 'archivo_final' => $archivoFinal,
                 'filename' => $filename,
                 'job_id' => $jobId
             ]);
-            
         } catch (\Exception $e) {
             Log::error('Error generando Excel final: ' . $e->getMessage());
             return response()->json([
@@ -3369,17 +3434,17 @@ class MaterialKiloController extends Controller
     {
         $tempDir = storage_path('app/exports/' . $jobId);
         $configFile = $tempDir . '/config.json';
-        
+
         if (!file_exists($configFile)) {
             abort(404, 'Archivo no encontrado');
         }
-        
+
         $jobConfig = json_decode(file_get_contents($configFile), true);
-        
+
         if ($jobConfig['estado'] !== 'completado' || !$jobConfig['archivo_final']) {
             abort(404, 'Excel no está listo');
         }
-        
+
         return response()->download($jobConfig['archivo_final'], $jobConfig['filename']);
     }
 
@@ -3392,7 +3457,7 @@ class MaterialKiloController extends Controller
             // Configuración para archivos grandes
             set_time_limit(300);
             ini_set('memory_limit', '512M');
-            
+
             // Obtener filtros
             $mes = $request->get('mes');
             $año = $request->get('año', \Carbon\Carbon::now()->year);
@@ -3404,7 +3469,7 @@ class MaterialKiloController extends Controller
             $no_queja = $request->get('no_queja', '');
 
             $datos = [];
-            
+
             // Obtener incidencias - MISMOS FILTROS QUE LA VISTA
             if (!$tipo || $tipo === 'incidencia') {
                 $incidencias = DB::table('incidencias_proveedores as i')
@@ -3468,12 +3533,12 @@ class MaterialKiloController extends Controller
                     $datos[] = (array)$devolucion;
                 }
             }
-            
+
             // Crear Excel siempre (aunque no haya datos)
             $spreadsheet = new Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
             $sheet->setTitle('Historial');
-            
+
             // Encabezados
             $sheet->setCellValue('A1', 'Tipo');
             $sheet->setCellValue('B1', 'ID Proveedor');
@@ -3502,7 +3567,7 @@ class MaterialKiloController extends Controller
                 } else {
                     $descripcionFinal = $dato['descripcion_producto'] ?? $dato['codigo_producto'] ?? 'Sin descripción';
                 }
-                
+
                 $sheet->setCellValue('A' . $row, $dato['tipo']);
                 $sheet->setCellValue('B' . $row, $dato['id_proveedor'] ?? '');
                 $sheet->setCellValue('C' . $row, $dato['nombre_proveedor'] ?? '');
@@ -3523,15 +3588,28 @@ class MaterialKiloController extends Controller
             // Nombre de archivo mejorado
             $filename = 'Incidencias_Devoluciones_' . $año;
             if ($mes) {
-                $meses = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
-                         'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+                $meses = [
+                    '',
+                    'Enero',
+                    'Febrero',
+                    'Marzo',
+                    'Abril',
+                    'Mayo',
+                    'Junio',
+                    'Julio',
+                    'Agosto',
+                    'Septiembre',
+                    'Octubre',
+                    'Noviembre',
+                    'Diciembre'
+                ];
                 $filename .= '_' . $meses[$mes];
             }
             $filename .= '.xlsx';
 
             // Usar método directo sin archivos temporales
             $writer = new Xlsx($spreadsheet);
-            
+
             // Headers para descarga
             header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             header('Content-Disposition: attachment; filename="' . $filename . '"');
@@ -3541,16 +3619,15 @@ class MaterialKiloController extends Controller
             header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
             header('Cache-Control: cache, must-revalidate');
             header('Pragma: public');
-            
+
             // Limpiar cualquier output previo
             if (ob_get_level()) {
                 ob_end_clean();
             }
-            
+
             // Enviar directamente
             $writer->save('php://output');
             exit;
-            
         } catch (\Exception $e) {
             Log::error('Error en exportar Excel: ' . $e->getMessage());
             return response()->json([
@@ -3565,13 +3642,13 @@ class MaterialKiloController extends Controller
     private function contarRegistrosExport($filtros)
     {
         $total = 0;
-        
+
         // Contar incidencias - TODOS LOS FILTROS IGUAL QUE LA VISTA
         if (!$filtros['tipo'] || $filtros['tipo'] === 'incidencia') {
             $query = DB::table('incidencias_proveedores as i')
                 ->leftJoin('proveedores as p', 'i.id_proveedor', '=', 'p.id_proveedor')
                 ->where('i.año', $filtros['año']);
-            
+
             if ($filtros['mes']) $query->where('i.mes', $filtros['mes']);
             if ($filtros['proveedor']) $query->where('p.nombre_proveedor', 'LIKE', '%' . $filtros['proveedor'] . '%');
             if ($filtros['codigo_proveedor']) $query->where('i.id_proveedor', 'LIKE', '%' . $filtros['codigo_proveedor'] . '%');
@@ -3579,16 +3656,16 @@ class MaterialKiloController extends Controller
             if ($filtros['gravedad'] === 'grave') $query->where('i.clasificacion_incidencia', 'RG1');
             elseif ($filtros['gravedad'] === 'leve') $query->where('i.clasificacion_incidencia', 'RL1');
             if ($filtros['no_queja']) $query->where('i.no_queja', 'LIKE', '%' . $filtros['no_queja'] . '%');
-            
+
             $total += $query->count();
         }
-        
+
         // Contar devoluciones - TODOS LOS FILTROS IGUAL QUE LA VISTA
         if (!$filtros['tipo'] || $filtros['tipo'] === 'devolucion') {
             $query = DB::table('devoluciones_proveedores as d')
                 ->leftJoin('proveedores as p', 'd.codigo_proveedor', '=', 'p.id_proveedor')
                 ->where('d.año', $filtros['año']);
-            
+
             if ($filtros['mes']) $query->where('d.mes', $filtros['mes']);
             if ($filtros['proveedor']) $query->where('p.nombre_proveedor', 'LIKE', '%' . $filtros['proveedor'] . '%');
             if ($filtros['codigo_proveedor']) $query->where('d.codigo_proveedor', 'LIKE', '%' . $filtros['codigo_proveedor'] . '%');
@@ -3596,10 +3673,10 @@ class MaterialKiloController extends Controller
             if ($filtros['gravedad'] === 'grave') $query->where('d.clasificacion_incidencia', 'RG1');
             elseif ($filtros['gravedad'] === 'leve') $query->where('d.clasificacion_incidencia', 'RL1');
             if ($filtros['no_queja']) $query->where('d.no_queja', 'LIKE', '%' . $filtros['no_queja'] . '%');
-            
+
             $total += $query->count();
         }
-        
+
         return $total;
     }
 
@@ -3609,7 +3686,7 @@ class MaterialKiloController extends Controller
     private function obtenerDatosLote($filtros, $offset, $limit)
     {
         $datos = [];
-        
+
         // Obtener incidencias si es necesario - USAR MISMAS TABLAS QUE LA VISTA
         if (!$filtros['tipo'] || $filtros['tipo'] === 'incidencia') {
             $incidencias = DB::table('incidencias_proveedores as i')
@@ -3627,7 +3704,7 @@ class MaterialKiloController extends Controller
                     DB::raw("'' as no_queja")
                 )
                 ->where('i.año', $filtros['año']);
-            
+
             // Aplicar TODOS los filtros igual que la vista
             if ($filtros['mes']) $incidencias->where('i.mes', $filtros['mes']);
             if ($filtros['proveedor']) $incidencias->where('p.nombre_proveedor', 'LIKE', '%' . $filtros['proveedor'] . '%');
@@ -3636,12 +3713,12 @@ class MaterialKiloController extends Controller
             if ($filtros['gravedad'] === 'grave') $incidencias->where('i.clasificacion_incidencia', 'RG1');
             elseif ($filtros['gravedad'] === 'leve') $incidencias->where('i.clasificacion_incidencia', 'RL1');
             if ($filtros['no_queja']) $incidencias->where('i.no_queja', 'LIKE', '%' . $filtros['no_queja'] . '%');
-            
+
             foreach ($incidencias->offset($offset)->limit($limit)->get() as $incidencia) {
                 $datos[] = (array)$incidencia;
             }
         }
-        
+
         // Obtener devoluciones si es necesario - USAR MISMAS TABLAS QUE LA VISTA
         if (!$filtros['tipo'] || $filtros['tipo'] === 'devolucion') {
             $devoluciones = DB::table('devoluciones_proveedores as d')
@@ -3659,7 +3736,7 @@ class MaterialKiloController extends Controller
                     'd.no_queja'
                 )
                 ->where('d.año', $filtros['año']);
-            
+
             // Aplicar TODOS los filtros igual que la vista
             if ($filtros['mes']) $devoluciones->where('d.mes', $filtros['mes']);
             if ($filtros['proveedor']) $devoluciones->where('p.nombre_proveedor', 'LIKE', '%' . $filtros['proveedor'] . '%');
@@ -3668,12 +3745,12 @@ class MaterialKiloController extends Controller
             if ($filtros['gravedad'] === 'grave') $devoluciones->where('d.clasificacion_incidencia', 'RG1');
             elseif ($filtros['gravedad'] === 'leve') $devoluciones->where('d.clasificacion_incidencia', 'RL1');
             if ($filtros['no_queja']) $devoluciones->where('d.no_queja', 'LIKE', '%' . $filtros['no_queja'] . '%');
-            
+
             foreach ($devoluciones->offset($offset)->limit($limit)->get() as $devolucion) {
                 $datos[] = (array)$devolucion;
             }
         }
-        
+
         return $datos;
     }
 }

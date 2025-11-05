@@ -175,6 +175,7 @@ Route::group(['middleware' => ['auth']], function () {
     //Correos a proveedores
     Route::post('/proveedores/enviar-email', 'MainApp\EmailProveedorController@enviar')->name('proveedores.emails.enviar');
     Route::get('proveedor/{id}/historial', 'MainApp\EmailProveedorController@historial')->name('proveedores.historial');
+    Route::get('/proveedores/descargar-archivo-email/{emailId}/{nombreArchivo}', 'MainApp\EmailProveedorController@descargarArchivoEmail')->name('proveedores.descargar_archivo_email');
 
     //CRUD Tiendas
     Route::get('/tiendas', [TiendasController::class, 'index'])->name('tiendas.index');
@@ -243,7 +244,7 @@ Route::group(['middleware' => ['auth']], function () {
         // Rutas para edición de respuestas
         Route::get('/material_kilo/respuesta/{respuestaId}/datos', 'MaterialKiloController@obtenerDatosRespuesta')->name('material_kilo.obtener_datos_respuesta');
         Route::post('/material_kilo/respuesta/{respuestaId}/actualizar', 'MaterialKiloController@actualizarRespuesta')->name('material_kilo.actualizar_respuesta');
-        Route::delete('/material_kilo/respuesta/{respuestaId}/archivo/{indice}/eliminar', 'MaterialKiloController@eliminarArchivoRespuesta')->name('material_kilo.eliminar_archivo_respuesta');
+        Route::delete('/material_kilo/respuesta/{respuestaId}/archivo/{nombreArchivo}/eliminar', 'MaterialKiloController@eliminarArchivoRespuesta')->name('material_kilo.eliminar_archivo_respuesta');
 
 
 
@@ -369,6 +370,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/material_kilo/obtener-datos-respuesta/{respuestaId}', 'MaterialKiloController@obtenerDatosRespuesta')->name('material_kilo.obtener_datos_respuesta');
         Route::post('/material_kilo/eliminar-respuesta/{respuestaId}', 'MaterialKiloController@eliminarRespuesta')->name('material_kilo.eliminar_respuesta');
         Route::post('/material_kilo/eliminar-archivo-respuesta', 'MaterialKiloController@eliminarArchivoIndividualRespuesta')->name('material_kilo.eliminar_archivo_individual_respuesta');
-        Route::get('/material_kilo/descargar-archivo-respuesta/{respuestaId}/{indice}', 'MaterialKiloController@descargarArchivoRespuesta')->name('material_kilo.descargar_archivo_respuesta_final');
+        Route::get('/material_kilo/descargar-archivo-respuesta/{respuestaId}/{nombreArchivo}', 'MaterialKiloController@descargarArchivoRespuesta')->name('material_kilo.descargar_archivo_respuesta_final');
+        Route::get('/material_kilo/debug-respuesta-archivos/{respuestaId}', 'MaterialKiloController@debugRespuestaArchivos')->name('material_kilo.debug_respuesta_archivos');
     });
 });

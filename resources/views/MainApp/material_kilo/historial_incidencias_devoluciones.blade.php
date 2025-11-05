@@ -520,13 +520,12 @@
                         var archivosHtml = "";
                         if (resp.archivos && resp.archivos.length) {
                             archivosHtml = resp.archivos.map(function(archivo, index) {
-                                var downloadUrl = "{{ url('material_kilo/descargar-archivo-respuesta') }}/" + resp.id + "/" + archivo.indice;
+                                var downloadUrl = "{{ url('material_kilo/descargar-archivo-respuesta') }}/" + resp.id + "/" + encodeURIComponent(archivo.nombre_original);
                                 var btnClass = archivo.es_imagen ? 'btn-success' : 'btn-primary';
-                                var numeroSlot = parseInt(archivo.indice) + 1; // Mostrar 1, 2, 3
-                                
-                                return '<a href="' + downloadUrl + '" ' +
-                                    'class="btn btn-xs ' + btnClass + ' mr-1 mb-1" target="_blank" title="' + archivo.nombre_original + '">' +
-                                    numeroSlot + '</a>';
+                                var numeroSlot = index + 1;
+                                return '<button type="button" class="btn btn-xs ' + btnClass + ' mr-1 mb-1 btn-descargar-archivo" ' +
+                                    'data-url="' + downloadUrl + '" data-nombre="' + archivo.nombre_original + '" title="' + archivo.nombre_original + '">' +
+                                    numeroSlot + '</button>';
                             }).join('');
                         } else {
                             archivosHtml = '<span class="text-muted">Sin archivos</span>';
@@ -898,18 +897,18 @@
         // Procesar archivos existentes
         if (Array.isArray(archivos) && archivos.length > 0) {
             archivos.forEach(function(archivo, index) {
-                if (archivo && archivo.indice !== undefined) {
-                    // Usar el índice real del archivo, no la posición en el array
-                    var slot = archivo.indice + 1; // Convertir índice 0-based a slot 1-based
+                if (archivo && archivo.nombre_original) {
+                    // Usar el índice del array como slot (1-based)
+                    var slot = index + 1;
                     if (slot >= 1 && slot <= 3) {
-                        mostrarArchivoEnSlot(archivo, slot, archivo.indice);
+                        mostrarArchivoEnSlot(archivo, slot, archivo.nombre_original);
                     }
                 }
             });
         }
     }
     
-    function mostrarArchivoEnSlot(archivo, slot, indiceReal) {
+    function mostrarArchivoEnSlot(archivo, slot, nombreArchivo) {
         if (!archivo || slot < 1 || slot > 3) return;
         
         var preview = $('#preview' + slot);
@@ -919,7 +918,7 @@
         input.disabled = true;
         
         // Extraer información del archivo (nuevo sistema usa URL completa)
-        var fileName = archivo.nombre_original || basename(archivo.url || archivo.ruta_completa || 'archivo_existente');
+        var fileName = archivo.nombre_original || nombreArchivo || basename(archivo.url || archivo.ruta_completa || 'archivo_existente');
         var fileUrl = archivo.url || "{{ url('storage') }}/" + (archivo.ruta_completa || '');
         var esImagen = archivo.es_imagen || false;
         var extension = archivo.extension || fileName.toLowerCase().split('.').pop();
@@ -930,7 +929,7 @@
                 '<img src="' + fileUrl + '" style="max-width: 100px; max-height: 100px; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 5px; cursor: pointer;" ' +
                 'onclick="mostrarImagenCompleta(\'' + fileUrl + '\', \'' + fileName + '\')">' +
                 '<br><small class="text-info"><strong>Existente</strong><br>' + fileName + '</small>' +
-                '<br><button type="button" class="btn btn-xs btn-danger mt-1" onclick="eliminarArchivoExistente(' + slot + ', ' + indiceReal + ')" title="Eliminar archivo">' +
+                '<br><button type="button" class="btn btn-xs btn-danger mt-1" onclick="eliminarArchivoExistente(' + slot + ', \'' + fileName + '\')" title="Eliminar archivo">' +
                 '<i class="fa fa-trash"></i></button>' +
                 '</div>'
             );
@@ -944,7 +943,7 @@
                 '<div class="text-info text-center">' +
                 '<i class="fa ' + iconClass + ' fa-2x"></i><br>' +
                 '<small><strong>Existente</strong><br>' + fileName + '</small>' +
-                '<br><button type="button" class="btn btn-xs btn-danger mt-1" onclick="eliminarArchivoExistente(' + slot + ', ' + indiceReal + ')" title="Eliminar archivo">' +
+                '<br><button type="button" class="btn btn-xs btn-danger mt-1" onclick="eliminarArchivoExistente(' + slot + ', \'' + fileName + '\')" title="Eliminar archivo">' +
                 '<i class="fa fa-trash"></i></button>' +
                 '</div>'
             );
@@ -958,7 +957,7 @@
         return parts[parts.length - 1];
     }
     
-    function eliminarArchivoExistente(numeroSlot, indiceArchivo) {
+    function eliminarArchivoExistente(numeroSlot, nombreArchivo) {
         if (!confirm("¿Está seguro de eliminar este archivo?")) return;
         
         var respuestaId = $("#modalRespuestas").data("respuesta-id");
@@ -984,7 +983,7 @@
             },
             data: {
                 'respuesta_id': respuestaId,
-                'indice': indiceArchivo
+                'nombre_archivo': nombreArchivo
             },
             success: function(response) {
                 
@@ -1138,6 +1137,18 @@
         $("#btnGuardarRespuesta").html('<i class="fa fa-save"></i> Guardar Respuesta')
             .removeClass("btn-warning").addClass("btn-success");
         $("#btnCancelarEdicion").hide();
+    });
+
+    $(document).on('click', '.btn-descargar-archivo', function(e) {
+        e.preventDefault();
+        var url = $(this).data('url');
+        var nombre = $(this).data('nombre') || 'archivo';
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = nombre;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     });
 </script>
 @endsection
