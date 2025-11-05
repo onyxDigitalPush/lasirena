@@ -153,8 +153,25 @@
     }
   }
 
+  // Función de diagnóstico para verificar elementos en el DOM
+  function verificarElementosDOM() {
+    console.log("🔍 VERIFICANDO ELEMENTOS DEL DOM:");
+    console.log("- Tabla proveedores:", $("#table_proveedores").length > 0 ? "✅" : "❌");
+    console.log("- Modal historial:", $("#historialEmailsModal").length > 0 ? "✅" : "❌");
+    console.log("- Modal editar:", $("#userModal").length > 0 ? "✅" : "❌");
+    console.log("- Botones historial:", $(".open-history").length, "encontrados");
+    console.log("- jQuery disponible:", typeof $ !== 'undefined' ? "✅" : "❌");
+    console.log("- Bootstrap modal:", typeof $.fn.modal !== 'undefined' ? "✅" : "❌");
+    console.log("- DataTables disponible:", typeof $.fn.DataTable !== 'undefined' ? "✅" : "❌");
+  }
+
   // --- Tabla principal de proveedores ---
   $(function () {
+    console.log("🚀 Inicializando proveedor_list.js...");
+    
+    // Verificar elementos del DOM
+    verificarElementosDOM();
+    
     proveedoresTable = $("#table_proveedores").DataTable({
       orderCellsTop: true,
       fixedHeader: true,
@@ -172,6 +189,35 @@
         }
       });
     });
+    
+    console.log("✅ Inicialización completada");
+    
+    // DEBUGGING: Agregar función de prueba del modal (solo para desarrollo)
+    if (window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1')) {
+      console.log("🧪 MODO DEBUG: Agregando botón de prueba del modal...");
+      
+      // Crear botón de prueba
+      var $testButton = $('<button id="test-modal-btn" class="btn btn-warning btn-sm position-fixed" style="top: 10px; right: 10px; z-index: 9999;">🧪 Test Modal</button>');
+      $('body').append($testButton);
+      
+      $testButton.on('click', function() {
+        console.log("🧪 PRUEBA MANUAL DEL MODAL");
+        var $modal = $("#historialEmailsModal");
+        
+        if ($modal.length === 0) {
+          alert("❌ Modal no encontrado en DOM");
+          return;
+        }
+        
+        try {
+          $modal.modal("show");
+          console.log("✅ Modal de prueba abierto exitosamente");
+        } catch (e) {
+          console.error("❌ Error al abrir modal de prueba:", e);
+          alert("Error: " + e.message);
+        }
+      });
+    }
   });
 
   // MODAL EDITAR PROVEEDOR
@@ -190,8 +236,6 @@
           $("#codigo_proveedor_old").val(proveedor.id_proveedor);
           $("#codigo_proveedor_edit").val(proveedor.id_proveedor);
           $("#nombre_proveedor_edit").val(proveedor.nombre_proveedor);
-      $("#familia_edit").val(proveedor.familia || "");
-      $("#subfamilia_edit").val(proveedor.subfamilia || "");
           $("#email_proveedor_edit").val(proveedor.email_proveedor);
           $("#userModal").modal("show");
         })
@@ -205,14 +249,26 @@
     });
 
   // MODAL HISTORIAL - VERSIÓN MEJORADA PARA PRODUCCIÓN
+  // Usar múltiples métodos de vinculación para mayor compatibilidad
   $(document)
     .off("click.historyModal")
-    .on("click.historyModal", ".open-history", function (e) {
+    .on("click.historyModal", ".open-history", manejarClickHistorial);
+    
+  // También vincular directamente si los elementos ya existen
+  $(document).ready(function() {
+    $(".open-history").off("click.historyModalDirect").on("click.historyModalDirect", manejarClickHistorial);
+  });
+  
+  function manejarClickHistorial(e) {
       e.preventDefault();
       var $btn = $(this);
       
+      // DEBUGGING: Log para verificar que se ejecuta el evento
+      console.log("🔍 CLICK EN HISTORIAL - ID:", $btn.data("id"), "Nombre:", $btn.data("nombre"));
+      
       // Prevenir múltiples clicks
       if ($btn.hasClass("loading") || loadingHistory) {
+        console.log("⚠️ Ya está cargando o en proceso");
         return false;
       }
       
@@ -224,20 +280,38 @@
 
       // Validar ID más robustamente
       if (!id || id === "" || isNaN(id)) {
-        console.error("ID de proveedor inválido:", id);
+        console.error("❌ ID de proveedor inválido:", id);
         $btn.removeClass("loading").prop("disabled", false);
         loadingHistory = false;
         return alert("Error: ID de proveedor no válido");
       }
 
+      // Verificar que jQuery está disponible
+      if (typeof $ === 'undefined' || typeof jQuery === 'undefined') {
+        console.error("❌ jQuery no está disponible");
+        $btn.removeClass("loading").prop("disabled", false);
+        loadingHistory = false;
+        return alert("Error: jQuery no disponible");
+      }
+
+      // Verificar que Bootstrap está disponible
+      if (typeof $.fn.modal === 'undefined') {
+        console.error("❌ Bootstrap modal no está disponible");
+        $btn.removeClass("loading").prop("disabled", false);
+        loadingHistory = false;
+        return alert("Error: Bootstrap no está cargado correctamente");
+      }
+
       // Verificar que el modal existe
       var $modal = $("#historialEmailsModal");
       if ($modal.length === 0) {
-        console.error("Modal de historial no encontrado en DOM");
+        console.error("❌ Modal de historial no encontrado en DOM");
         $btn.removeClass("loading").prop("disabled", false);
         loadingHistory = false;
         return alert("Error: Modal de historial no disponible");
       }
+
+      console.log("✅ Modal encontrado, preparando datos...");
 
       // Configurar información del proveedor
       $("#hist_proveedor_nombre").text(nombre);
@@ -245,9 +319,11 @@
       $("#mensaje_preview_container").hide();
 
       // 1. Destruir tabla anterior
+      console.log("🗑️ Destruyendo tabla anterior...");
       destroyHistorialTable();
 
       // 2. Crear tabla nueva
+      console.log("🔨 Creando nueva tabla...");
       createHistorialTable();
 
       // 3. Mostrar loading en tbody
@@ -257,25 +333,47 @@
       );
 
       // 4. Abrir modal
+      console.log("📂 Intentando abrir modal...");
       try {
+        // Método 1: Bootstrap modal
         $modal.modal("show");
+        console.log("✅ Modal abierto exitosamente con Bootstrap");
       } catch (error) {
-        console.error("Error al abrir modal:", error);
-        $btn.removeClass("loading").prop("disabled", false);
-        loadingHistory = false;
-        return alert("Error al abrir el modal del historial");
+        console.error("❌ Error con Bootstrap modal, intentando método alternativo:", error);
+        try {
+          // Método alternativo: manipular clases directamente
+          $modal.addClass("show").css("display", "block");
+          $("body").addClass("modal-open");
+          if ($(".modal-backdrop").length === 0) {
+            $("body").append('<div class="modal-backdrop fade show"></div>');
+          }
+          console.log("✅ Modal abierto con método alternativo");
+        } catch (alternativeError) {
+          console.error("❌ Error con método alternativo:", alternativeError);
+          $btn.removeClass("loading").prop("disabled", false);
+          loadingHistory = false;
+          return alert("Error al abrir el modal del historial: " + error.message);
+        }
       }
 
       // 5. Cargar datos con manejo robusto de errores
+      var ajaxUrl = "/proveedor/" + id + "/historial";
+      console.log("🌐 Haciendo petición AJAX a:", ajaxUrl);
+      
       $.ajax({
-        url: "/proveedor/" + id + "/historial",
+        url: ajaxUrl,
         method: "GET",
         timeout: 15000, // 15 segundos timeout
-        dataType: "json"
+        dataType: "json",
+        beforeSend: function() {
+          console.log("📤 Enviando petición AJAX...");
+        }
       })
         .done(function (res) {
+          console.log("✅ Respuesta AJAX recibida:", res);
           $tbody.empty();
           var emails = res && res.data ? res.data : [];
+          console.log("📧 Emails encontrados:", emails.length);
 
           if (!emails.length) {
             $tbody.html(
@@ -310,7 +408,7 @@
 
               if (archivos && archivos.length) {
                 archivos.forEach(function (archivo, idx) {
-                  // 🔥 CAMBIO 1: Botones más pequeños con clase nueva
+                  // CAMBIO 1: Botones más pequeños con clase nueva
                   archivosHtml += `<a class="btn btn-xs btn-outline-primary btn-archivo-download" href="${
                     archivo.url
                   }" target="_blank" download title="Descargar archivo ${
@@ -393,7 +491,7 @@
           $btn.removeClass("loading").prop("disabled", false);
           loadingHistory = false;
         });
-    });
+  }
 
   // BOTÓN VER MENSAJE (delegado)
   $(document)
@@ -420,13 +518,34 @@
       $("#mensaje_preview_container").hide();
     });
 
-  // Cierre de modal historial
-  $("#historialEmailsModal").on("hide.bs.modal", function () {
+  // Función para cerrar el modal historial
+  function cerrarModalHistorial() {
+    console.log("🚪 Cerrando modal historial...");
     $("#hist_proveedor_nombre").text("");
     $("#mensaje_preview").empty();
     $("#mensaje_preview_container").hide();
     loadingHistory = false;
     destroyHistorialTable();
+    
+    // Limpiar backdrop si existe
+    $(".modal-backdrop").remove();
+    $("body").removeClass("modal-open");
+  }
+
+  // Cierre de modal historial (Bootstrap)
+  $("#historialEmailsModal").on("hide.bs.modal", cerrarModalHistorial);
+  
+  // Cierre manual del modal (botón X y backdrop)
+  $(document).on("click", "#historialEmailsModal .close, .modal-backdrop", function() {
+    console.log("🚪 Cierre manual del modal detectado");
+    var $modal = $("#historialEmailsModal");
+    try {
+      $modal.modal("hide");
+    } catch (e) {
+      // Si Bootstrap falla, cerrar manualmente
+      $modal.removeClass("show").css("display", "none");
+      cerrarModalHistorial();
+    }
   });
 
   // Cierre de modal editar
