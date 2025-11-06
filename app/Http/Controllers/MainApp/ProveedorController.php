@@ -52,9 +52,22 @@ class ProveedorController extends Controller
 
     public function store(Request $request)
     {
-        $email = $request->email_proveedor;
-        if (!preg_match('/^[^@]+@[^@]+\.[^@]+$/', $request->email_proveedor)) {
-            return redirect()->back()->with('error', 'El correo debe tener el formato texto@texto.dominio');
+        $rawEmails = trim($request->email_proveedor);
+        $rawEmails = str_replace([';', ' '], [',', ''], $rawEmails);
+
+        $emailsArray = array_filter(array_map('trim', explode(',', $rawEmails)));
+
+        foreach ($emailsArray as $email) {
+            if (!preg_match('/^[^@]+@[^@]+\.[^@]+$/', $email)) {
+                return redirect()->back()->with('error', "El correo '$email' debe tener el formato texto@texto.dominio");
+            }
+        }
+
+        $emailsString = implode(',', $emailsArray);
+
+        // Validar longitud máxima
+        if (strlen($emailsString) > 255) {
+            return redirect()->back()->with('error', 'El campo de email no puede superar los 255 caracteres.');
         }
 
         try {
@@ -63,7 +76,7 @@ class ProveedorController extends Controller
             $proveedor->nombre_proveedor = $request->nombre_proveedor;
             $proveedor->familia = $request->familia;
             $proveedor->subfamilia = $request->subfamilia;
-            $proveedor->email_proveedor = $email;
+            $proveedor->email_proveedor = $emailsString;
             $proveedor->save();
             return redirect()->back()->with('success', 'Proveedor creado correctamente.');
         } catch (\Illuminate\Database\QueryException $e) {
@@ -98,6 +111,7 @@ class ProveedorController extends Controller
         // Si no es AJAX, devuelve vista normalmente
         return view('proveedores.proveedor_edit', compact('proveedor'));
     }
+
     public function update(Request $request)
     {
         $proveedor = Proveedor::find($request->input('codigo_proveedor_old'));
@@ -105,14 +119,28 @@ class ProveedorController extends Controller
             return redirect()->back()->with('error', 'Proveedor no encontrado.');
         }
 
-        $email = $request->email_proveedor_edit;
-        if (!preg_match('/^[^@]+@[^@]+\.[^@]+$/', $request->email_proveedor_edit)) {
-            return redirect()->back()->with('error', 'El correo debe tener el formato texto@texto.dominio');
+        // Normalizar emails igual que en store
+        $rawEmails = trim($request->email_proveedor_edit);
+        $rawEmails = str_replace([';', ' '], [',', ''], $rawEmails);
+
+        $emailsArray = array_filter(array_map('trim', explode(',', $rawEmails)));
+
+        foreach ($emailsArray as $email) {
+            if (!preg_match('/^[^@]+@[^@]+\.[^@]+$/', $email)) {
+                return redirect()->back()->with('error', "El correo '$email' debe tener el formato texto@texto.dominio");
+            }
+        }
+
+        $emailsString = implode(',', $emailsArray);
+
+        // Validar longitud máxima
+        if (strlen($emailsString) > 255) {
+            return redirect()->back()->with('error', 'El campo de email no puede superar los 255 caracteres.');
         }
 
         $proveedor->id_proveedor = $request->input('id_proveedor');
         $proveedor->nombre_proveedor = $request->input('nombre_proveedor_edit');
-        $proveedor->email_proveedor = $email;
+        $proveedor->email_proveedor = $emailsString;
         $proveedor->save();
         return redirect()->back()->with('success', 'Proveedor actualizado correctamente.');
     }
