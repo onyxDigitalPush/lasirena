@@ -1383,8 +1383,6 @@
                         data-tipo="{{ $registro->tipo_registro }}" 
                         data-id="{{ $registro->id }}"
                         data-proveedor-id="{{ $registro->tipo_registro == 'incidencia' ? $registro->id_proveedor : $registro->codigo_proveedor }}">
-                        <td class="text-center">
-                        data-proveedor-id="{{ $registro->tipo_registro == 'incidencia' ? $registro->id_proveedor : $registro->codigo_proveedor }}">
                         <td class="text-center" style="cursor: pointer;" onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})">
                             @if($registro->tipo_registro == 'incidencia')
                                 <span class="badge badge-incidencia">
@@ -1395,6 +1393,9 @@
                                     <i class="fa fa-undo mr-1"></i>Reclamacion
                                 </span>
                             @endif
+                        </td>
+                        <td class="text-center">
+                        {{ $registro->tipo_registro == 'incidencia' ? $registro->id_proveedor : $registro->codigo_proveedor }}
                         </td>
                         <td class="text-center" style="cursor: pointer;" onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})">
                             {{ $registro->tipo_registro == 'incidencia' ? $registro->id_proveedor : $registro->codigo_proveedor }}
