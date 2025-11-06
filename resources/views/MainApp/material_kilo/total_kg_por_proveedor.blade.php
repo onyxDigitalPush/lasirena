@@ -381,13 +381,13 @@
                                 <input type="date" id="fecha_fin" name="fecha_fin" class="form-control">
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        {{-- <div class="col-md-3">
                             <div class="form-group">
                                 <label for="np">NP:</label>
                                 <input type="text" id="np" name="np" class="form-control"
                                     placeholder="NP">
                             </div>
-                        </div>
+                        </div> --}}
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label for="fecha_reclamacion">Fecha Reclamación:</label>
@@ -436,29 +436,6 @@
                                     <option value="">Seleccione una clasificación</option>
                                     <option value="RG1">RG - Reclamación Grave</option>
                                     <option value="RL1">RL - Reclamación Leve</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="tipo_reclamacion">Tipo Reclamación:</label>
-                                <select id="tipo_reclamacion" name="tipo_reclamacion" class="form-control">
-                                    <option value="">Seleccione tipo</option>
-                                    <option value="Leve">Leve</option>
-                                    <option value="Grave">Grave</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group d-none">
-                                <label for="tipo_reclamacion_grave">Tipo de reclamacion grave:</label>
-                                <select id="tipo_reclamacion_grave" name="tipo_reclamacion_grave"
-                                    class="form-control">
-                                    <option value="">Seleccione tipo grave</option>
-                                    <option value="Presencia objetos extraños">Presencia objetos extraños</option>
-                                    <option value="Afeccion salud cliente">Afeccion salud cliente</option>
                                 </select>
                             </div>
                         </div>
@@ -595,6 +572,28 @@
                                 <label for="informe_dev">Informe:</label>
                                 <textarea id="informe_dev" name="informe" class="form-control" rows="3" placeholder="Informe"></textarea>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Archivos del Informe -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label for="archivos_informe">Archivos del Informe:</label>
+                                <input type="file" class="form-control-file" id="archivos_informe" name="archivos_informe[]" multiple 
+                                       accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
+                                <small class="form-text text-muted">
+                                    Selecciona uno o varios archivos para el informe (máximo 10MB cada uno). 
+                                    Formatos permitidos: PDF, Word, Excel, imágenes.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista de archivos del informe seleccionados -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div id="lista_archivos_informe" class="mt-2"></div>
                         </div>
                     </div>
 

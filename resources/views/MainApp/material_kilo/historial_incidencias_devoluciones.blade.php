@@ -4,6 +4,8 @@
 
 @section('custom_head')
 <meta name="csrf-token" content="{{ csrf_token() }}">
+<!-- SweetAlert2 CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <style>
     .btn-group .btn {
         margin-left: 5px;
@@ -18,7 +20,6 @@
         background-color: rgba(255,255,255,0.1);
     }
     .table tbody tr {
-        cursor: pointer;
         transition: background-color 0.2s;
     }
     .table tbody tr:hover {
@@ -91,7 +92,15 @@
         word-wrap: break-word;
         font-size: 0.8rem;
     }
+    
+    /* Botones de acción */
+    .btn-action {
+        padding: 5px 10px;
+        margin: 0 2px;
+    }
 </style>
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     // VARIABLES GLOBALES
     window.appBaseUrl = '{{ url("/") }}';
@@ -1364,7 +1373,8 @@
                     <th class="text-center">Estado</th>
                     <th class="text-center">Historial cambios de estado</th>
                     <th class="text-center">Respuestas</th>
-                    <th class="text-center">Descripción/Producto</th>
+                    <th class="text-center">Nombre Producto</th>
+                    <th class="text-center">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -1374,6 +1384,8 @@
                         data-id="{{ $registro->id }}"
                         data-proveedor-id="{{ $registro->tipo_registro == 'incidencia' ? $registro->id_proveedor : $registro->codigo_proveedor }}">
                         <td class="text-center">
+                        data-proveedor-id="{{ $registro->tipo_registro == 'incidencia' ? $registro->id_proveedor : $registro->codigo_proveedor }}">
+                        <td class="text-center" style="cursor: pointer;" onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})">
                             @if($registro->tipo_registro == 'incidencia')
                                 <span class="badge badge-incidencia">
                                     <i class="fa fa-exclamation-triangle mr-1"></i>Incidencia
@@ -1384,32 +1396,32 @@
                                 </span>
                             @endif
                         </td>
-                        <td class="text-center">
+                        <td class="text-center" style="cursor: pointer;" onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})">
                             {{ $registro->tipo_registro == 'incidencia' ? $registro->id_proveedor : $registro->codigo_proveedor }}
                         </td>
-                        <td class="text-center">{{ $registro->nombre_proveedor }}</td>
-                        <td class="text-center">
+                        <td class="text-center" style="cursor: pointer;" onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})">{{ $registro->nombre_proveedor }}</td>
+                        <td class="text-center" style="cursor: pointer;" onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})">
                             @if($registro->tipo_registro == 'incidencia')
                                 <span class="badge badge-light">{{ $registro->codigo ?? 'N/A' }}</span>
                             @else
                                 <span class="badge badge-light">{{ $registro->codigo_producto ?? 'N/A' }}</span>
                             @endif
                         </td>
-                        <td class="text-center">
+                        <td class="text-center" style="cursor: pointer;" onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})">
                             @if($registro->tipo_registro == 'devolucion' && $registro->no_queja)
                                 <span class="badge badge-warning">{{ $registro->no_queja }}</span>
                             @else
                                 <span class="text-muted">-</span>
                             @endif
                         </td>
-                        <td class="text-center">
+                        <td class="text-center" style="cursor: pointer;" onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})">
                             @if($registro->fecha_principal)
                                 {{ \Carbon\Carbon::parse($registro->fecha_principal)->format('d/m/Y') }}
                             @else
                                 <span class="text-muted">Sin fecha</span>
                             @endif
                         </td>
-                        <td class="text-center">
+                        <td class="text-center" style="cursor: pointer;" onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})">
                             <span class="badge badge-secondary">
                                 @php
                                     $meses_cortos = ['', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
@@ -1417,7 +1429,7 @@
                                 {{ $meses_cortos[$registro->mes] ?? 'N/A' }}/{{ $registro->año }}
                             </span>
                         </td>
-                        <td class="text-center">
+                        <td class="text-center" style="cursor: pointer;" onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})">
                             @if($registro->clasificacion_incidencia)
                                 @php
                                     $clase = $registro->clasificacion_incidencia == 'RG1' ? 'danger' : ($registro->clasificacion_incidencia == 'RL1' ? 'warning' : 'info');
@@ -1463,12 +1475,28 @@
                                 <i class="fa fa-reply"></i> Respuestas
                             </button>
                         </td>
-                        <td class="text-center">
+                        <td class="text-center" style="cursor: pointer;" onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})">
                             @if($registro->tipo_registro == 'incidencia')
                                 {{ $registro->descripcion_incidencia ?? $registro->producto ?? 'Sin descripción' }}
                             @else
                                 {{ $registro->descripcion_producto ?? $registro->codigo_producto ?? 'Sin descripción' }}
                             @endif
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group" role="group">
+                                <button type="button" 
+                                        class="btn btn-sm btn-primary btn-action" 
+                                        onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})"
+                                        title="Editar">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                                <button type="button" 
+                                        class="btn btn-sm btn-danger btn-action" 
+                                        onclick="eliminarRegistro(event, '{{ $registro->tipo_registro }}', {{ $registro->id }}, '{{ addslashes($registro->nombre_proveedor) }}')"
+                                        title="Eliminar">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 @endforeach

@@ -158,6 +158,7 @@ class MaterialKiloController extends Controller
                     'material_kilos.factor_conversion',
                     'material_kilos.codigo_material',
                     'material_kilos.mes',
+                    'material_kilos.año',
                     'material_kilos.proveedor_id'
                 )
                 ->where('material_kilos.id', $id)
@@ -185,29 +186,131 @@ class MaterialKiloController extends Controller
     public function updateMaterial(Request $request)
     {
         try {
+            // Validación básica
             $request->validate([
                 'material_kilo_id' => 'required|exists:material_kilos,id',
-                'factor_conversion' => 'nullable|numeric|min:0'
+                'factor_conversion' => 'required|numeric|min:0',
+                'aplicar_rango' => 'nullable|boolean'
             ]);
 
-            $material_kilo = MaterialKilo::findOrFail($request->material_kilo_id);
+            $factorConversion = $request->factor_conversion;
+            $aplicarRango = $request->has('aplicar_rango') && $request->aplicar_rango == '1';
 
-            // Actualizar solo el factor de conversión
-            $material_kilo->factor_conversion = $request->factor_conversion;
+            // Caso 1: Solo actualizar el registro actual
+            if (!$aplicarRango) {
+                $material = MaterialKilo::findOrFail($request->material_kilo_id);
+                
+                $material->factor_conversion = $factorConversion;
+                
+                // Recalcular el total_kg
+                if ($factorConversion > 0 && $material->ctd_emdev) {
+                    $material->total_kg = $material->ctd_emdev * $factorConversion;
+                } else {
+                    $material->total_kg = 0;
+                }
+                
+                $material->save();
 
-            // Recalcular el total_kg si hay factor de conversión
-            if ($request->factor_conversion && $request->factor_conversion > 0) {
-                $material_kilo->total_kg = $material_kilo->ctd_emdev * $request->factor_conversion;
-            } else {
-                $material_kilo->total_kg = 0;
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Material actualizado correctamente',
+                    'registros_actualizados' => 1
+                ]);
             }
 
-            $material_kilo->save();
+            // Caso 2: Aplicar a rango de fechas
+            $request->validate([
+                'codigo_material_hidden' => 'required',
+                'mes_inicio' => 'required|integer|min:1|max:12',
+                'anio_inicio' => 'required|integer|min:2020|max:2030',
+                'mes_fin' => 'required|integer|min:1|max:12',
+                'anio_fin' => 'required|integer|min:2020|max:2030'
+            ]);
+
+            // Obtener el código del material
+            $codigoMaterial = $request->codigo_material_hidden;
+
+            // Obtener los valores de mes y año
+            $mesInicio = $request->mes_inicio;
+            $anioInicio = $request->anio_inicio;
+            $mesFin = $request->mes_fin;
+            $anioFin = $request->anio_fin;
+
+            // Validar que el rango sea correcto
+            $fechaInicioComparacion = $anioInicio * 100 + $mesInicio;
+            $fechaFinComparacion = $anioFin * 100 + $mesFin;
+            
+            if ($fechaInicioComparacion > $fechaFinComparacion) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'La fecha de inicio no puede ser posterior a la fecha fin'
+                ], 400);
+            }
+
+            // Buscar todos los registros del material en el rango de fechas
+            // Considerando que mes y año son columnas separadas
+            $materiales = MaterialKilo::where('codigo_material', $codigoMaterial)
+                ->where(function($query) use ($anioInicio, $anioFin, $mesInicio, $mesFin) {
+                    if ($anioInicio == $anioFin) {
+                        // Mismo año: filtrar solo por mes dentro del año
+                        $query->where('año', $anioInicio)
+                              ->whereBetween('mes', [$mesInicio, $mesFin]);
+                    } else {
+                        // Diferentes años
+                        $query->where(function($q) use ($anioInicio, $anioFin, $mesInicio, $mesFin) {
+                            // Registros del año inicio desde el mes inicio hasta diciembre
+                            $q->where(function($subQ) use ($anioInicio, $mesInicio) {
+                                $subQ->where('año', $anioInicio)
+                                     ->where('mes', '>=', $mesInicio);
+                            })
+                            // Registros de años intermedios completos
+                            ->orWhere(function($subQ) use ($anioInicio, $anioFin) {
+                                $subQ->where('año', '>', $anioInicio)
+                                     ->where('año', '<', $anioFin);
+                            })
+                            // Registros del año fin desde enero hasta el mes fin
+                            ->orWhere(function($subQ) use ($anioFin, $mesFin) {
+                                $subQ->where('año', $anioFin)
+                                     ->where('mes', '<=', $mesFin);
+                            });
+                        });
+                    }
+                })
+                ->get();
+
+            if ($materiales->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se encontraron registros del material en el rango de fechas especificado'
+                ], 404);
+            }
+
+            // Actualizar todos los registros encontrados
+            $registrosActualizados = 0;
+            foreach ($materiales as $material) {
+                $material->factor_conversion = $factorConversion;
+                
+                // Recalcular el total_kg
+                if ($factorConversion > 0 && $material->ctd_emdev) {
+                    $material->total_kg = $material->ctd_emdev * $factorConversion;
+                } else {
+                    $material->total_kg = 0;
+                }
+                
+                $material->save();
+                $registrosActualizados++;
+            }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Material actualizado correctamente'
+                'message' => 'Materiales actualizados correctamente',
+                'registros_actualizados' => $registrosActualizados
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación: ' . implode(', ', $e->validator->errors()->all())
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -675,6 +778,7 @@ class MaterialKiloController extends Controller
         $año = $request->get('año', \Carbon\Carbon::now()->year);
         $proveedor = $request->get('proveedor', ''); // Asegurar que sea string
         $idProveedor = $request->get('id_proveedor', ''); // Asegurar que sea string
+        $familia = $request->get('familia', ''); // Nuevo filtro de familia
 
         // Asegurar que $año sea numérico
         $año = (int) $año;
@@ -686,7 +790,9 @@ class MaterialKiloController extends Controller
             'proveedor' => $proveedor,
             'proveedor_type' => gettype($proveedor),
             'idProveedor' => $idProveedor,
-            'idProveedor_type' => gettype($idProveedor)
+            'idProveedor_type' => gettype($idProveedor),
+            'familia' => $familia,
+            'familia_type' => gettype($familia)
         ]);
 
         // Obtener totales por proveedor para el mes y año específicos
@@ -695,6 +801,7 @@ class MaterialKiloController extends Controller
             ->select(
                 'proveedores.id_proveedor',
                 'proveedores.nombre_proveedor',
+                'proveedores.familia',
                 DB::raw('SUM(gp_ls_material_kilos.total_kg) as total_kg_proveedor'),
                 DB::raw('COUNT(gp_ls_material_kilos.id) as cantidad_registros')
             )
@@ -715,7 +822,12 @@ class MaterialKiloController extends Controller
             $query->where('proveedores.id_proveedor', 'LIKE', '%' . $idProveedor . '%');
         }
 
-        $totales_por_proveedor = $query->groupBy('proveedores.id_proveedor', 'proveedores.nombre_proveedor')
+        // Filtrar por familia si está seleccionada
+        if ($familia && is_string($familia)) {
+            $query->where('proveedores.familia', $familia);
+        }
+
+        $totales_por_proveedor = $query->groupBy('proveedores.id_proveedor', 'proveedores.nombre_proveedor', 'proveedores.familia')
             ->orderBy('total_kg_proveedor', 'desc')
             ->get();
 
@@ -816,6 +928,7 @@ class MaterialKiloController extends Controller
         // Asegurar que las variables sean strings o null
         $proveedor = is_string($proveedor) ? $proveedor : '';
         $idProveedor = is_string($idProveedor) ? $idProveedor : '';
+        $familia = is_string($familia) ? $familia : '';
 
         return view('MainApp/material_kilo.evaluacion_continua_proveedores', compact(
             'totales_por_proveedor',
@@ -824,6 +937,7 @@ class MaterialKiloController extends Controller
             'año',
             'proveedor',
             'idProveedor',
+            'familia',
             'proveedores_disponibles'
         ));
     }
@@ -868,21 +982,46 @@ class MaterialKiloController extends Controller
         ]);
     }
 
-    public function eliminarIncidencia(Request $request)
+    public function eliminarIncidencia(Request $request, $id = null)
     {
         try {
-            $request->validate([
-                'id_incidencia' => 'required|exists:incidencias_proveedores,id'
-            ]);
+            // Obtener ID desde la ruta o desde el request
+            $incidenciaId = $id ?? $request->input('id_incidencia');
+            
+            if (!$incidenciaId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'ID de incidencia no proporcionado'
+                ], 400);
+            }
 
-            $incidencia = IncidenciaProveedor::findOrFail($request->input('id_incidencia'));
+            $incidencia = IncidenciaProveedor::find($incidenciaId);
+            
+            if (!$incidencia) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Incidencia no encontrada'
+                ], 404);
+            }
+
+            // Eliminar archivos físicos asociados
+            $archivos = $incidencia->archivos ?? [];
+            foreach ($archivos as $archivo) {
+                $rutaArchivo = storage_path('app/public/incidencias/' . $archivo['nombre']);
+                if (file_exists($rutaArchivo)) {
+                    unlink($rutaArchivo);
+                }
+            }
+
+            $nombreProveedor = $incidencia->nombre_proveedor ?? 'Proveedor';
             $incidencia->delete();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Incidencia eliminada correctamente'
+                'message' => "Incidencia del proveedor {$nombreProveedor} eliminada correctamente"
             ]);
         } catch (\Exception $e) {
+            Log::error('Error al eliminar incidencia: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Error al eliminar la incidencia: ' . $e->getMessage()
@@ -1772,8 +1911,7 @@ class MaterialKiloController extends Controller
             'informe_respuesta' => 'nullable|string',
             'abierto' => 'nullable|in:Si,No',
             'comentarios' => 'nullable|string',
-            'archivos.*' => 'nullable|file|max:10240', // Máximo 10MB por archivo,
-            'estado' => 'nullable|string|in:Registrada,Gestionada,En Pausa,Cerrada',
+            'archivos.*' => 'nullable|file|max:10240', // Máximo 10MB por archivo
         ]);
 
         try {
@@ -1823,10 +1961,6 @@ class MaterialKiloController extends Controller
                 }
             }
 
-            // Validar estado (si no existe o es inválido, poner "Registrada")
-            $estadosValidos = ['Registrada', 'Gestionada', 'En Pausa', 'Cerrada'];
-            $estadoFinal = in_array($request->estado, $estadosValidos) ? $request->estado : 'Registrada';
-
             // Crear la devolución
             $devolucion = DevolucionProveedor::create([
                 'codigo_producto' => $request->codigo_producto,
@@ -1861,15 +1995,7 @@ class MaterialKiloController extends Controller
                 'informe_respuesta' => $request->informe_respuesta,
                 'abierto' => $request->abierto ?? 'Si',
                 'comentarios' => $request->comentarios,
-                'archivos' => $archivosData,
-                'estado' => $estadoFinal,
-            ]);
-
-            EstadoIncidenciaReclamacion::create([
-                'id_incidencia_proveedor' => null,
-                'id_devolucion_proveedor' => $devolucion->id,
-                'id_user' => $user->id,
-                'estado' => $estadoFinal,
+                'archivos' => $archivosData
             ]);
 
             // Actualizar las métricas automáticamente
@@ -1930,8 +2056,7 @@ class MaterialKiloController extends Controller
             'informe_respuesta' => 'nullable|string',
             'abierto' => 'nullable|in:Si,No',
             'comentarios' => 'nullable|string',
-            'archivos.*' => 'nullable|file|max:10240',
-            'estado' => 'nullable|string|in:Registrada,Gestionada,En Pausa,Cerrada',
+            'archivos.*' => 'nullable|file|max:10240', // Máximo 10MB por archivo
         ]);
 
         try {
@@ -1967,6 +2092,39 @@ class MaterialKiloController extends Controller
                             'nombre' => $nombreUnico,
                             'nombre_original' => $nombreOriginal,
                             'ruta' => asset('storage/devoluciones/' . $nombreUnico),
+                            'tamano' => $tamanoArchivo,
+                            'fecha_subida' => now()->format('Y-m-d H:i:s')
+                        ];
+                    }
+                }
+            }
+
+            // Procesar archivos del informe (mantener archivos existentes del informe)
+            $archivosInformeExistentes = $devolucion->archivos_informe ?? [];
+            if ($request->hasFile('archivos_informe')) {
+                $archivosInforme = $request->file('archivos_informe');
+                foreach ($archivosInforme as $archivo) {
+                    if ($archivo->isValid()) {
+                        // Obtener información del archivo ANTES de moverlo
+                        $nombreOriginal = $archivo->getClientOriginalName();
+                        $extension = $archivo->getClientOriginalExtension();
+                        $tamanoArchivo = $archivo->getSize();
+                        $nombreUnico = time() . '_' . uniqid() . '.' . $extension;
+                        
+                        // Crear directorio específico para archivos del informe
+                        $rutaDirectorio = storage_path('app/public/devoluciones/archivos_informe');
+                        if (!file_exists($rutaDirectorio)) {
+                            mkdir($rutaDirectorio, 0755, true);
+                        }
+                        
+                        // Mover archivo
+                        $archivo->move($rutaDirectorio, $nombreUnico);
+                        
+                        // Agregar nuevo archivo del informe a la lista existente
+                        $archivosInformeExistentes[] = [
+                            'nombre' => $nombreUnico,
+                            'nombre_original' => $nombreOriginal,
+                            'ruta' => asset('storage/devoluciones/archivos_informe/' . $nombreUnico),
                             'tamano' => $tamanoArchivo,
                             'fecha_subida' => now()->format('Y-m-d H:i:s')
                         ];
@@ -2011,17 +2169,10 @@ class MaterialKiloController extends Controller
                 'informe_respuesta' => $request->informe_respuesta,
                 'abierto' => $request->abierto ?? 'Si',
                 'comentarios' => $request->comentarios,
-                'archivos' => $archivosExistentes,
-                'estado' => $estadoFinal,
+                'archivos' => $archivosExistentes
             ]);
 
-            EstadoIncidenciaReclamacion::create([
-                'id_incidencia_proveedor' => null,
-                'id_devolucion_proveedor' => $devolucion->id,
-                'id_user' => $user->id,
-                'estado' => $estadoFinal,
-            ]);
-
+            // Actualizar las métricas automáticamente
             $this->actualizarMetricasIncidencias($request->codigo_proveedor, $request->año, $request->mes);
 
             // redirige al formulario de edición: editarDevolucion carga proveedores, mes y año
@@ -2223,6 +2374,82 @@ class MaterialKiloController extends Controller
             return response()->json(['success' => true, 'message' => 'Archivo eliminado correctamente']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error al eliminar archivo'], 500);
+        }
+    }
+
+    /**
+     * Eliminar archivo del informe de devolución
+     */
+    public function eliminarArchivoInformeDevolucion(Request $request)
+    {
+        try {
+            $devolucionId = $request->input('devolucion_id');
+            $nombreArchivo = $request->input('nombre_archivo');
+
+            $devolucion = DevolucionProveedor::find($devolucionId);
+            if (!$devolucion) {
+                return response()->json(['success' => false, 'message' => 'Devolución no encontrada'], 404);
+            }
+
+            $archivosInforme = $devolucion->archivos_informe ?? [];
+            $archivosInforme = array_filter($archivosInforme, function($archivo) use ($nombreArchivo) {
+                return $archivo['nombre'] !== $nombreArchivo;
+            });
+
+            // Eliminar archivo físico
+            $rutaArchivo = storage_path('app/public/devoluciones/archivos_informe/' . $nombreArchivo);
+            if (file_exists($rutaArchivo)) {
+                unlink($rutaArchivo);
+            }
+
+            // Actualizar registro
+            $devolucion->archivos_informe = array_values($archivosInforme);
+            $devolucion->save();
+
+            return response()->json(['success' => true, 'message' => 'Archivo del informe eliminado correctamente']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error al eliminar archivo del informe'], 500);
+        }
+    }
+
+    /**
+     * Eliminar devolución completa
+     */
+    public function eliminarDevolucion($id)
+    {
+        try {
+            $devolucion = DevolucionProveedor::find($id);
+            
+            if (!$devolucion) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Reclamación no encontrada'
+                ], 404);
+            }
+
+            // Eliminar archivos físicos asociados
+            $archivos = $devolucion->archivos ?? [];
+            foreach ($archivos as $archivo) {
+                $rutaArchivo = storage_path('app/public/devoluciones/' . $archivo['nombre']);
+                if (file_exists($rutaArchivo)) {
+                    unlink($rutaArchivo);
+                }
+            }
+
+            // Eliminar la devolución de la base de datos
+            $nombreProveedor = $devolucion->nombre_proveedor ?? 'Proveedor';
+            $devolucion->delete();
+
+            return response()->json([
+                'success' => true, 
+                'message' => "Reclamación del proveedor {$nombreProveedor} eliminada correctamente"
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error al eliminar devolución: ' . $e->getMessage());
+            return response()->json([
+                'success' => false, 
+                'message' => 'Error al eliminar la reclamación: ' . $e->getMessage()
+            ], 500);
         }
     }
 

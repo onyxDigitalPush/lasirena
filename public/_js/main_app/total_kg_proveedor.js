@@ -26,22 +26,6 @@ document
     document.getElementById("mes_devolucion").value = mes_dev;
   });
 
-// Mostrar/ocultar tipo_reclamacion_grave según selección en tipo_reclamacion
-document
-  .getElementById("tipo_reclamacion")
-  .addEventListener("change", function () {
-    var valor = this.value;
-    var formGroup = document
-      .getElementById("tipo_reclamacion_grave")
-      .closest(".form-group");
-    if (valor === "Grave") {
-      formGroup.classList.remove("d-none");
-    } else {
-      formGroup.classList.add("d-none");
-      document.getElementById("tipo_reclamacion_grave").value = "";
-    }
-  });
-
 //codigo de proveedor
 document
   .getElementById("codigo_proveedor_incidencia")
@@ -1166,6 +1150,11 @@ $(document).ready(function () {
     mostrarArchivosSeleccionados(this, "lista_archivos_devolucion");
   });
 
+  // Funcionalidad para manejo de archivos del informe
+  $("#archivos_informe").on("change", function () {
+    mostrarArchivosSeleccionados(this, "lista_archivos_informe");
+  });
+
   // Función para mostrar archivos seleccionados
   function mostrarArchivosSeleccionados(inputElement, listaElementId) {
     var archivos = inputElement.files;
@@ -1226,5 +1215,6 @@ $(document).ready(function () {
   $("#modalDevoluciones").on("hidden.bs.modal", function () {
     document.getElementById("formDevolucion").reset();
     document.getElementById("lista_archivos_devolucion").innerHTML = "";
+    document.getElementById("lista_archivos_informe").innerHTML = "";
   });
 });

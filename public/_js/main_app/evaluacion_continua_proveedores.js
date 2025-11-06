@@ -137,6 +137,7 @@ $(document).ready(function () {
     var año = $("#filtro_año").val();
     var proveedor = $("#filtro_proveedor").val();
     var idProveedor = $("#filtro_id_proveedor").val();
+    var familia = $("#filtro_familia").val();
 
     // Validar que al menos año esté seleccionado
     if (!año) {
@@ -152,6 +153,7 @@ $(document).ready(function () {
     url.searchParams.delete("año");
     url.searchParams.delete("proveedor");
     url.searchParams.delete("id_proveedor");
+    url.searchParams.delete("familia");
 
     // Agregar nuevos parámetros
     if (mes) {
@@ -168,6 +170,10 @@ $(document).ready(function () {
 
     if (idProveedor) {
       url.searchParams.set("id_proveedor", idProveedor);
+    }
+
+    if (familia) {
+      url.searchParams.set("familia", familia);
     }
 
     // Mostrar mensaje de carga
@@ -188,6 +194,7 @@ $(document).ready(function () {
       url.searchParams.delete("año");
       url.searchParams.delete("proveedor");
       url.searchParams.delete("id_proveedor");
+      url.searchParams.delete("familia");
 
       // Mantener solo el año actual
       url.searchParams.set("año", new Date().getFullYear());

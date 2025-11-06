@@ -232,16 +232,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="tipo_reclamacion_grave">Tipo Reclamacion Grave</label>
-                                    <select id="tipo_reclamacion_grave" name="tipo_reclamacion_grave" class="form-control">
-                                        <option value="">Seleccione tipo</option>
-                                        <option value="Presencia objetos extraños" {{ (isset($devolucion) && $devolucion->tipo_reclamacion_grave == 'Presencia objetos extraños') ? 'selected' : '' }}>Presencia objetos extraños</option>
-                                        <option value="Afeccion salud cliente" {{ (isset($devolucion) && $devolucion->tipo_reclamacion_grave == 'Afeccion salud cliente') ? 'selected' : '' }}>Afeccion salud cliente</option>
-                                    </select>
-                                </div>
-                            </div>
+
                         </div>
                     </div>
 
@@ -389,6 +380,28 @@
                                 <div class="form-group">
                                     <label for="informe_dev">Informe:</label>
                                     <textarea id="informe_dev" name="informe" class="form-control" rows="3" placeholder="Informe">{{ old('informe', isset($devolucion) ? $devolucion->informe : '') }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Archivos del Informe -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="archivos_informe">Archivos del Informe:</label>
+                                    <input type="file" 
+                                           class="form-control-file" 
+                                           id="archivos_informe" 
+                                           name="archivos_informe[]" 
+                                           multiple 
+                                           accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
+                                    <small class="form-text text-muted">
+                                        Archivos permitidos: PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF (máx. 10MB cada uno)
+                                    </small>
+                                    <!-- Lista de archivos seleccionados del informe -->
+                                    <div id="lista_archivos_seleccionados_informe" class="mt-2"></div>
+                                    <!-- Lista de archivos existentes del informe (en modo edición) -->
+                                    <div id="lista_archivos_existentes_informe" class="mt-2"></div>
                                 </div>
                             </div>
                         </div>
@@ -601,9 +614,20 @@
     @endif
 
     <script>
+        // URL base del proyecto (sin protocolo fijo para evitar problemas con http/https)
+        const baseUrl = "{{ rtrim(url('/'), '/') }}".replace('https://', 'http://');
+        
         // Variables globales para manejo de archivos de devolución
         var archivosSeleccionadosDevolucion = [];
         var archivosExistentesDevolucion = [];
+
+        // Variables globales para manejo de archivos de informe
+        var archivosSeleccionadosInforme = [];
+        var archivosExistentesInforme = [];
+
+        // Variables globales para manejo de archivos de informe
+        var archivosSeleccionadosInforme = [];
+        var archivosExistentesInforme = [];
 
         // Utilidades
         function formatFileSize(bytes) {
@@ -801,6 +825,126 @@
                     // Mostrar botón de eliminar cuando hay archivo
                     actions.show();
                 }
+            });
+
+            // Si estamos en modo edición, cargar archivos del informe existentes
+            @if(isset($devolucion) && $devolucion->archivos_informe)
+                archivosExistentesInforme = @json($devolucion->archivos_informe);
+                mostrarArchivosExistentesInforme();
+            @endif
+        });
+
+        // ============================================
+        // FUNCIONES PARA ARCHIVOS DEL INFORME
+        // ============================================
+
+        // Función para mostrar archivos seleccionados del informe
+        function mostrarArchivosSeleccionadosInforme() {
+            var container = $('#lista_archivos_seleccionados_informe');
+            container.empty();
+            
+            if (archivosSeleccionadosInforme.length > 0) {
+                var html = '<div class="mt-2"><strong>Archivos seleccionados:</strong><ul class="list-group mt-1">';
+                archivosSeleccionadosInforme.forEach(function(archivo, index) {
+                    html += '<li class="list-group-item d-flex justify-content-between align-items-center py-1">';
+                    html += '<span><i class="fas fa-file"></i> ' + archivo.name + ' (' + formatFileSize(archivo.size) + ')</span>';
+                    html += '<button type="button" class="btn btn-sm btn-danger" onclick="removerArchivoSeleccionadoInforme(' + index + ')"><i class="fas fa-times"></i></button>';
+                    html += '</li>';
+                });
+                html += '</ul></div>';
+                container.html(html);
+            }
+        }
+
+        // Función para mostrar archivos existentes del informe
+        function mostrarArchivosExistentesInforme() {
+            var container = $('#lista_archivos_existentes_informe');
+            container.empty();
+            
+            if (archivosExistentesInforme.length > 0) {
+                var html = '<div class="mt-2"><strong>Archivos existentes del informe:</strong><ul class="list-group mt-1">';
+                archivosExistentesInforme.forEach(function(archivo, index) {
+                    if (typeof archivo === 'object' && archivo.nombre_original && archivo.nombre) {
+                        html += '<li class="list-group-item d-flex justify-content-between align-items-center py-2">';
+                        html += '<div class="d-flex align-items-center">';
+                        html += '<i class="fas fa-file text-info mr-2"></i>';
+                        html += '<div>';
+                        html += '<strong>' + archivo.nombre_original + '</strong><br>';
+                        html += '<small class="text-muted">' + (archivo.fecha_subida || 'Fecha desconocida') + '</small>';
+                        html += '</div>';
+                        html += '</div>';
+                        html += '<div class="btn-group">';
+                        html += '<a href="' + baseUrl + '/storage/devoluciones/archivos_informe/' + archivo.nombre + '" target="_blank" class="btn btn-sm btn-info" title="Ver/Descargar"><i class="fas fa-download"></i></a>';
+                        html += '<button type="button" class="btn btn-sm btn-danger" onclick="eliminarArchivoExistenteInforme(\'' + archivo.nombre + '\')" title="Eliminar"><i class="fas fa-trash"></i></button>';
+                        html += '</div>';
+                        html += '</li>';
+                    }
+                });
+                html += '</ul></div>';
+                container.html(html);
+            }
+        }
+
+        // Función para remover archivo seleccionado del informe
+        function removerArchivoSeleccionadoInforme(index) {
+            archivosSeleccionadosInforme.splice(index, 1);
+            actualizarInputArchivosInforme();
+            mostrarArchivosSeleccionadosInforme();
+        }
+
+        // Función para eliminar archivo existente del informe
+        function eliminarArchivoExistenteInforme(nombreArchivo) {
+            if (!nombreArchivo || !{{ isset($devolucion) ? $devolucion->id : 'null' }}) {
+                alert('Error: datos de archivo incompletos');
+                return;
+            }
+            
+            if (!confirm('¿Está seguro de eliminar este archivo del informe?')) return;
+            
+            $.ajax({
+                url: '{{ route("material_kilo.eliminar_archivo_informe_devolucion") }}',
+                type: 'DELETE',
+                data: {
+                    devolucion_id: {{ isset($devolucion) ? $devolucion->id : 'null' }},
+                    nombre_archivo: nombreArchivo,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Remover de la lista de archivos existentes
+                        archivosExistentesInforme = archivosExistentesInforme.filter(function(archivo) {
+                            return archivo.nombre !== nombreArchivo;
+                        });
+                        mostrarArchivosExistentesInforme();
+                        alert('Archivo eliminado correctamente');
+                    } else {
+                        alert('Error al eliminar archivo: ' + response.message);
+                    }
+                },
+                error: function(xhr) {
+                    alert('Error al eliminar archivo');
+                    console.error(xhr);
+                }
+            });
+        }
+
+        // Función para actualizar el input de archivos del informe
+        function actualizarInputArchivosInforme() {
+            var input = $('#archivos_informe')[0];
+            var dt = new DataTransfer();
+            archivosSeleccionadosInforme.forEach(function(archivo) {
+                dt.items.add(archivo);
+            });
+            input.files = dt.files;
+        }
+
+        // Event listener para archivos del informe
+        $(document).ready(function() {
+            // Manejar selección de archivos del informe
+            $('#archivos_informe').on('change', function() {
+                var files = Array.from(this.files);
+                archivosSeleccionadosInforme = files;
+                mostrarArchivosSeleccionadosInforme();
             });
         });
     </script>
