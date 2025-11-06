@@ -1,5 +1,6 @@
 
 <?php
+
 use App\Http\Controllers\MainApp\TiendasController;
 
 use Illuminate\Support\Facades\Route;
@@ -171,6 +172,11 @@ Route::group(['middleware' => ['auth']], function () {
     Route::post('/proveedores/delete', 'MainApp\ProveedorController@destroy')->name('proveedores.delete');
     Route::post('/proveedores/store', 'MainApp\ProveedorController@store')->name('proveedores.store');
 
+    //Correos a proveedores
+    Route::post('/proveedores/enviar-email', 'MainApp\EmailProveedorController@enviar')->name('proveedores.emails.enviar');
+    Route::get('proveedor/{id}/historial', 'MainApp\EmailProveedorController@historial')->name('proveedores.historial');
+    Route::get('/proveedores/descargar-archivo-email/{emailId}/{nombreArchivo}', 'MainApp\EmailProveedorController@descargarArchivoEmail')->name('proveedores.descargar_archivo_email');
+
     //CRUD Tiendas
     Route::get('/tiendas', [TiendasController::class, 'index'])->name('tiendas.index');
     Route::post('/tiendas/store', [TiendasController::class, 'store'])->name('tiendas.store');
@@ -211,6 +217,14 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/material_kilo/total-kg-proveedor', 'MaterialKiloController@totalKgPorProveedor')->name('material_kilo.total_kg_proveedor');
         Route::get('/material_kilo/evaluacion-continua-proveedores', 'MaterialKiloController@evaluacionContinuaProveedores')->name('material_kilo.evaluacion_continua_proveedores');
         Route::get('/material_kilo/historial-incidencias-devoluciones', 'MaterialKiloController@historialIncidenciasYDevoluciones')->name('material_kilo.historial_incidencias_devoluciones');
+        Route::get('/material_kilo/exportar-historial-excel', 'MaterialKiloController@exportarHistorialExcel')->name('material_kilo.exportar_historial_excel');
+        
+        // Exportación por lotes para archivos grandes
+        Route::post('/material_kilo/iniciar-exportacion-lotes', 'MaterialKiloController@iniciarExportacionLotes')->name('material_kilo.iniciar_exportacion_lotes');
+        Route::post('/material_kilo/procesar-siguiente-lote', 'MaterialKiloController@procesarSiguienteLote')->name('material_kilo.procesar_siguiente_lote');
+        Route::post('/material_kilo/generar-excel-final', 'MaterialKiloController@generarExcelFinal')->name('material_kilo.generar_excel_final');
+        Route::get('/material_kilo/descargar-excel-generado/{jobId}', 'MaterialKiloController@descargarExcelGenerado')->name('material_kilo.descargar_excel_generado');
+        
         Route::post('/material_kilo/delete', 'MaterialKiloController@destroy')->name('material_kilo.delete');
         Route::post('/material_kilo/guardar-metricas', 'MaterialKiloController@guardarMetricas')->name('material_kilo.guardar_metricas');
         Route::get('/material_kilo/recalcular-metricas', 'MaterialKiloController@recalcularMetricasWeb')->name('material_kilo.recalcular_metricas');
@@ -218,6 +232,19 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/material_kilo/descargar-formato-quejas', 'MaterialKiloController@descargarFormatoQuejas')->name('material_kilo.descargar_formato_quejas');
         Route::post('/material_kilo/data', 'MaterialKiloController@data')->name('material-kilo.data');
         Route::get('/material_kilo/buscar-proveedor/{id}', 'MaterialKiloController@buscarProveedor');
+
+        //Historial de cambios de estados de incidencias y devoluciones
+        Route::get('/material_kilo/historial-estados/{tipo}/{id}', 'MaterialKiloController@obtenerHistorialEstados')->name('material_kilo.historial_estados');
+
+        // Rutas para respuestas de incidencias y devoluciones
+        Route::post('/material_kilo/guardar-respuesta', 'MaterialKiloController@guardarRespuesta')->name('material_kilo.guardar_respuesta');
+        Route::get('/material_kilo/historial-respuestas/{tipo}/{id}', 'MaterialKiloController@obtenerHistorialRespuestas')->name('material_kilo.historial_respuestas');
+        // RUTA MOVIDA AL FINAL DEL ARCHIVO PARA EVITAR DUPLICADOS
+        
+        // Rutas para edición de respuestas
+        Route::get('/material_kilo/respuesta/{respuestaId}/datos', 'MaterialKiloController@obtenerDatosRespuesta')->name('material_kilo.obtener_datos_respuesta');
+        Route::post('/material_kilo/respuesta/{respuestaId}/actualizar', 'MaterialKiloController@actualizarRespuesta')->name('material_kilo.actualizar_respuesta');
+        Route::delete('/material_kilo/respuesta/{respuestaId}/archivo/{nombreArchivo}/eliminar', 'MaterialKiloController@eliminarArchivoRespuesta')->name('material_kilo.eliminar_archivo_respuesta');
 
 
 
@@ -257,32 +284,32 @@ Route::group(['middleware' => ['auth']], function () {
         //Rutas para evaluacion analisis producto 
         Route::get('/evaluacion_analisis/historial', 'EvaluacionAnalisisController@historialEvaluaciones')->name('evaluacion_analisis.historial_evaluaciones');
         Route::post('/evaluacion_analisis/guardar-analitica', 'EvaluacionAnalisisController@guardarAnalitica')->name('evaluacion_analisis.guardar_analitica');
-    Route::get('/evaluacion_analisis/list', 'EvaluacionAnalisisController@evaluacionList')->name('evaluacion_analisis.list');
-    // Tendencias superficie
-    Route::get('/evaluacion_analisis/tendencias-superficie', 'EvaluacionAnalisisController@tendenciasSuperficieList')->name('evaluacion_analisis.tendencias_superficie.list');
-    Route::post('/evaluacion_analisis/tendencias-superficie/guardar', 'EvaluacionAnalisisController@guardarTendenciaSuperficie')->name('evaluacion_analisis.tendencias_superficie.guardar');
-    
-    // Tendencias micro
-    Route::get('/evaluacion_analisis/tendencias-micro', 'EvaluacionAnalisisController@tendenciasMicroList')->name('evaluacion_analisis.tendencias_micro.list');
-    Route::post('/evaluacion_analisis/tendencias-micro/guardar', 'EvaluacionAnalisisController@guardarTendenciaMicro')->name('evaluacion_analisis.tendencias_micro.guardar');
-    
-    // AJAX para lookups
-    Route::get('/evaluacion_analisis/buscar-producto', 'EvaluacionAnalisisController@buscarProducto')->name('evaluacion_analisis.buscar_producto');
-    Route::get('/evaluacion_analisis/buscar-proveedor', 'EvaluacionAnalisisController@buscarProveedor')->name('evaluacion_analisis.buscar_proveedor');
-    
-    // Gestión completa de análisis
-    Route::get('/evaluacion_analisis/gestion', 'EvaluacionAnalisisController@gestionAnalisis')->name('evaluacion_analisis.gestion');
-    Route::get('/evaluacion_analisis/obtener-datos', 'EvaluacionAnalisisController@obtenerDatosAnalisis')->name('evaluacion_analisis.obtener_datos');
-    Route::post('/evaluacion_analisis/actualizar', 'EvaluacionAnalisisController@actualizarAnalisis')->name('evaluacion_analisis.actualizar');
-    Route::delete('/evaluacion_analisis/eliminar', 'EvaluacionAnalisisController@eliminarAnalisis')->name('evaluacion_analisis.eliminar');
-    
-    // Rutas para gestión de archivos de analíticas
-    Route::post('/evaluacion_analisis/subir-archivo', 'EvaluacionAnalisisController@subirArchivo')->name('evaluacion_analisis.subir_archivo');
-    Route::delete('/evaluacion_analisis/eliminar-archivo', 'EvaluacionAnalisisController@eliminarArchivo')->name('evaluacion_analisis.eliminar_archivo');
-    Route::get('/evaluacion_analisis/descargar-archivo/{analiticaId}/{nombreArchivo}/{tipoModelo?}', 'EvaluacionAnalisisController@descargarArchivo')->name('evaluacion_analisis.descargar_archivo');
+        Route::get('/evaluacion_analisis/list', 'EvaluacionAnalisisController@evaluacionList')->name('evaluacion_analisis.list');
+        // Tendencias superficie
+        Route::get('/evaluacion_analisis/tendencias-superficie', 'EvaluacionAnalisisController@tendenciasSuperficieList')->name('evaluacion_analisis.tendencias_superficie.list');
+        Route::post('/evaluacion_analisis/tendencias-superficie/guardar', 'EvaluacionAnalisisController@guardarTendenciaSuperficie')->name('evaluacion_analisis.tendencias_superficie.guardar');
+
+        // Tendencias micro
+        Route::get('/evaluacion_analisis/tendencias-micro', 'EvaluacionAnalisisController@tendenciasMicroList')->name('evaluacion_analisis.tendencias_micro.list');
+        Route::post('/evaluacion_analisis/tendencias-micro/guardar', 'EvaluacionAnalisisController@guardarTendenciaMicro')->name('evaluacion_analisis.tendencias_micro.guardar');
+
+        // AJAX para lookups
+        Route::get('/evaluacion_analisis/buscar-producto', 'EvaluacionAnalisisController@buscarProducto')->name('evaluacion_analisis.buscar_producto');
+        Route::get('/evaluacion_analisis/buscar-proveedor', 'EvaluacionAnalisisController@buscarProveedor')->name('evaluacion_analisis.buscar_proveedor');
+
+        // Gestión completa de análisis
+        Route::get('/evaluacion_analisis/gestion', 'EvaluacionAnalisisController@gestionAnalisis')->name('evaluacion_analisis.gestion');
+        Route::get('/evaluacion_analisis/obtener-datos', 'EvaluacionAnalisisController@obtenerDatosAnalisis')->name('evaluacion_analisis.obtener_datos');
+        Route::post('/evaluacion_analisis/actualizar', 'EvaluacionAnalisisController@actualizarAnalisis')->name('evaluacion_analisis.actualizar');
+        Route::delete('/evaluacion_analisis/eliminar', 'EvaluacionAnalisisController@eliminarAnalisis')->name('evaluacion_analisis.eliminar');
+
+        // Rutas para gestión de archivos de analíticas
+        Route::post('/evaluacion_analisis/subir-archivo', 'EvaluacionAnalisisController@subirArchivo')->name('evaluacion_analisis.subir_archivo');
+        Route::delete('/evaluacion_analisis/eliminar-archivo', 'EvaluacionAnalisisController@eliminarArchivo')->name('evaluacion_analisis.eliminar_archivo');
+        Route::get('/evaluacion_analisis/descargar-archivo/{analiticaId}/{nombreArchivo}/{tipoModelo?}', 'EvaluacionAnalisisController@descargarArchivo')->name('evaluacion_analisis.descargar_archivo');
 
 
-        
+
         // Páginas completas para editar devoluciones
         Route::get('/material_kilo/devolucion/crear', 'MaterialKiloController@crearDevolucion')->name('material_kilo.crear_devolucion');
         Route::get('/material_kilo/devolucion/editar/{id}', 'MaterialKiloController@editarDevolucion')->name('material_kilo.editar_devolucion');
@@ -296,15 +323,15 @@ Route::group(['middleware' => ['auth']], function () {
 
         //excel material kilo devoluciones
         Route::post('/material_kilo/devolucion-excel', 'MaterialKiloController@guardarExcel')->name('material_kilo.guardarExcel');
-        
+
         // Descargar formato de importación de proveedores (FormatoProveedoresEntradas.xlsx)
         Route::get('/proveedores/descargar-formato-proveedores-entradas', 'ProveedorController@descargarFormatoProveedoresEntradas')
             ->name('proveedores.descargar_formato_proveedores_entradas');
-        
+
         // Descargar formato de importación sin factor de conversión (FormatoEntradasSinFconversion.xlsx)
         Route::get('/proveedores/descargar-formato-sin-fconversion', 'ProveedorController@descargarFormatoSinFconversion')
             ->name('proveedores.descargar_formato_sin_fconversion');
-        
+
         // Ruta de prueba para verificar obtener-devolucion
         Route::get('/material_kilo/test-obtener-devolucion/{id}', function ($id) {
             $devolucion = DB::table('devoluciones_proveedores')
@@ -344,5 +371,12 @@ Route::group(['middleware' => ['auth']], function () {
                 ]);
             }
         })->name('material_kilo.test_devoluciones_table');
+
+        // Rutas para respuestas
+        Route::get('/material_kilo/obtener-datos-respuesta/{respuestaId}', 'MaterialKiloController@obtenerDatosRespuesta')->name('material_kilo.obtener_datos_respuesta');
+        Route::post('/material_kilo/eliminar-respuesta/{respuestaId}', 'MaterialKiloController@eliminarRespuesta')->name('material_kilo.eliminar_respuesta');
+        Route::post('/material_kilo/eliminar-archivo-respuesta', 'MaterialKiloController@eliminarArchivoIndividualRespuesta')->name('material_kilo.eliminar_archivo_individual_respuesta');
+        Route::get('/material_kilo/descargar-archivo-respuesta/{respuestaId}/{nombreArchivo}', 'MaterialKiloController@descargarArchivoRespuesta')->name('material_kilo.descargar_archivo_respuesta_final');
+        Route::get('/material_kilo/debug-respuesta-archivos/{respuestaId}', 'MaterialKiloController@debugRespuestaArchivos')->name('material_kilo.debug_respuesta_archivos');
     });
 });

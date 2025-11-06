@@ -32,6 +32,15 @@
         border-color: #545b62;
         color: white;
     }
+
+    /* ===== FIX MODAL STACKING =====
+       Evita que el modal quede detrás del backdrop o de contenedores con z-index */
+    .modal {
+        z-index: 1061 !important;
+    }
+    .modal-backdrop {
+        z-index: 1060 !important;
+    }
 </style>
 @endsection
 
@@ -87,11 +96,21 @@
 
     <div class="col-12">
         <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="card-title mb-0">
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
                     <i class="fa fa-undo mr-2"></i>
-                    {{ isset($devolucion) ? 'Editar Devolución' : 'Nueva Devolución' }}
-                </h5>
+                    <h5 class="card-title mb-0">
+                        {{ isset($devolucion) ? 'Editar Devolución' : 'Nueva Devolución' }}
+                    </h5>
+                </div>
+            
+                @if (isset($devolucion))
+                    <div class="text-right">
+                        <button type="button" id="btnAbrirModalCorreo" class="btn btn-primary">
+                            <i class="fas fa-envelope"></i> Enviar correo
+                        </button>
+                    </div>
+                @endif
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ isset($devolucion) ? route('material_kilo.actualizar_devolucion', $devolucion->id) : route('material_kilo.guardar_devolucion_completa') }}" enctype="multipart/form-data">
@@ -127,6 +146,17 @@
                                 <div class="form-group">
                                     <label for="descripcion_producto">Descripción del Producto:</label>
                                     <input type="text" id="descripcion_producto" name="descripcion_producto" class="form-control" placeholder="Descripción del producto" value="{{ old('descripcion_producto', isset($devolucion) ? $devolucion->descripcion_producto : '') }}" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="estado">Estado:</label>
+                                    <select id="estado" name="estado" class="form-control" required>
+                                        <option value="Registrada" {{ (isset($incidencia) && $incidencia->estado == 'Registrada') ? 'selected' : '' }}>Registrada</option>
+                                        <option value="Gestionada" {{ (isset($incidencia) && $incidencia->estado == 'Gestionada') ? 'selected' : '' }}>Gestionada</option>
+                                        <option value="En Pausa" {{ (isset($incidencia) && $incidencia->estado == 'En Pausa') ? 'selected' : '' }}>En Pausa</option>
+                                        <option value="Cerrada" {{ (isset($incidencia) && $incidencia->estado == 'Cerrada') ? 'selected' : '' }}>Cerrada</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -479,6 +509,110 @@
         </div>
     </div>
 
+    @if (isset($devolucion))
+        <!-- Modal Enviar Correo -->
+        <div class="modal fade" id="modalEnviarCorreo" tabindex="-1" role="dialog" aria-labelledby="modalCorreoLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <form id="formEnviarCorreoProveedor" method="POST" enctype="multipart/form-data" action="{{ route('proveedores.emails.enviar') }}">
+                        @csrf
+                        <input type="hidden" name="id_proveedor" value="{{ $devolucion->proveedor->id_proveedor ?? '' }}">
+                        <input type="hidden" name="id_devolucion_proveedor" value="{{ $devolucion->id ?? '' }}">
+                        <input type="hidden" name="id_incidencia_proveedor" value="">
+
+                        <div class="modal-header bg-primary text-white">
+                            <h4 class="modal-title">Enviar correo al proveedor</h4>
+                            <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+                        </div>
+
+                        <div class="modal-body row">
+                            <div class="form-group col-md-6">
+                                <label>Asunto</label>
+                                <input type="text" id="correo_asunto" class="form-control" name="asunto" value="{{ old('asunto', 'Reclamación ' . ($devolucion->codigo_producto ?? '') . (isset($devolucion->descripcion_producto) && $devolucion->descripcion_producto ? ' - ' . $devolucion->descripcion_producto : '')) }}" required maxlength="255">
+                            </div>
+
+                            <div class="form-group col-md-6">
+                                <label>Correo Remitente</label>
+                                <input type="email" class="form-control" name="email_remitente" value="{{ old('email_remitente', auth()->user()->email) }}" required>
+                            </div>
+
+                            <div class="form-group col-md-12">
+                                <label>Mensaje</label>
+                                <textarea id="correo_mensaje" class="form-control" name="mensaje" rows="8" required>{{ old('mensaje',
+                                    "Buenos días,
+                                    Adjuntamos una reclamación recibida durante la última semana sobre un producto suministrado por ustedes.
+
+                                    Se ruega contestación a esta reclamación en un plazo máximo de 2 días.
+
+                                    El informe de respuesta debe tener el siguiente formato:
+                                    · Análisis de la incidencia, que incluya:
+                                      o Explicación sobre el posible origen de la incidencia
+                                      o Plan de control establecido para la característica origen de la incidencia
+                                      o Resultados de los controles de producción relacionados con la incidencia.
+                                    · Medidas correctivas, que incluyan:
+                                      o Descripción de las medidas correctivas adoptadas para eliminar el origen de la incidencia
+                                      o Descripción de las medidas de seguimiento adoptadas, en caso necesario.
+                                    
+                                    Referencia: " . ($devolucion->codigo_producto ?? '') . (isset($devolucion->descripcion_producto) && $devolucion->descripcion_producto ? ' - ' . $devolucion->descripcion_producto : '') . "
+                                    
+                                    Quedamos a la espera de su respuesta.") }}
+                                </textarea>
+                            </div>
+
+                            <div class="form-group col-md-6">
+                                <label>Correo del proveedor</label>
+                                <input type="email" class="form-control" name="emails_destinatarios" value="{{ old('emails_destinatarios', $devolucion->proveedor->email_proveedor ?? '') }}" required>
+                            </div>
+
+                            <div class="form-group col-md-6">
+                                <label>Copias (BCC, separadas por ;)</label>
+                                <input type="text" class="form-control" name="emails_bcc" value="{{ old('emails_bcc') }}" placeholder="bcc1@dominio.com;bcc2@dominio.com">
+                            </div>
+
+                            <div class="form-group col-md-4">
+                                <label>Archivo 1</label>
+                                <input type="file" class="form-control archivo-input" name="archivo1" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.txt,.zip,.rar">
+                                <div class="preview mt-2"></div>
+                                <div class="file-actions mt-1" style="display: none;">
+                                    <button type="button" class="btn btn-xs btn-danger" onclick="limpiarArchivoModal(1)">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="form-group col-md-4">
+                                <label>Archivo 2</label>
+                                <input type="file" class="form-control archivo-input" name="archivo2" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.txt,.zip,.rar">
+                                <div class="preview mt-2"></div>
+                                <div class="file-actions mt-1" style="display: none;">
+                                    <button type="button" class="btn btn-xs btn-danger" onclick="limpiarArchivoModal(2)">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="form-group col-md-4">
+                                <label>Archivo 3</label>
+                                <input type="file" class="form-control archivo-input" name="archivo3" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.txt,.zip,.rar">
+                                <div class="preview mt-2"></div>
+                                <div class="file-actions mt-1" style="display: none;">
+                                    <button type="button" class="btn btn-xs btn-danger" onclick="limpiarArchivoModal(3)">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-success">Enviar</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <script>
         // URL base del proyecto (sin protocolo fijo para evitar problemas con http/https)
         const baseUrl = "{{ rtrim(url('/'), '/') }}".replace('https://', 'http://');
@@ -491,7 +625,11 @@
         var archivosSeleccionadosInforme = [];
         var archivosExistentesInforme = [];
 
-        // Función para formatear tamaño de archivo
+        // Variables globales para manejo de archivos de informe
+        var archivosSeleccionadosInforme = [];
+        var archivosExistentesInforme = [];
+
+        // Utilidades
         function formatFileSize(bytes) {
             if (bytes === 0) return '0 Bytes';
             var k = 1024;
@@ -500,11 +638,25 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
-        // Función para mostrar archivos seleccionados de devolución
+        function limpiarArchivoModal(numero) {
+            var input = document.querySelector('input[name="archivo' + numero + '"]');
+            var preview = input.parentElement.querySelector('.preview');
+            var actions = input.parentElement.querySelector('.file-actions');
+            
+            // Limpiar input y preview
+            input.value = "";
+            input.disabled = false;
+            preview.innerHTML = "";
+            
+            // Ocultar botones de acción
+            if (actions) {
+                actions.style.display = 'none';
+            }
+        }
+
         function mostrarArchivosSeleccionadosDevolucion() {
             var container = $('#lista_archivos_seleccionados_devolucion');
             container.empty();
-            
             if (archivosSeleccionadosDevolucion.length > 0) {
                 var html = '<div class="mt-2"><strong>Archivos seleccionados:</strong><ul class="list-group mt-1">';
                 archivosSeleccionadosDevolucion.forEach(function(archivo, index) {
@@ -518,14 +670,28 @@
             }
         }
 
-        // Función para mostrar archivos existentes de devolución
+        function removerArchivoSeleccionadoDevolucion(index) {
+            archivosSeleccionadosDevolucion.splice(index, 1);
+            actualizarInputArchivosDevolucion();
+            mostrarArchivosSeleccionadosDevolucion();
+        }
+
+        function actualizarInputArchivosDevolucion() {
+            var input = $('#archivos_devolucion')[0];
+            if (!input) return;
+            var dt = new DataTransfer();
+            archivosSeleccionadosDevolucion.forEach(function(archivo) {
+                dt.items.add(archivo);
+            });
+            input.files = dt.files;
+        }
+
         function mostrarArchivosExistentesDevolucion() {
             var container = $('#lista_archivos_existentes_devolucion');
             container.empty();
-            
             if (archivosExistentesDevolucion.length > 0) {
                 var html = '<div class="mt-2"><strong>Archivos existentes:</strong><ul class="list-group mt-1">';
-                archivosExistentesDevolucion.forEach(function(archivo, index) {
+                archivosExistentesDevolucion.forEach(function(archivo) {
                     if (typeof archivo === 'object' && archivo.nombre_original && archivo.nombre) {
                         html += '<li class="list-group-item d-flex justify-content-between align-items-center py-2">';
                         html += '<div class="d-flex align-items-center">';
@@ -533,17 +699,11 @@
                         html += '<div>';
                         html += '<strong>' + archivo.nombre_original + '</strong><br>';
                         html += '<small class="text-muted">' + (archivo.fecha_subida || 'Fecha desconocida') + '</small>';
-                        html += '</div>';
-                        html += '</div>';
+                        html += '</div></div>';
                         html += '<div class="btn-group">';
-                        @if(isset($devolucion))
                         html += '<a href="{{ url("material_kilo/devolucion") }}/{{ $devolucion->id }}/archivo/' + archivo.nombre + '/descargar" target="_blank" class="btn btn-sm btn-info" title="Descargar"><i class="fas fa-download"></i></a>';
-                        @else
-                        html += '<span class="btn btn-sm btn-secondary disabled" title="Guarde primero para descargar"><i class="fas fa-download"></i></span>';
-                        @endif
                         html += '<button type="button" class="btn btn-sm btn-danger" onclick="eliminarArchivoExistenteDevolucion(\'' + archivo.nombre + '\')" title="Eliminar"><i class="fas fa-times"></i></button>';
-                        html += '</div>';
-                        html += '</li>';
+                        html += '</div></li>';
                     }
                 });
                 html += '</ul></div>';
@@ -551,22 +711,13 @@
             }
         }
 
-        // Función para remover archivo seleccionado
-        function removerArchivoSeleccionadoDevolucion(index) {
-            archivosSeleccionadosDevolucion.splice(index, 1);
-            actualizarInputArchivosDevolucion();
-            mostrarArchivosSeleccionadosDevolucion();
-        }
-
-        // Función para eliminar archivo existente
         function eliminarArchivoExistenteDevolucion(nombreArchivo) {
             if (!nombreArchivo || !{{ isset($devolucion) ? $devolucion->id : 'null' }}) {
                 alert('Error: datos de archivo incompletos');
                 return;
             }
-            
             if (!confirm('¿Está seguro de eliminar este archivo?')) return;
-            
+        
             $.ajax({
                 url: '{{ route("material_kilo.eliminar_archivo_devolucion") }}',
                 type: 'DELETE',
@@ -577,7 +728,6 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        // Remover de la lista de archivos existentes
                         archivosExistentesDevolucion = archivosExistentesDevolucion.filter(function(archivo) {
                             return archivo.nombre !== nombreArchivo;
                         });
@@ -594,64 +744,88 @@
             });
         }
 
-        // Función para actualizar el input de archivos
-        function actualizarInputArchivosDevolucion() {
-            var input = $('#archivos_devolucion')[0];
-            var dt = new DataTransfer();
-            archivosSeleccionadosDevolucion.forEach(function(archivo) {
-                dt.items.add(archivo);
-            });
-            input.files = dt.files;
-        }
-
-        // Event listeners
         $(document).ready(function() {
-            // Actualizar año y mes automáticamente cuando cambie la fecha de reclamación
+            // mover modal al body
+            if ($('#modalEnviarCorreo').length) $('#modalEnviarCorreo').appendTo('body');
+        
+            // abrir modal: NO tocar asunto/mensaje (los pone el servidor mediante Blade)
+            $('#btnAbrirModalCorreo').on('click', function() {
+                $('#modalEnviarCorreo').modal('show');
+            });
+        
+            // fecha reclamacion -> actualizar año/mes
             $('#fecha_reclamacion').on('change', function() {
                 var fecha = $(this).val();
                 if (fecha) {
                     var partes = fecha.split('-');
                     var año = partes[0];
                     var mes = parseInt(partes[1], 10);
-                    
-                    // Actualizar el select de año
                     $('#año_devolucion').val(año);
-                    
-                    // Actualizar el select de mes
                     $('#mes_devolucion').val(mes);
                 }
             });
-
-            // Manejar selección de archivos
+        
+            // archivos principales
             $('#archivos_devolucion').on('change', function() {
-                var files = Array.from(this.files);
+                var files = Array.from(this.files || []);
                 archivosSeleccionadosDevolucion = files;
                 mostrarArchivosSeleccionadosDevolucion();
             });
-
-            // Botón para previsualizar archivos
+        
+            // previsualizar lista de archivos
             $('#btn_previsualizar_archivos_devolucion').on('click', function() {
                 if (archivosSeleccionadosDevolucion.length === 0 && archivosExistentesDevolucion.length === 0) {
                     alert('No hay archivos seleccionados o existentes');
                     return;
                 }
-                
-                // Mostrar en ventana separada
-                var ventana = window.open('', '_blank', 'width=600,height=400');
+                var ventana = window.open('', '_blank', 'width=800,height=600');
                 var html = '<html><head><title>Archivos de Devolución</title></head><body>';
                 html += '<h3>Archivos Seleccionados</h3>';
-                html += $('#lista_archivos_seleccionados_devolucion').html();
+                html += $('#lista_archivos_seleccionados_devolucion').html() || '<p>No hay archivos seleccionados</p>';
                 html += '<h3>Archivos Existentes</h3>';
-                html += $('#lista_archivos_existentes_devolucion').html();
+                html += $('#lista_archivos_existentes_devolucion').html() || '<p>No hay archivos existentes</p>';
                 html += '</body></html>';
                 ventana.document.write(html);
+                ventana.document.close();
             });
-
-            // Si estamos en modo edición, cargar archivos existentes
+        
+            // cargar archivos existentes si hay (modo edición)
             @if(isset($devolucion) && $devolucion->archivos)
                 archivosExistentesDevolucion = @json($devolucion->archivos);
                 mostrarArchivosExistentesDevolucion();
             @endif
+        
+            // previews para inputs de archivos del modal
+            $(document).on('change', '.archivo-input', function() {
+                let preview = $(this).siblings('.preview');
+                let actions = $(this).siblings('.file-actions');
+                preview.html('');
+                actions.hide();
+                
+                if (this.files && this.files[0]) {
+                    let file = this.files[0];
+                    let ext = file.name.split('.').pop().toLowerCase();
+                    
+                    if (['jpg', 'jpeg', 'png', 'bmp', 'webp'].includes(ext)) {
+                        let reader = new FileReader();
+                        reader.onload = function(e) {
+                            preview.html('<img src="' + e.target.result + '" style="max-width:80px;max-height:80px;border-radius:4px;border:1px solid #ddd;">');
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        let icon = 'fa-file';
+                        if (ext === 'pdf') icon = 'fa-file-pdf';
+                        else if (['doc', 'docx'].includes(ext)) icon = 'fa-file-word';
+                        else if (['xls', 'xlsx'].includes(ext)) icon = 'fa-file-excel';
+                        else if (['zip', 'rar'].includes(ext)) icon = 'fa-file-archive';
+                        else if (ext === 'txt') icon = 'fa-file-text';
+                        preview.html('<i class="fas ' + icon + ' fa-2x text-secondary"></i><div style="font-size:0.85em">' + file.name + '</div>');
+                    }
+                    
+                    // Mostrar botón de eliminar cuando hay archivo
+                    actions.show();
+                }
+            });
 
             // Si estamos en modo edición, cargar archivos del informe existentes
             @if(isset($devolucion) && $devolucion->archivos_informe)

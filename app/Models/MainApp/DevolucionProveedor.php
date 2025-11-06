@@ -64,4 +64,9 @@ class DevolucionProveedor extends Model
         'archivos' => 'array',
         'archivos_informe' => 'array'
     ];
+
+    public function proveedor()
+    {
+        return $this->belongsTo(Proveedor::class, 'codigo_proveedor', 'id_proveedor');
+    }
 }
