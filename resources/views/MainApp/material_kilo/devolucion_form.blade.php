@@ -202,16 +202,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="tipo_reclamacion_grave">Tipo Reclamacion Grave</label>
-                                    <select id="tipo_reclamacion_grave" name="tipo_reclamacion_grave" class="form-control">
-                                        <option value="">Seleccione tipo</option>
-                                        <option value="Presencia objetos extraños" {{ (isset($devolucion) && $devolucion->tipo_reclamacion_grave == 'Presencia objetos extraños') ? 'selected' : '' }}>Presencia objetos extraños</option>
-                                        <option value="Afeccion salud cliente" {{ (isset($devolucion) && $devolucion->tipo_reclamacion_grave == 'Afeccion salud cliente') ? 'selected' : '' }}>Afeccion salud cliente</option>
-                                    </select>
-                                </div>
-                            </div>
+
                         </div>
                     </div>
 

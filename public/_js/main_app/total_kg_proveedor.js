@@ -26,22 +26,6 @@ document
     document.getElementById("mes_devolucion").value = mes_dev;
   });
 
-// Mostrar/ocultar tipo_reclamacion_grave según selección en tipo_reclamacion
-document
-  .getElementById("tipo_reclamacion")
-  .addEventListener("change", function () {
-    var valor = this.value;
-    var formGroup = document
-      .getElementById("tipo_reclamacion_grave")
-      .closest(".form-group");
-    if (valor === "Grave") {
-      formGroup.classList.remove("d-none");
-    } else {
-      formGroup.classList.add("d-none");
-      document.getElementById("tipo_reclamacion_grave").value = "";
-    }
-  });
-
 //codigo de proveedor
 document
   .getElementById("codigo_proveedor_incidencia")

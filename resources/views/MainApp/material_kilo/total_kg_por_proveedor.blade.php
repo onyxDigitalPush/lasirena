@@ -370,13 +370,13 @@
                                 <input type="date" id="fecha_fin" name="fecha_fin" class="form-control">
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        {{-- <div class="col-md-3">
                             <div class="form-group">
                                 <label for="np">NP:</label>
                                 <input type="text" id="np" name="np" class="form-control"
                                     placeholder="NP">
                             </div>
-                        </div>
+                        </div> --}}
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label for="fecha_reclamacion">Fecha Reclamación:</label>
@@ -425,29 +425,6 @@
                                     <option value="">Seleccione una clasificación</option>
                                     <option value="RG1">RG - Reclamación Grave</option>
                                     <option value="RL1">RL - Reclamación Leve</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="tipo_reclamacion">Tipo Reclamación:</label>
-                                <select id="tipo_reclamacion" name="tipo_reclamacion" class="form-control">
-                                    <option value="">Seleccione tipo</option>
-                                    <option value="Leve">Leve</option>
-                                    <option value="Grave">Grave</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group d-none">
-                                <label for="tipo_reclamacion_grave">Tipo de reclamacion grave:</label>
-                                <select id="tipo_reclamacion_grave" name="tipo_reclamacion_grave"
-                                    class="form-control">
-                                    <option value="">Seleccione tipo grave</option>
-                                    <option value="Presencia objetos extraños">Presencia objetos extraños</option>
-                                    <option value="Afeccion salud cliente">Afeccion salud cliente</option>
                                 </select>
                             </div>
                         </div>
