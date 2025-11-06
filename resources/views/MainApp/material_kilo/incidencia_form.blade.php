@@ -616,7 +616,7 @@
 
                                 <div class="form-group col-md-6">
                                     <label>Correo del proveedor</label>
-                                    <input type="email" class="form-control" name="emails_destinatarios" id="correo_destinatarios" value="{{ old('emails_destinatarios', $incidencia->proveedor->email_proveedor ?? '') }}" required>
+                                    <input type="text" class="form-control" name="emails_destinatarios" id="correo_destinatarios" value="{{ old('emails_destinatarios', $incidencia->proveedor->email_proveedor ?? '') }}" required>
                                 </div>
 
                                 <div class="form-group col-md-6">

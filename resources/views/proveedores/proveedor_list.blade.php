@@ -450,7 +450,7 @@
                         </div>
                         <div class="form-group">
                             <label for="email_proveedor_edit">Email Proveedor</label>
-                            <input type="email" class="form-control" id="email_proveedor_edit"
+                            <input type="text" class="form-control" id="email_proveedor_edit"
                                 name="email_proveedor_edit" placeholder="ejemplo@correo.com">
                         </div>
                         <button type="submit" class="btn btn-primary">Guardar

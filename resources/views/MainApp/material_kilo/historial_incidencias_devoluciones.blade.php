@@ -1616,7 +1616,7 @@
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="email_respuesta">Email</label>
-                                        <input type="email" class="form-control" id="email_respuesta" name="email" 
+                                        <input type="text" class="form-control" id="email_respuesta" name="email" 
                                             placeholder="Email de contacto" maxlength="255">
                                     </div>
                                 </div>
