@@ -564,6 +564,28 @@
                         </div>
                     </div>
 
+                    <!-- Archivos del Informe -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label for="archivos_informe">Archivos del Informe:</label>
+                                <input type="file" class="form-control-file" id="archivos_informe" name="archivos_informe[]" multiple 
+                                       accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
+                                <small class="form-text text-muted">
+                                    Selecciona uno o varios archivos para el informe (máximo 10MB cada uno). 
+                                    Formatos permitidos: PDF, Word, Excel, imágenes.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista de archivos del informe seleccionados -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div id="lista_archivos_informe" class="mt-2"></div>
+                        </div>
+                    </div>
+
                     <div class="row">
                         <div class="col-md-3">
                             <div class="form-group">

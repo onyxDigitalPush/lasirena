@@ -1150,6 +1150,11 @@ $(document).ready(function () {
     mostrarArchivosSeleccionados(this, "lista_archivos_devolucion");
   });
 
+  // Funcionalidad para manejo de archivos del informe
+  $("#archivos_informe").on("change", function () {
+    mostrarArchivosSeleccionados(this, "lista_archivos_informe");
+  });
+
   // Función para mostrar archivos seleccionados
   function mostrarArchivosSeleccionados(inputElement, listaElementId) {
     var archivos = inputElement.files;
@@ -1210,5 +1215,6 @@ $(document).ready(function () {
   $("#modalDevoluciones").on("hidden.bs.modal", function () {
     document.getElementById("formDevolucion").reset();
     document.getElementById("lista_archivos_devolucion").innerHTML = "";
+    document.getElementById("lista_archivos_informe").innerHTML = "";
   });
 });

@@ -45,7 +45,8 @@ class DevolucionProveedor extends Model
         'comentarios',
         'fecha_reclamacion_respuesta',
         'abierto',
-        'archivos'
+        'archivos',
+        'archivos_informe'
     ];
 
     protected $dates = [
@@ -60,6 +61,7 @@ class DevolucionProveedor extends Model
     protected $casts = [
         'año' => 'integer',
         'mes' => 'integer',
-        'archivos' => 'array'
+        'archivos' => 'array',
+        'archivos_informe' => 'array'
     ];
 }

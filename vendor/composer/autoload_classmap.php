@@ -51,6 +51,7 @@ return array(
     'App\\Models\\MainApp\\Project' => $baseDir . '/app/Models/MainApp/Project.php',
     'App\\Models\\MainApp\\Proveedor' => $baseDir . '/app/Models/MainApp/Proveedor.php',
     'App\\Models\\MainApp\\ProveedorMetric' => $baseDir . '/app/Models/MainApp/ProveedorMetric.php',
+    'App\\Models\\ResultadoAgua' => $baseDir . '/app/Models/ResultadoAgua.php',
     'App\\Models\\TendenciaMicro' => $baseDir . '/app/Models/TendenciaMicro.php',
     'App\\Models\\TendenciaSuperficie' => $baseDir . '/app/Models/TendenciaSuperficie.php',
     'App\\Models\\Tienda' => $baseDir . '/app/Models/Tienda.php',

@@ -83,7 +83,7 @@
                                     <option value="12" {{ $mes == 12 ? 'selected' : '' }}>Diciembre</option>
                                 </select>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-1">
                                 <label for="filtro_año">Año:</label>
                                 <select id="filtro_año" name="año" class="form-control" required>
                                     @for($year = \Carbon\Carbon::now()->year; $year >= 2020; $year--)
@@ -121,13 +121,28 @@
                                     </small>
                                 @endif
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-1">
                                 <label for="filtro_id_proveedor">ID Proveedor:</label>
                                 <input type="text" id="filtro_id_proveedor" class="form-control" 
                                        placeholder="Escribir ID..." value="{{ is_string($idProveedor) ? $idProveedor : '' }}">
                                 @if($idProveedor)
                                     <small class="form-text text-success">
                                         <i class="fa fa-check mr-1"></i>Filtrado por ID: {{ is_string($idProveedor) ? $idProveedor : '' }}
+                                    </small>
+                                @endif
+                            </div>
+                            <div class="col-md-2">
+                                <label for="filtro_familia">Familia:</label>
+                                <select id="filtro_familia" class="form-control">
+                                    <option value="">Todas las familias</option>
+                                    <option value="ELABORADOS" {{ $familia == 'ELABORADOS' ? 'selected' : '' }}>ELABORADOS</option>
+                                    <option value="PRODUCTOS DEL MAR" {{ $familia == 'PRODUCTOS DEL MAR' ? 'selected' : '' }}>PRODUCTOS DEL MAR</option>
+                                    <option value="CONSUMIBLES" {{ $familia == 'CONSUMIBLES' ? 'selected' : '' }}>CONSUMIBLES</option>
+                                    <option value="Otros" {{ $familia == 'Otros' ? 'selected' : '' }}>Otros</option>
+                                </select>
+                                @if($familia)
+                                    <small class="form-text text-success">
+                                        <i class="fa fa-check mr-1"></i>Filtrado por: {{ is_string($familia) ? $familia : '' }}
                                     </small>
                                 @endif
                             </div>
@@ -205,12 +220,15 @@
                             <i class="fa fa-filter mr-2"></i>Filtros Activos
                         </h5>
                         <div class="card-text">
-                            @if($proveedor || $idProveedor)
+                            @if($proveedor || $idProveedor || $familia)
                                 @if($proveedor)
                                     <small class="d-block">✓ Proveedor: {{ is_string($proveedor) ? $proveedor : '' }}</small>
                                 @endif
                                 @if($idProveedor)
                                     <small class="d-block">✓ ID: {{ is_string($idProveedor) ? $idProveedor : '' }}</small>
+                                @endif
+                                @if($familia)
+                                    <small class="d-block">✓ Familia: {{ is_string($familia) ? $familia : '' }}</small>
                                 @endif
                             @else
                                 <small>Sin filtros aplicados</small>

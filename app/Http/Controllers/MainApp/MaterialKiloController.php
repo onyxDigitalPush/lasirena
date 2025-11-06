@@ -763,6 +763,7 @@ class MaterialKiloController extends Controller
         $año = $request->get('año', \Carbon\Carbon::now()->year);
         $proveedor = $request->get('proveedor', ''); // Asegurar que sea string
         $idProveedor = $request->get('id_proveedor', ''); // Asegurar que sea string
+        $familia = $request->get('familia', ''); // Nuevo filtro de familia
 
         // Asegurar que $año sea numérico
         $año = (int) $año;
@@ -774,7 +775,9 @@ class MaterialKiloController extends Controller
             'proveedor' => $proveedor,
             'proveedor_type' => gettype($proveedor),
             'idProveedor' => $idProveedor,
-            'idProveedor_type' => gettype($idProveedor)
+            'idProveedor_type' => gettype($idProveedor),
+            'familia' => $familia,
+            'familia_type' => gettype($familia)
         ]);
 
         // Obtener totales por proveedor para el mes y año específicos
@@ -783,6 +786,7 @@ class MaterialKiloController extends Controller
             ->select(
                 'proveedores.id_proveedor',
                 'proveedores.nombre_proveedor',
+                'proveedores.familia',
                 DB::raw('SUM(gp_ls_material_kilos.total_kg) as total_kg_proveedor'),
                 DB::raw('COUNT(gp_ls_material_kilos.id) as cantidad_registros')
             )
@@ -803,7 +807,12 @@ class MaterialKiloController extends Controller
             $query->where('proveedores.id_proveedor', 'LIKE', '%' . $idProveedor . '%');
         }
 
-        $totales_por_proveedor = $query->groupBy('proveedores.id_proveedor', 'proveedores.nombre_proveedor')
+        // Filtrar por familia si está seleccionada
+        if ($familia && is_string($familia)) {
+            $query->where('proveedores.familia', $familia);
+        }
+
+        $totales_por_proveedor = $query->groupBy('proveedores.id_proveedor', 'proveedores.nombre_proveedor', 'proveedores.familia')
             ->orderBy('total_kg_proveedor', 'desc')
             ->get();
 
@@ -904,6 +913,7 @@ class MaterialKiloController extends Controller
         // Asegurar que las variables sean strings o null
         $proveedor = is_string($proveedor) ? $proveedor : '';
         $idProveedor = is_string($idProveedor) ? $idProveedor : '';
+        $familia = is_string($familia) ? $familia : '';
 
         return view('MainApp/material_kilo.evaluacion_continua_proveedores', compact(
             'totales_por_proveedor',
@@ -912,6 +922,7 @@ class MaterialKiloController extends Controller
             'año',
             'proveedor',
             'idProveedor',
+            'familia',
             'proveedores_disponibles'
         ));
     }
@@ -1823,6 +1834,7 @@ class MaterialKiloController extends Controller
             'abierto' => 'nullable|in:Si,No',
             'comentarios' => 'nullable|string',
             'archivos.*' => 'nullable|file|max:10240', // Máximo 10MB por archivo
+            'archivos_informe.*' => 'nullable|file|max:10240', // Máximo 10MB por archivo del informe
         ]);
 
         try {
@@ -1872,6 +1884,39 @@ class MaterialKiloController extends Controller
                 }
             }
 
+            // Procesar archivos del informe
+            $archivosInformeData = [];
+            if ($request->hasFile('archivos_informe')) {
+                $archivosInforme = $request->file('archivos_informe');
+                foreach ($archivosInforme as $archivo) {
+                    if ($archivo->isValid()) {
+                        // Obtener información del archivo ANTES de moverlo
+                        $nombreOriginal = $archivo->getClientOriginalName();
+                        $extension = $archivo->getClientOriginalExtension();
+                        $tamanoArchivo = $archivo->getSize();
+                        $nombreUnico = time() . '_' . uniqid() . '.' . $extension;
+                        
+                        // Crear directorio específico para archivos del informe
+                        $rutaDirectorio = storage_path('app/public/devoluciones/archivos_informe');
+                        if (!file_exists($rutaDirectorio)) {
+                            mkdir($rutaDirectorio, 0755, true);
+                        }
+                        
+                        // Mover archivo
+                        $archivo->move($rutaDirectorio, $nombreUnico);
+                        
+                        // Guardar información del archivo del informe
+                        $archivosInformeData[] = [
+                            'nombre' => $nombreUnico,
+                            'nombre_original' => $nombreOriginal,
+                            'ruta' => asset('storage/devoluciones/archivos_informe/' . $nombreUnico),
+                            'tamano' => $tamanoArchivo,
+                            'fecha_subida' => now()->format('Y-m-d H:i:s')
+                        ];
+                    }
+                }
+            }
+
             // Crear la devolución
             $devolucion = DevolucionProveedor::create([
                 'codigo_producto' => $request->codigo_producto,
@@ -1906,7 +1951,8 @@ class MaterialKiloController extends Controller
                 'informe_respuesta' => $request->informe_respuesta,
                 'abierto' => $request->abierto ?? 'Si',
                 'comentarios' => $request->comentarios,
-                'archivos' => $archivosData
+                'archivos' => $archivosData,
+                'archivos_informe' => $archivosInformeData
             ]);
 
             // Actualizar las métricas automáticamente
@@ -1962,6 +2008,7 @@ class MaterialKiloController extends Controller
             'abierto' => 'nullable|in:Si,No',
             'comentarios' => 'nullable|string',
             'archivos.*' => 'nullable|file|max:10240', // Máximo 10MB por archivo
+            'archivos_informe.*' => 'nullable|file|max:10240', // Máximo 10MB por archivo del informe
         ]);
 
         try {
@@ -2010,6 +2057,39 @@ class MaterialKiloController extends Controller
                 }
             }
 
+            // Procesar archivos del informe (mantener archivos existentes del informe)
+            $archivosInformeExistentes = $devolucion->archivos_informe ?? [];
+            if ($request->hasFile('archivos_informe')) {
+                $archivosInforme = $request->file('archivos_informe');
+                foreach ($archivosInforme as $archivo) {
+                    if ($archivo->isValid()) {
+                        // Obtener información del archivo ANTES de moverlo
+                        $nombreOriginal = $archivo->getClientOriginalName();
+                        $extension = $archivo->getClientOriginalExtension();
+                        $tamanoArchivo = $archivo->getSize();
+                        $nombreUnico = time() . '_' . uniqid() . '.' . $extension;
+                        
+                        // Crear directorio específico para archivos del informe
+                        $rutaDirectorio = storage_path('app/public/devoluciones/archivos_informe');
+                        if (!file_exists($rutaDirectorio)) {
+                            mkdir($rutaDirectorio, 0755, true);
+                        }
+                        
+                        // Mover archivo
+                        $archivo->move($rutaDirectorio, $nombreUnico);
+                        
+                        // Agregar nuevo archivo del informe a la lista existente
+                        $archivosInformeExistentes[] = [
+                            'nombre' => $nombreUnico,
+                            'nombre_original' => $nombreOriginal,
+                            'ruta' => asset('storage/devoluciones/archivos_informe/' . $nombreUnico),
+                            'tamano' => $tamanoArchivo,
+                            'fecha_subida' => now()->format('Y-m-d H:i:s')
+                        ];
+                    }
+                }
+            }
+
             // Actualizar la devolución
             $devolucion->update([
                 'codigo_producto' => $request->codigo_producto,
@@ -2044,7 +2124,8 @@ class MaterialKiloController extends Controller
                 'informe_respuesta' => $request->informe_respuesta,
                 'abierto' => $request->abierto ?? 'Si',
                 'comentarios' => $request->comentarios,
-                'archivos' => $archivosExistentes
+                'archivos' => $archivosExistentes,
+                'archivos_informe' => $archivosInformeExistentes
             ]);
 
             // Actualizar las métricas automáticamente
@@ -2247,6 +2328,41 @@ class MaterialKiloController extends Controller
             return response()->json(['success' => true, 'message' => 'Archivo eliminado correctamente']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error al eliminar archivo'], 500);
+        }
+    }
+
+    /**
+     * Eliminar archivo del informe de devolución
+     */
+    public function eliminarArchivoInformeDevolucion(Request $request)
+    {
+        try {
+            $devolucionId = $request->input('devolucion_id');
+            $nombreArchivo = $request->input('nombre_archivo');
+
+            $devolucion = DevolucionProveedor::find($devolucionId);
+            if (!$devolucion) {
+                return response()->json(['success' => false, 'message' => 'Devolución no encontrada'], 404);
+            }
+
+            $archivosInforme = $devolucion->archivos_informe ?? [];
+            $archivosInforme = array_filter($archivosInforme, function($archivo) use ($nombreArchivo) {
+                return $archivo['nombre'] !== $nombreArchivo;
+            });
+
+            // Eliminar archivo físico
+            $rutaArchivo = storage_path('app/public/devoluciones/archivos_informe/' . $nombreArchivo);
+            if (file_exists($rutaArchivo)) {
+                unlink($rutaArchivo);
+            }
+
+            // Actualizar registro
+            $devolucion->archivos_informe = array_values($archivosInforme);
+            $devolucion->save();
+
+            return response()->json(['success' => true, 'message' => 'Archivo del informe eliminado correctamente']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error al eliminar archivo del informe'], 500);
         }
     }
 
