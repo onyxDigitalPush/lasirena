@@ -1394,9 +1394,6 @@
                                 </span>
                             @endif
                         </td>
-                        <td class="text-center">
-                        {{ $registro->tipo_registro == 'incidencia' ? $registro->id_proveedor : $registro->codigo_proveedor }}
-                        </td>
                         <td class="text-center" style="cursor: pointer;" onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})">
                             {{ $registro->tipo_registro == 'incidencia' ? $registro->id_proveedor : $registro->codigo_proveedor }}
                         </td>
