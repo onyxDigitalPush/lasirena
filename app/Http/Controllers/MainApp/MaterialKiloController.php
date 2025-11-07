@@ -3986,7 +3986,7 @@ class MaterialKiloController extends Controller
 
     public function historialIncidencia($id)
     {
-        $emails = EmailProveedor::where('id_incidencia_proveedor', $id)->orderBy('created_at', 'desc')->get();
+        $emails = EmailProveedor::where('id_incidencia_proveedor', $id)->with('proveedor')->orderBy('created_at', 'desc')->get();
 
         // Procesar archivos para generar URLs con nombres originales
         foreach ($emails as $email) {
@@ -4032,7 +4032,7 @@ class MaterialKiloController extends Controller
 
     public function historialReclamacion($id)
     {
-        $emails = EmailProveedor::where('id_devolucion_proveedor', $id)->orderBy('created_at', 'desc')->get();
+        $emails = EmailProveedor::where('id_devolucion_proveedor', $id)->with('proveedor')->orderBy('created_at', 'desc')->get();
 
         // Procesar archivos para generar URLs con nombres originales
         foreach ($emails as $email) {

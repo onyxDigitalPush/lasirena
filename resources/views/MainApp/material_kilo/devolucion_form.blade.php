@@ -1189,6 +1189,7 @@
             <table id="historial_emails_table" class="table table-sm table-striped table-bordered">
               <thead class="thead-dark">
                 <tr>
+                  <th class="text-center">Proveedor</th>
                   <th class="text-center">Remitente</th>
                   <th class="text-center">Destinatarios</th>
                   <th class="text-center">BCC</th>
@@ -1283,7 +1284,7 @@
           destroyHistorialTable();
           createHistorialTable();
           var $tbody = $("#historial_emails_table tbody");
-          $tbody.html('<tr><td colspan="7" class="text-center py-4"><i class="fa fa-spinner fa-spin"></i> Cargando historial de emails...</td></tr>');
+          $tbody.html('<tr><td colspan="8" class="text-center py-4"><i class="fa fa-spinner fa-spin"></i> Cargando historial de emails...</td></tr>');
           try { $modal.modal("show"); } catch (error) {
             try {
               $modal.addClass("show").css("display", "block");
@@ -1309,12 +1310,13 @@
               var emails = res && res.data ? res.data : [];
               if (!emails.length) {
                 $tbody.html(
-                  '<tr><td colspan="7" class="text-center text-muted">' +
+                  '<tr><td colspan="8" class="text-center text-muted">' +
                   '<i class="fa fa-inbox"></i><br>' +
                   'No hay emails registrados para esta reclamación</td></tr>'
                 );
               } else {
                 emails.forEach(function (email) {
+                  var proveedor = escapeHtml(email.proveedor.nombre_proveedor || "");
                   var remitente = escapeHtml(email.email_remitente || "");
                   var destinatarios = escapeHtml(email.emails_destinatarios || "");
                   var bcc = escapeHtml(email.emails_bcc || "");
@@ -1334,6 +1336,7 @@
                   var fecha = fmtDate(email.created_at || email.fecha_envio_proveedor || "");
                   var row = `
                     <tr>
+                      <td>${proveedor}</td>
                       <td>${remitente}</td>
                       <td>${destinatarios}</td>
                       <td>${bcc}</td>
@@ -1371,7 +1374,7 @@
                 errorDetails = "Código: " + xhr.status + " | " + error;
               }
               $tbody.html(
-                '<tr><td colspan="7" class="text-center text-danger p-4">' +
+                '<tr><td colspan="8" class="text-center text-danger p-4">' +
                 '<i class="fa fa-exclamation-triangle mb-2" style="font-size: 24px;"></i><br>' +
                 '<strong>' + errorMessage + '</strong><br>' +
                 '<small>' + errorDetails + '</small><br><br>' +
