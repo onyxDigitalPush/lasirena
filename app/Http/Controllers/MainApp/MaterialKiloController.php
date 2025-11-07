@@ -45,6 +45,18 @@ class MaterialKiloController extends Controller
             );
 
         // Aplicar filtros de búsqueda del servidor
+        // Búsqueda EXACTA con botón (nuevos parámetros)
+        if (request('search_codigo_material')) {
+            $query->where('material_kilos.codigo_material', '=', request('search_codigo_material'));
+            Log::info('Filtro búsqueda exacta código material:', ['codigo' => request('search_codigo_material')]);
+        }
+
+        if (request('search_proveedor_id')) {
+            $query->where('material_kilos.proveedor_id', '=', request('search_proveedor_id'));
+            Log::info('Filtro búsqueda exacta ID proveedor:', ['proveedor_id' => request('search_proveedor_id')]);
+        }
+        
+        // Búsqueda con coincidencias (filtros JS de la tabla - mantener compatibilidad)
         if (request('codigo_material')) {
             $query->where('material_kilos.codigo_material', 'LIKE', '%' . request('codigo_material') . '%');
         }
