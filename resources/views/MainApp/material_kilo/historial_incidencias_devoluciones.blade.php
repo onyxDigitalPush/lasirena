@@ -126,6 +126,37 @@
         }
     }
 
+    function eliminarRegistro(tipo, id) {
+        var url = '';
+        var registro = '';
+        if (tipo === 'incidencia') {
+            registro = 'incidencia';
+            url = '{{ url("material_kilo/incidencia/eliminar") }}/' + id;
+        } else if (tipo === 'devolucion') {
+            registro = 'reclamación';
+            url = '{{ url("material_kilo/devolucion/eliminar") }}/' + id;
+        } else {
+            return;
+        }
+
+        if (!confirm('¿Seguro que quieres eliminar esta ' + registro + ' ?')) return;
+
+        $.ajax({
+            url: url,
+            type: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(res) {
+                alert(res.message);
+                location.reload(); // Recarga la página para actualizar la tabla
+            },
+            error: function(xhr) {
+                alert('Error al eliminar el registro');
+            }
+        });
+    }
+
     // FUNCIONES PARA MODAL HISTORIAL
     function destroyHistorialEstadosTable() {
         try {
@@ -232,6 +263,10 @@
         $('#table_historial tbody').on('click', 'tr', function(e) {
             // Si el clic fue en la columna del botón Historial, NO hacer nada
             if ($(e.target).closest('.td-historial').length > 0) {
+                return;
+            }
+
+            if ($(e.target).closest('.td-eliminar').length > 0) {
                 return;
             }
             
@@ -1374,7 +1409,7 @@
                     <th class="text-center">Historial cambios de estado</th>
                     <th class="text-center">Respuestas</th>
                     <th class="text-center">Nombre Producto</th>
-                    <th class="text-center">Acciones</th>
+                    <th class="text-center">Eliminar</th>
                 </tr>
             </thead>
             <tbody>
@@ -1480,17 +1515,11 @@
                                 {{ $registro->descripcion_producto ?? $registro->codigo_producto ?? 'Sin descripción' }}
                             @endif
                         </td>
-                        <td class="text-center">
+                        <td class="text-center td-eliminar">
                             <div class="btn-group" role="group">
                                 <button type="button" 
-                                        class="btn btn-sm btn-primary btn-action" 
-                                        onclick="editarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})"
-                                        title="Editar">
-                                    <i class="fa fa-edit"></i>
-                                </button>
-                                <button type="button" 
                                         class="btn btn-sm btn-danger btn-action" 
-                                        onclick="eliminarRegistro(event, '{{ $registro->tipo_registro }}', {{ $registro->id }}, '{{ addslashes($registro->nombre_proveedor) }}')"
+                                        onclick="eliminarRegistro('{{ $registro->tipo_registro }}', {{ $registro->id }})"
                                         title="Eliminar">
                                     <i class="fa fa-trash"></i>
                                 </button>

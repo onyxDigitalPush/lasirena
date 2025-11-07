@@ -7,6 +7,7 @@ use App\Models\MainApp\ProveedorMetric;
 use App\Models\MainApp\IncidenciaProveedor;
 use App\Models\MainApp\DevolucionProveedor;
 use App\Models\MainApp\EstadoIncidenciaReclamacion;
+use App\Models\MainApp\EmailProveedor;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -982,20 +983,10 @@ class MaterialKiloController extends Controller
         ]);
     }
 
-    public function eliminarIncidencia(Request $request, $id = null)
+    public function eliminarIncidencia($id)
     {
         try {
-            // Obtener ID desde la ruta o desde el request
-            $incidenciaId = $id ?? $request->input('id_incidencia');
-            
-            if (!$incidenciaId) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'ID de incidencia no proporcionado'
-                ], 400);
-            }
-
-            $incidencia = IncidenciaProveedor::find($incidenciaId);
+            $incidencia = IncidenciaProveedor::find($id);
             
             if (!$incidencia) {
                 return response()->json([
@@ -3979,5 +3970,97 @@ class MaterialKiloController extends Controller
         }
 
         return $datos;
+    }
+
+    public function historialIncidencia($id)
+    {
+        $emails = EmailProveedor::where('id_incidencia_proveedor', $id)->orderBy('created_at', 'desc')->get();
+
+        // Procesar archivos para generar URLs con nombres originales
+        foreach ($emails as $email) {
+            if ($email->ruta_archivos) {
+                $archivos = json_decode($email->ruta_archivos, true) ?: [];
+                $archivosConUrls = [];
+
+                // Verificar si es formato antiguo (array) o nuevo (objeto con nombres originales)
+                if (is_array($archivos) && !empty($archivos) && is_numeric(array_keys($archivos)[0])) {
+                    // FORMATO ANTIGUO: Array con rutas numéricas
+                    foreach ($archivos as $archivo) {
+                        $nombreArchivo = basename($archivo);
+                        $url = asset('storage/' . $archivo);
+                        $archivosConUrls[] = [
+                            'ruta_original' => $archivo,
+                            'nombre' => $nombreArchivo,
+                            'url' => $url
+                        ];
+                    }
+                } else {
+                    // FORMATO NUEVO: Objeto con nombre_original => ruta_unica
+                    foreach ($archivos as $nombreOriginal => $rutaUnica) {
+                        $url = route('proveedores.descargar_archivo_email', [
+                            'emailId' => $email->id_email_proveedor,
+                            'nombreArchivo' => $nombreOriginal
+                        ]);
+                        $archivosConUrls[] = [
+                            'ruta_original' => $rutaUnica,
+                            'nombre' => $nombreOriginal,
+                            'url' => $url
+                        ];
+                    }
+                }
+
+                $email->archivos_procesados = $archivosConUrls;
+            } else {
+                $email->archivos_procesados = [];
+            }
+        }
+
+        return response()->json(['data' => $emails]);
+    }
+
+    public function historialReclamacion($id)
+    {
+        $emails = EmailProveedor::where('id_devolucion_proveedor', $id)->orderBy('created_at', 'desc')->get();
+
+        // Procesar archivos para generar URLs con nombres originales
+        foreach ($emails as $email) {
+            if ($email->ruta_archivos) {
+                $archivos = json_decode($email->ruta_archivos, true) ?: [];
+                $archivosConUrls = [];
+
+                // Verificar si es formato antiguo (array) o nuevo (objeto con nombres originales)
+                if (is_array($archivos) && !empty($archivos) && is_numeric(array_keys($archivos)[0])) {
+                    // FORMATO ANTIGUO: Array con rutas numéricas
+                    foreach ($archivos as $archivo) {
+                        $nombreArchivo = basename($archivo);
+                        $url = asset('storage/' . $archivo);
+                        $archivosConUrls[] = [
+                            'ruta_original' => $archivo,
+                            'nombre' => $nombreArchivo,
+                            'url' => $url
+                        ];
+                    }
+                } else {
+                    // FORMATO NUEVO: Objeto con nombre_original => ruta_unica
+                    foreach ($archivos as $nombreOriginal => $rutaUnica) {
+                        $url = route('proveedores.descargar_archivo_email', [
+                            'emailId' => $email->id_email_proveedor,
+                            'nombreArchivo' => $nombreOriginal
+                        ]);
+                        $archivosConUrls[] = [
+                            'ruta_original' => $rutaUnica,
+                            'nombre' => $nombreOriginal,
+                            'url' => $url
+                        ];
+                    }
+                }
+
+                $email->archivos_procesados = $archivosConUrls;
+            } else {
+                $email->archivos_procesados = [];
+            }
+        }
+
+        return response()->json(['data' => $emails]);
     }
 }

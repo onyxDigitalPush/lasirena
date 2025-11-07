@@ -174,7 +174,7 @@ Route::group(['middleware' => ['auth']], function () {
 
     //Correos a proveedores
     Route::post('/proveedores/enviar-email', 'MainApp\EmailProveedorController@enviar')->name('proveedores.emails.enviar');
-    Route::get('proveedor/{id}/historial', 'MainApp\EmailProveedorController@historial')->name('proveedores.historial');
+    Route::get('/proveedor/{id}/historial', 'MainApp\EmailProveedorController@historial')->name('proveedores.historial');
     Route::get('/proveedores/descargar-archivo-email/{emailId}/{nombreArchivo}', 'MainApp\EmailProveedorController@descargarArchivoEmail')->name('proveedores.descargar_archivo_email');
 
     //CRUD Tiendas
@@ -232,6 +232,10 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/material_kilo/descargar-formato-quejas', 'MaterialKiloController@descargarFormatoQuejas')->name('material_kilo.descargar_formato_quejas');
         Route::post('/material_kilo/data', 'MaterialKiloController@data')->name('material-kilo.data');
         Route::get('/material_kilo/buscar-proveedor/{id}', 'MaterialKiloController@buscarProveedor');
+
+        //Historial de correos enviados desde incidencias/reclamaciones
+        Route::get('/material_kilo/{id}/historialincidencia', 'MaterialKiloController@historialIncidencia')->name('material_kilo.historial.incidencia');
+        Route::get('/material_kilo/{id}/historialreclamacion', 'MaterialKiloController@historialReclamacion')->name('material_kilo.historial.reclamacion');
 
         //Historial de cambios de estados de incidencias y devoluciones
         Route::get('/material_kilo/historial-estados/{tipo}/{id}', 'MaterialKiloController@obtenerHistorialEstados')->name('material_kilo.historial_estados');
