@@ -76,6 +76,20 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
+    
+    /* Estilos para el card de búsqueda exacta */
+    .card-header.bg-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    }
+    
+    .search-exact-card {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: box-shadow 0.3s ease;
+    }
+    
+    .search-exact-card:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
 </style>
 @endsection
 
@@ -161,6 +175,78 @@
     @endif
 
     @section('main_content')
+        <!-- Filtros de búsqueda exacta con backend -->
+        <div class="card mb-3 search-exact-card">
+            <div class="card-header bg-primary text-white">
+                <i class="fa fa-search mr-2"></i>
+                <strong>Búsqueda Exacta </strong>
+            </div>
+            <div class="card-body">
+                <p class="mb-3 text-muted">
+                    <i class="fa fa-info-circle mr-1"></i>
+                    <small>Estos filtros buscan coincidencias <strong>exactas</strong>. Ingrese el código o ID completo que desea buscar.</small>
+                </p>
+                <form action="{{ route('material_kilo.index') }}" method="GET" class="form-inline">
+                    <!-- Mantener parámetros de ordenamiento y filtros existentes -->
+                    @if(request('orden'))
+                        <input type="hidden" name="orden" value="{{ request('orden') }}">
+                    @endif
+                    @if(request('filtro'))
+                        <input type="hidden" name="filtro" value="{{ request('filtro') }}">
+                    @endif
+                    
+                    <div class="form-group mr-3 mb-2">
+                        <label for="search_codigo_material" class="mr-2">Código Material:</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="search_codigo_material" 
+                               name="search_codigo_material" 
+                               placeholder="Ej: 123456"
+                               value="{{ request('search_codigo_material') }}"
+                               style="width: 150px;">
+                    </div>
+                    
+                    <div class="form-group mr-3 mb-2">
+                        <label for="search_proveedor_id" class="mr-2">ID Proveedor:</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="search_proveedor_id" 
+                               name="search_proveedor_id" 
+                               placeholder="Ej: 1001"
+                               value="{{ request('search_proveedor_id') }}"
+                               style="width: 150px;">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary mr-2 mb-2">
+                        <i class="fa fa-search mr-1"></i>Buscar
+                    </button>
+                    
+                    <a href="{{ route('material_kilo.index', array_merge(request()->except(['search_codigo_material', 'search_proveedor_id']), [])) }}" 
+                       class="btn btn-secondary mb-2">
+                        <i class="fa fa-times mr-1"></i>Limpiar Búsqueda
+                    </a>
+                </form>
+                
+                @if(request('search_codigo_material') || request('search_proveedor_id'))
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <i class="fa fa-info-circle mr-1"></i>
+                            Mostrando resultados exactos para:
+                            @if(request('search_codigo_material'))
+                                <strong>Código Material: {{ request('search_codigo_material') }}</strong>
+                            @endif
+                            @if(request('search_codigo_material') && request('search_proveedor_id'))
+                                |
+                            @endif
+                            @if(request('search_proveedor_id'))
+                                <strong>ID Proveedor: {{ request('search_proveedor_id') }}</strong>
+                            @endif
+                        </small>
+                    </div>
+                @endif
+            </div>
+        </div>
+    
         <!-- Info de búsqueda activa -->
         @if(request()->hasAny(['codigo_material', 'proveedor_id', 'nombre_proveedor', 'nombre_material', 'mes']))
             <div class="alert alert-info alert-dismissible fade show" role="alert">

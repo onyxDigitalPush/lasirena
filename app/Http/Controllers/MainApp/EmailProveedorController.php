@@ -14,7 +14,6 @@ class EmailProveedorController extends Controller
 {
     public function enviar(Request $request)
     {
-
         $request->validate([
             'id_proveedor' => 'required|exists:proveedores,id_proveedor',
             'asunto' => 'required|max:255',
@@ -29,19 +28,32 @@ class EmailProveedorController extends Controller
             'id_devolucion_proveedor' => 'nullable|integer|exists:devoluciones_proveedores,id',
         ]);
 
-        // Guardar registro inicial en BD (enviado = 0)
-        $email = new EmailProveedor([
-            'id_proveedor' => (int) $request->id_proveedor,
-            'id_incidencia_proveedor' => $request->id_incidencia_proveedor,
-            'id_devolucion_proveedor' => $request->id_devolucion_proveedor,
-            'email_remitente' => $request->email_remitente,
-            'emails_destinatarios' => $request->emails_destinatarios,
-            'emails_bcc' => $request->emails_bcc,
-            'asunto' => $request->asunto,
-            'mensaje' => $request->mensaje,
-            'enviado' => 0
-        ]);
-        $email->save();
+        // Normalizar y validar destinatarios
+        $rawTo = trim($request->emails_destinatarios);
+        $rawTo = str_replace([';', ' '], [',', ''], $rawTo);
+        $toArray = array_filter(array_map('trim', explode(',', $rawTo)));
+        foreach ($toArray as $email) {
+            if (!preg_match('/^[^@]+@[^@]+\.[^@]+$/', $email)) {
+                return redirect()->back()->with('error', "El destinatario '$email' debe tener el formato texto@texto.dominio");
+            }
+        }
+
+        // Normalizar y validar bcc
+        $bccArray = [];
+        if ($request->emails_bcc) {
+            $rawBcc = trim($request->emails_bcc);
+            $rawBcc = str_replace([';', ' '], [',', ''], $rawBcc);
+            $bccArray = array_filter(array_map('trim', explode(',', $rawBcc)));
+            foreach ($bccArray as $email) {
+                if (!preg_match('/^[^@]+@[^@]+\.[^@]+$/', $email)) {
+                    return redirect()->back()->with('error', "El BCC '$email' debe tener el formato texto@texto.dominio");
+                }
+            }
+        }
+
+        if (empty($toArray) && empty($bccArray)) {
+            return redirect()->back()->with('error', 'Lista de destinatarios inválida.');
+        }
 
         // Guardar archivos con nombres únicos pero conservar nombres originales
         $archivos = [];
@@ -50,79 +62,93 @@ class EmailProveedorController extends Controller
                 $file = $request->file($input);
                 $nombreOriginal = $file->getClientOriginalName();
                 $extension = $file->getClientOriginalExtension();
-                
-                // Generar nombre único para evitar conflictos
                 $nombreUnico = pathinfo($nombreOriginal, PATHINFO_FILENAME) . '_' . time() . '_' . uniqid();
                 $nombreConExtension = $nombreUnico . '.' . $extension;
-                
-                // Guardar con nombre único
-                $path = $file->storeAs("emails_proveedores/{$email->id_email_proveedor}", $nombreConExtension, 'public');
-                
-                // Guardar usando nombre original como clave
+                $path = $file->storeAs("emails_proveedores/temp", $nombreConExtension, 'public');
                 $archivos[$nombreOriginal] = $path;
             }
         }
-        $email->ruta_archivos = $archivos ? json_encode($archivos) : null;
-        $email->save();
 
-        // Preparar destinatarios / bcc limpiando y quitando entradas vacías
-        $to = array_filter(array_map('trim', explode(';', $request->emails_destinatarios)));
-        $bccs = $request->emails_bcc ? array_filter(array_map('trim', explode(';', $request->emails_bcc))) : [];
+        $enviadosTo = [];
+        $enviadosBcc = [];
 
-        if (empty($to)) {
-            // mantener registro con enviado = 0
-            return redirect()->back()->with('error', 'Lista de destinatarios inválida.');
+        // Enviar a cada destinatario individualmente
+        foreach ($toArray as $destinatario) {
+            try {
+                Mail::send([], [], function ($message) use ($request, $archivos, $destinatario, $bccArray) {
+                    $message->from($request->email_remitente)
+                        ->to($destinatario)
+                        ->subject($request->asunto);
+                    $bodyHtml = nl2br(e($request->mensaje));
+                    $message->setBody($bodyHtml, 'text/html');
+                    foreach ($archivos as $nombreOriginal => $rutaUnica) {
+                        $filePath = storage_path('app/public/' . $rutaUnica);
+                        if (file_exists($filePath)) {
+                            $message->attach($filePath, ['as' => $nombreOriginal]);
+                        }
+                    }
+                });
+                $enviadosTo[] = $destinatario;
+            } catch (\Exception $e) {
+                Log::error('Error enviando email a destinatario: ' . $destinatario . ' - ' . $e->getMessage());
+            }
         }
 
-        // Enviar email real (DESPUÉS de guardar)
-        try {
-            Mail::send([], [], function ($message) use ($request, $archivos, $to, $bccs) {
-                $message->from($request->email_remitente)
-                    ->to($to)
-                    ->subject($request->asunto);
-
-                // Convertir saltos de línea a <br> y escapar HTML para preservar formato y evitar inyección
-                $bodyHtml = nl2br(e($request->mensaje));
-                $message->setBody($bodyHtml, 'text/html');
-
-                if (!empty($bccs)) {
-                    $message->bcc($bccs);
-                }
-
-                foreach ($archivos as $nombreOriginal => $rutaUnica) {
-                    $filePath = storage_path('app/public/' . $rutaUnica);
-                    if (file_exists($filePath)) {
-                        $message->attach($filePath, ['as' => $nombreOriginal]);
+        // Enviar a cada BCC individualmente (si quieres que cada uno reciba su propio email)
+        foreach ($bccArray as $bcc) {
+            try {
+                Mail::send([], [], function ($message) use ($request, $archivos, $bcc) {
+                    $message->from($request->email_remitente)
+                        ->to($bcc)
+                        ->subject($request->asunto);
+                    $bodyHtml = nl2br(e($request->mensaje));
+                    $message->setBody($bodyHtml, 'text/html');
+                    foreach ($archivos as $nombreOriginal => $rutaUnica) {
+                        $filePath = storage_path('app/public/' . $rutaUnica);
+                        if (file_exists($filePath)) {
+                            $message->attach($filePath, ['as' => $nombreOriginal]);
+                        }
                     }
-                }
-            });
+                });
+                $enviadosBcc[] = $bcc;
+            } catch (\Exception $e) {
+                Log::error('Error enviando email a BCC: ' . $bcc . ' - ' . $e->getMessage());
+            }
+        }
 
-            // Si llegó aquí, envío ok -> marcar enviado
-            $email->enviado = 1;
+        // Si al menos uno se envió, guardar registro con los que sí se enviaron
+        if (!empty($enviadosTo) || !empty($enviadosBcc)) {
+            $email = new EmailProveedor([
+                'id_proveedor' => (int) $request->id_proveedor,
+                'id_incidencia_proveedor' => $request->id_incidencia_proveedor,
+                'id_devolucion_proveedor' => $request->id_devolucion_proveedor,
+                'email_remitente' => $request->email_remitente,
+                'emails_destinatarios' => implode(',', $enviadosTo),
+                'emails_bcc' => implode(',', $enviadosBcc),
+                'asunto' => $request->asunto,
+                'mensaje' => $request->mensaje,
+                'enviado' => 1,
+                'ruta_archivos' => $archivos ? json_encode($archivos) : null
+            ]);
             $email->save();
 
-            return redirect()->back()->with('success', 'Correo enviado y guardado en historial.');
-        } catch (Exception $e) {
-            // Loguear error y devolver mensaje; registro queda con enviado = 0
-            Log::error('Error enviando email a proveedor: ' . $e->getMessage(), [
-                'email_id' => $email->id_email_proveedor,
-                'id_proveedor' => $email->id_proveedor,
-            ]);
-
-            return redirect()->back()->with('error', 'No se pudo enviar el correo: ' . $e->getMessage());
+            $msg = "Se enviaron y guardaron los correos.";
+            return redirect()->back()->with('success', $msg);
+        } else {
+            return redirect()->back()->with('error', 'No se pudo enviar ningún correo.');
         }
     }
 
     public function historial($id)
     {
         $emails = EmailProveedor::where('id_proveedor', $id)->orderBy('created_at', 'desc')->get();
-        
+
         // Procesar archivos para generar URLs con nombres originales
         foreach ($emails as $email) {
             if ($email->ruta_archivos) {
                 $archivos = json_decode($email->ruta_archivos, true) ?: [];
                 $archivosConUrls = [];
-                
+
                 // Verificar si es formato antiguo (array) o nuevo (objeto con nombres originales)
                 if (is_array($archivos) && !empty($archivos) && is_numeric(array_keys($archivos)[0])) {
                     // FORMATO ANTIGUO: Array con rutas numéricas
@@ -139,7 +165,7 @@ class EmailProveedorController extends Controller
                     // FORMATO NUEVO: Objeto con nombre_original => ruta_unica
                     foreach ($archivos as $nombreOriginal => $rutaUnica) {
                         $url = route('proveedores.descargar_archivo_email', [
-                            'emailId' => $email->id_email_proveedor, 
+                            'emailId' => $email->id_email_proveedor,
                             'nombreArchivo' => $nombreOriginal
                         ]);
                         $archivosConUrls[] = [
@@ -149,13 +175,13 @@ class EmailProveedorController extends Controller
                         ];
                     }
                 }
-                
+
                 $email->archivos_procesados = $archivosConUrls;
             } else {
                 $email->archivos_procesados = [];
             }
         }
-        
+
         return response()->json(['data' => $emails]);
     }
 
@@ -166,15 +192,15 @@ class EmailProveedorController extends Controller
     {
         try {
             Log::info("Solicitando descarga de archivo email - Email ID: {$emailId}, Archivo: {$nombreArchivo}");
-            
+
             $email = EmailProveedor::findOrFail($emailId);
             Log::info("Email encontrado - ID: {$emailId}");
-            
+
             if (!$email->ruta_archivos) {
                 Log::error("Email sin archivos - ID: {$emailId}");
                 abort(404, 'Este email no tiene archivos adjuntos');
             }
-            
+
             $archivos = json_decode($email->ruta_archivos, true);
             if (!isset($archivos[$nombreArchivo])) {
                 Log::error("Archivo no encontrado en JSON", [
@@ -183,10 +209,10 @@ class EmailProveedorController extends Controller
                 ]);
                 abort(404, 'Archivo no encontrado');
             }
-            
+
             $rutaArchivo = $archivos[$nombreArchivo];
             Log::info("Ruta de archivo obtenida del JSON: {$rutaArchivo}");
-            
+
             // Construir rutas posibles (normalizar separadores para Windows)
             $posiblesRutas = [
                 storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $rutaArchivo)),
@@ -194,7 +220,7 @@ class EmailProveedorController extends Controller
                 public_path('storage' . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $rutaArchivo)),
                 public_path('storage' . DIRECTORY_SEPARATOR . $rutaArchivo)
             ];
-            
+
             $rutaCompleta = null;
             foreach ($posiblesRutas as $ruta) {
                 $ruta = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $ruta);
@@ -204,7 +230,7 @@ class EmailProveedorController extends Controller
                     break;
                 }
             }
-            
+
             if (!$rutaCompleta) {
                 Log::error("Archivo no encontrado en ninguna ubicación", [
                     'rutas_intentadas' => $posiblesRutas,
@@ -212,22 +238,22 @@ class EmailProveedorController extends Controller
                 ]);
                 abort(404, 'Archivo físico no encontrado en el sistema');
             }
-            
+
             $extension = strtolower(pathinfo($rutaCompleta, PATHINFO_EXTENSION));
             $tamaño = filesize($rutaCompleta);
-            
+
             Log::info("Iniciando descarga", [
                 'archivo' => $nombreArchivo,
                 'tamaño' => $tamaño,
                 'extension' => $extension
             ]);
-            
+
             // Verificar que el archivo no esté corrupto
             if ($tamaño === 0) {
                 Log::warning("Archivo está vacío: {$rutaCompleta}");
                 abort(422, 'El archivo está vacío o corrupto');
             }
-            
+
             // Determinar MIME type
             $mimeTypes = [
                 'jpg' => 'image/jpeg',
@@ -245,16 +271,16 @@ class EmailProveedorController extends Controller
                 'zip' => 'application/zip',
                 'rar' => 'application/x-rar-compressed'
             ];
-            
+
             $mimeType = $mimeTypes[$extension] ?? 'application/octet-stream';
-            
+
             Log::info("Enviando archivo con headers directos");
-            
+
             // Limpiar cualquier buffer anterior
             if (ob_get_level()) {
                 ob_end_clean();
             }
-            
+
             // Headers HTTP directos para evitar corrupción
             header('Content-Type: ' . $mimeType);
             header('Content-Disposition: attachment; filename="' . $nombreArchivo . '"');
@@ -262,13 +288,12 @@ class EmailProveedorController extends Controller
             header('Cache-Control: no-cache, no-store, must-revalidate');
             header('Pragma: no-cache');
             header('Expires: 0');
-            
+
             // Enviar archivo directamente
             readfile($rutaCompleta);
-            
+
             Log::info("Archivo email enviado exitosamente con readfile()");
             exit;
-            
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             Log::error("Email no encontrado - ID: {$emailId}");
             abort(404, 'Email no encontrado');

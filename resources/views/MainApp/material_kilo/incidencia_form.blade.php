@@ -32,6 +32,152 @@
         border-color: #545b62;
         color: white;
     }
+
+    .loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    
+    .loading i {
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* Badges para tipos consistentes con historial */
+    .badge-incidencia {
+        background-color: #ffc107 !important;
+        color: #212529 !important;
+    }
+    
+    .badge-devolucion {
+        background-color: #17a2b8 !important;
+        color: #fff !important;
+    }
+    
+    .badge-general {
+        background-color: #6c757d !important;
+        color: #fff !important;
+    }
+    
+    /* Estilos para botones de archivo */
+    .btn-archivo {
+        margin-right: 5px;
+        margin-bottom: 5px;
+    }
+    
+    /* MODAL HISTORIAL FIJO - TAMAÑO VIEWPORT */
+    #historialEmailsModal .modal-dialog {
+        max-width: 95vw !important;
+        width: 95vw !important;
+        height: 90vh !important;
+        margin: 2.5vh auto !important;
+    }
+    
+    #historialEmailsModal .modal-content {
+        height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    #historialEmailsModal .modal-header {
+        flex-shrink: 0 !important;
+    }
+    
+    #historialEmailsModal .modal-footer {
+        flex-shrink: 0 !important;
+    }
+    
+    #historialEmailsModal .modal-body {
+        flex: 1 !important;
+        overflow-y: auto !important;
+        padding: 15px !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    /* CONTENEDOR DE TABLA CON ALTURA FIJA */
+    #tabla_historial_container {
+        flex: 1 !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+        min-height: 400px !important;
+    }
+    
+    #historial_emails_table_wrapper {
+        flex: 1 !important;
+        overflow: auto !important;
+    }
+    
+    /* TABLA CON SCROLL HORIZONTAL Y COLUMNAS FLEXIBLES */
+    #historial_emails_table {
+        width: 100% !important;
+        table-layout: auto !important; /* CAMBIADO DE fixed A auto */
+        min-width: 1400px !important; /* MÁS ANCHO PARA MÁS ARCHIVOS */
+    }
+    
+    /* ANCHO MÍNIMO PARA COLUMNAS (NO FIJO) */
+    #historial_emails_table th:nth-child(1),
+    #historial_emails_table td:nth-child(1) { min-width: 80px !important; }   /* Tipo */
+    #historial_emails_table th:nth-child(2),
+    #historial_emails_table td:nth-child(2) { min-width: 150px !important; }  /* Remitente */
+    #historial_emails_table th:nth-child(3),
+    #historial_emails_table td:nth-child(3) { min-width: 150px !important; }  /* Destinatarios */
+    #historial_emails_table th:nth-child(4),
+    #historial_emails_table td:nth-child(4) { min-width: 100px !important; }  /* BCC */
+    #historial_emails_table th:nth-child(5),
+    #historial_emails_table td:nth-child(5) { min-width: 200px !important; }  /* Asunto */
+    #historial_emails_table th:nth-child(6),
+    #historial_emails_table td:nth-child(6) { min-width: 80px !important; }   /* Mensaje */
+    #historial_emails_table th:nth-child(7),
+    #historial_emails_table td:nth-child(7) { min-width: 200px !important; }  /* MÁS ANCHO PARA ARCHIVOS */
+    #historial_emails_table th:nth-child(8),
+    #historial_emails_table td:nth-child(8) { min-width: 140px !important; }  /* Fecha */
+    
+    /* TEXTO QUE SE PUEDE EXPANDIR (SOLO PARA CELDAS NORMALES) */
+    #historial_emails_table td:not(.archivos-cell) {
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        vertical-align: middle !important;
+    }
+    
+    /* CELDA DE ARCHIVOS CON WRAP PARA MOSTRAR TODOS */
+    #historial_emails_table td.archivos-cell {
+        white-space: normal !important; /* PERMITE SALTO DE LÍNEA */
+        overflow: visible !important;
+        text-overflow: initial !important;
+        vertical-align: top !important;
+        padding: 8px !important;
+    }
+    
+    /* BOTONES DE ARCHIVO MÁS PEQUEÑOS */
+    .btn-archivo-download {
+        font-size: 10px !important;
+        padding: 2px 6px !important;
+        margin: 2px !important;
+        border-radius: 3px !important;
+        display: inline-block !important;
+    }
+    
+    /* PREVIEW MENSAJE FIJO */
+    #mensaje_preview_container {
+        flex-shrink: 0 !important;
+        max-height: 200px !important;
+        margin-top: 10px !important;
+    }
+    
+    #mensaje_preview {
+        max-height: 150px !important;
+        overflow-y: auto !important;
+        white-space: pre-wrap !important;
+        word-wrap: break-word !important;
+    }
 </style>
 
 @section('custom_scripts')
@@ -100,11 +246,16 @@
                         {{ isset($incidencia) ? 'Editar Incidencia' : 'Nueva Incidencia' }}
                     </h5>
                 </div>
-
+            
                 @if (isset($incidencia))
                     <div class="text-right">
+                        <button type="button"
+                            class="btn btn-info btn-sm open-history"
+                            data-id="{{ $incidencia->id }}">
+                            <i class="fa fa-history"></i> Historial Correos Enviados
+                        </button>
                         <button type="button" id="btnAbrirModalCorreo" class="btn btn-primary" data-toggle="modal" data-target="#modalEnviarCorreo">
-                            <i class="fas fa-envelope"></i> Enviar correo
+                            <i class="fas fa-envelope"></i> Enviar Correo
                         </button>
                     </div>
                 @endif
@@ -550,10 +701,10 @@
                 
                 Saludos,
             EOT;
-
+                
             $plantilla_temperatura = <<<EOT
                 Buenos días/Buenas tardes,
-
+                
                 Se adjunta informe de incidencia sobre su producto:
                 
                 {CODE} - {PRODUCT}.
@@ -611,12 +762,11 @@
                                 <div class="form-group col-md-12">
                                     <label>Mensaje</label>
                                     <textarea class="form-control" name="mensaje" id="correo_mensaje" rows="8" placeholder="Escriba el mensaje..." required>{{ old('mensaje', $mensajePlantilla) }}</textarea>
-                                    <small class="form-text text-muted">Puede editar el texto antes de enviar. Los saltos se preservan en el textarea.</small>
                                 </div>
 
                                 <div class="form-group col-md-6">
                                     <label>Correo del proveedor</label>
-                                    <input type="email" class="form-control" name="emails_destinatarios" id="correo_destinatarios" value="{{ old('emails_destinatarios', $incidencia->proveedor->email_proveedor ?? '') }}" required>
+                                    <input type="text" class="form-control" name="emails_destinatarios" id="correo_destinatarios" value="{{ old('emails_destinatarios', $incidencia->proveedor->email_proveedor ?? '') }}" required>
                                 </div>
 
                                 <div class="form-group col-md-6">
@@ -669,6 +819,43 @@
             </div>
         </div>
     @endif
+
+    <!-- Modal Historial Emails -->
+    <div class="modal fade" id="historialEmailsModal" tabindex="-1" role="dialog" aria-labelledby="historialEmailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="historialEmailsModalLabel">
+                        <i class="fa fa-envelope mr-2"></i>Historial de Emails de la Incidencia
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <!-- CONTENEDOR TABLA CON ALTURA FIJA -->
+                    <div id="tabla_historial_container">
+                        <!-- Aquí se insertará la tabla por JavaScript -->
+                    </div>
+
+                    <!-- Preview mensaje (FIJO ABAJO) -->
+                    <div id="mensaje_preview_container" style="display:none;">
+                        <hr>
+                        <h6><i class="fa fa-eye mr-1"></i>Vista del mensaje</h6>
+                        <div id="mensaje_preview" class="border p-3 bg-light rounded"></div>
+                        <div class="mt-2 text-right">
+                            <button id="cerrar_preview_mensaje" class="btn btn-sm btn-secondary">
+                                <i class="fa fa-times mr-1"></i>Cerrar vista
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fa fa-times mr-1"></i>Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         // Mantener solo JS necesario: manejo de archivos y previews (sin plantillas ni apertura forzada)
@@ -733,6 +920,7 @@
 
         $(document).ready(function() {
             if ($('#modalEnviarCorreo').length) $('#modalEnviarCorreo').appendTo('body');
+            if ($('#historialEmailsModal').length) $('#historialEmailsModal').appendTo('body');
 
             $('#archivos_incidencia').on('change', function() {
                 var files = Array.from(this.files || []);
@@ -788,6 +976,304 @@
                     actions.show();
                 }
             });
+        });
+
+        "use strict";
+
+        // --- Funciones auxiliares ---
+        function escapeHtml(s) {
+          return $("<div>").text(s || "").html();
+        }
+    
+        function nl2br(s) {
+          return escapeHtml(s || "").replace(/\r\n|\r|\n/g, "<br>");
+        }
+    
+        function fmtDate(dstr) {
+          if (!dstr) return "";
+          var d = new Date(dstr);
+          if (isNaN(d.getTime())) d = new Date((dstr || "").replace(" ", "T"));
+          if (isNaN(d.getTime())) return dstr;
+          var p = (n) => (n < 10 ? "0" + n : n);
+          return `${p(d.getDate())}-${p(d.getMonth() + 1)}-${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+        }
+    
+        var loadingHistory = false;
+        var historialDataTable = null;
+    
+        function destroyHistorialTable() {
+          try {
+            if (historialDataTable) {
+              try { historialDataTable.destroy(true); } catch (e) {}
+              historialDataTable = null;
+            }
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable("#historial_emails_table")) {
+              try { $("#historial_emails_table").DataTable().destroy(true); } catch (e) {}
+            }
+            $("#historial_emails_table_wrapper").remove();
+            $("#historial_emails_table").remove();
+          } catch (e) {}
+        }
+    
+        function createHistorialTable() {
+          const html = `
+            <table id="historial_emails_table" class="table table-sm table-striped table-bordered">
+              <thead class="thead-dark">
+                <tr>
+                  <th class="text-center">Proveedor</th>
+                  <th class="text-center">Remitente</th>
+                  <th class="text-center">Destinatarios</th>
+                  <th class="text-center">BCC</th>
+                  <th class="text-center">Asunto</th>
+                  <th class="text-center">Mensaje</th>
+                  <th class="text-center">Archivos</th>
+                  <th class="text-center">Fecha envío</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>`;
+          $("#tabla_historial_container").html(html);
+        }
+    
+        function initHistorialTable() {
+          try {
+            var $table = $("#historial_emails_table");
+            if ($table.length === 0) return;
+            if (typeof $.fn.DataTable === 'undefined') return;
+            setTimeout(function () {
+              try {
+                var $tbody = $table.find('tbody');
+                var rowCount = $tbody.find('tr').length;
+                if (rowCount === 1) {
+                  var $firstTd = $tbody.find('tr').first().find('td');
+                  if ($firstTd.length === 1 && $firstTd.attr('colspan')) return;
+                }
+                historialDataTable = $table.DataTable({
+                  order: [[6, "desc"]],
+                  pageLength: 10,
+                  lengthMenu: [[10, 25, 50], [10, 25, 50]],
+                  columnDefs: [
+                    { orderable: false, targets: [4, 5] },
+                    { className: "text-center", targets: [0, 4, 5, 6] }
+                  ],
+                  responsive: true,
+                  destroy: true,
+                  searching: true,
+                  paging: true,
+                  info: true,
+                  autoWidth: false,
+                  language: {
+                    emptyTable: "No hay emails registrados para esta incidencia",
+                    zeroRecords: "No se encontraron emails coincidentes con la búsqueda",
+                    info: "Mostrando _START_ a _END_ de _TOTAL_ emails",
+                    infoEmpty: "Mostrando 0 a 0 de 0 emails",
+                    infoFiltered: "(filtrado de _MAX_ emails totales)",
+                    search: "Buscar emails:",
+                    paginate: {
+                      first: "Primero",
+                      last: "Último",
+                      next: "Siguiente",
+                      previous: "Anterior",
+                    },
+                    lengthMenu: "Mostrar _MENU_ emails por página",
+                  },
+                });
+              } catch (e) {}
+            }, 150);
+          } catch (e) {}
+        }
+    
+        // MODAL HISTORIAL EMAILS
+        $(document)
+          .off("click.historyModal")
+          .on("click.historyModal", ".open-history", manejarClickHistorial);
+    
+        $(document).ready(function() {
+          $(".open-history").off("click.historyModalDirect").on("click.historyModalDirect", manejarClickHistorial);
+        });
+    
+        function manejarClickHistorial(e) {
+          e.preventDefault();
+          var $btn = $(this);
+          if ($btn.hasClass("loading") || loadingHistory) return false;
+          $btn.addClass("loading").prop("disabled", true);
+          loadingHistory = true;
+          var id = $btn.data("id");
+          if (!id || id === "" || isNaN(id)) {
+            $btn.removeClass("loading").prop("disabled", false);
+            loadingHistory = false;
+            return alert("Error: ID de la incidencia no válida");
+          }
+          var $modal = $("#historialEmailsModal");
+          if ($modal.length === 0) {
+            $btn.removeClass("loading").prop("disabled", false);
+            loadingHistory = false;
+            return alert("Error: Modal de historial no disponible");
+          }
+          $("#mensaje_preview").empty();
+          $("#mensaje_preview_container").hide();
+          destroyHistorialTable();
+          createHistorialTable();
+          var $tbody = $("#historial_emails_table tbody");
+          $tbody.html('<tr><td colspan="8" class="text-center py-4"><i class="fa fa-spinner fa-spin"></i> Cargando historial de emails...</td></tr>');
+          try { $modal.modal("show"); } catch (error) {
+            try {
+              $modal.addClass("show").css("display", "block");
+              $("body").addClass("modal-open");
+              if ($(".modal-backdrop").length === 0) {
+                $("body").append('<div class="modal-backdrop fade show"></div>');
+              }
+            } catch (alternativeError) {
+              $btn.removeClass("loading").prop("disabled", false);
+              loadingHistory = false;
+              return alert("Error al abrir el modal del historial: " + error.message);
+            }
+          }
+          var ajaxUrl = "/material_kilo/" + id + "/historialincidencia";
+          $.ajax({
+            url: ajaxUrl,
+            method: "GET",
+            timeout: 15000,
+            dataType: "json"
+          })
+            .done(function (res) {
+              $tbody.empty();
+              var emails = res && res.data ? res.data : [];
+              if (!emails.length) {
+                $tbody.html(
+                  '<tr><td colspan="8" class="text-center text-muted">' +
+                  '<i class="fa fa-inbox"></i><br>' +
+                  'No hay emails registrados para esta incidencia</td></tr>'
+                );
+              } else {
+                emails.forEach(function (email) {
+                  var proveedor = escapeHtml(email.proveedor.nombre_proveedor || "");
+                  var remitente = escapeHtml(email.email_remitente || "");
+                  var destinatarios = escapeHtml(email.emails_destinatarios || "");
+                  var bcc = escapeHtml(email.emails_bcc || "");
+                  var asunto = escapeHtml(email.asunto || "");
+                  var mensajeEnc = encodeURIComponent(email.mensaje || "");
+                  var archivosHtml = "";
+                  var archivos = email.archivos_procesados || [];
+                  if (archivos && archivos.length) {
+                    archivos.forEach(function (archivo, idx) {
+                      archivosHtml += `<button type="button" class="btn btn-xs btn-outline-primary btn-archivo-download" 
+                        data-url="${archivo.url}" data-nombre="${archivo.nombre}" title="Descargar archivo ${idx + 1}">
+                        <i class="fa fa-download"></i> ${idx + 1}</button>`;
+                    });
+                  } else {
+                    archivosHtml = '<span class="text-muted small">Sin archivos</span>';
+                  }
+                  var fecha = fmtDate(email.created_at || email.fecha_envio_proveedor || "");
+                  var row = `
+                    <tr>
+                      <td>${proveedor}</td>
+                      <td>${remitente}</td>
+                      <td>${destinatarios}</td>
+                      <td>${bcc}</td>
+                      <td>${asunto}</td>
+                      <td class="text-center">
+                        <button class="btn btn-sm btn-outline-secondary btn-ver-mensaje" data-mensaje="${mensajeEnc}">Ver</button>
+                      </td>
+                      <td class="archivos-cell text-center">${archivosHtml}</td>
+                      <td class="text-center">${fecha}</td>
+                    </tr>`;
+                  $tbody.append(row);
+                });
+              }
+              if (emails.length > 0) {
+                setTimeout(function() { initHistorialTable(); }, 100);
+              }
+            })
+            .fail(function (xhr, status, error) {
+              var errorMessage = "Error desconocido";
+              var errorDetails = "";
+              if (xhr.status === 404) {
+                errorMessage = "Incidencia no encontrada";
+                errorDetails = "La incidencia con ID " + id + " no existe";
+              } else if (xhr.status === 500) {
+                errorMessage = "Error interno del servidor";
+                errorDetails = "Por favor, contacte al administrador";
+              } else if (xhr.status === 0) {
+                errorMessage = "Error de conexión";
+                errorDetails = "Verifique su conexión a internet";
+              } else if (status === "timeout") {
+                errorMessage = "Tiempo de espera agotado";
+                errorDetails = "La consulta tardó demasiado tiempo";
+              } else {
+                errorMessage = "Error al cargar historial";
+                errorDetails = "Código: " + xhr.status + " | " + error;
+              }
+              $tbody.html(
+                '<tr><td colspan="8" class="text-center text-danger p-4">' +
+                '<i class="fa fa-exclamation-triangle mb-2" style="font-size: 24px;"></i><br>' +
+                '<strong>' + errorMessage + '</strong><br>' +
+                '<small>' + errorDetails + '</small><br><br>' +
+                '<button class="btn btn-sm btn-outline-secondary" onclick="$(this).closest(\'.modal\').modal(\'hide\')">Cerrar</button>' +
+                '</td></tr>'
+              );
+            })
+            .always(function () {
+              $btn.removeClass("loading").prop("disabled", false);
+              loadingHistory = false;
+            });
+        }
+    
+        // BOTÓN VER MENSAJE (delegado)
+        $(document)
+          .off("click.messagePreview")
+          .on("click.messagePreview", ".btn-ver-mensaje", function (e) {
+            e.preventDefault();
+            var enc = $(this).data("mensaje") || "";
+            var msg = "";
+            try { msg = decodeURIComponent(enc); } catch (ex) { msg = enc || ""; }
+            $("#mensaje_preview").html(nl2br(msg));
+            $("#mensaje_preview_container").show();
+          });
+      
+        // BOTÓN CERRAR VISTA (delegado)
+        $(document)
+          .off("click.closePreview")
+          .on("click.closePreview", "#cerrar_preview_mensaje", function (e) {
+            e.preventDefault();
+            $("#mensaje_preview").empty();
+            $("#mensaje_preview_container").hide();
+          });
+      
+        // Función para cerrar el modal historial
+        function cerrarModalHistorial() {
+          $("#mensaje_preview").empty();
+          $("#mensaje_preview_container").hide();
+          loadingHistory = false;
+          destroyHistorialTable();
+          $(".modal-backdrop").remove();
+          $("body").removeClass("modal-open");
+        }
+    
+        // Cierre de modal historial (Bootstrap)
+        $("#historialEmailsModal").on("hide.bs.modal", cerrarModalHistorial);
+    
+        // Cierre manual del modal (botón X y backdrop)
+        $(document).on("click", "#historialEmailsModal .close, .modal-backdrop", function() {
+          var $modal = $("#historialEmailsModal");
+          try { $modal.modal("hide"); } catch (e) {
+            $modal.removeClass("show").css("display", "none");
+            cerrarModalHistorial();
+          }
+        });
+    
+        // Forzar descarga directa de archivos (sin abrir nueva pestaña)
+        $(document).off("click.descargaArchivo").on("click.descargaArchivo", ".btn-archivo-download", function(e) {
+          e.preventDefault();
+          var url = $(this).data("url");
+          var nombre = $(this).data("nombre") || "archivo";
+          var a = document.createElement('a');
+          a.href = url;
+          a.download = nombre;
+          a.style.display = 'none';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
         });
     </script>
 @endsection
