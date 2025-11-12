@@ -1,4 +1,0 @@
-[2025-11-06 16:49:25] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string"} 
-[2025-11-06 17:02:35] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string","familia":"","familia_type":"string"} 
-[2025-11-06 17:03:36] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string","familia":"","familia_type":"string"} 
-[2025-11-06 17:04:00] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string","familia":"","familia_type":"string"} 

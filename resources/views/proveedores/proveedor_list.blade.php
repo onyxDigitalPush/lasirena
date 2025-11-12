@@ -295,18 +295,75 @@
                                 <a href="{{ route('proveedores.descargar_formato_proveedores_entradas') }}" class="btn btn-sm btn-outline-primary">
                                     <i class="fa fa-download mr-1"></i>Descargar Formato de Ejemplo (.xlsx)
                                 </a>
-                                <small class="form-text text-muted d-inline-block ml-2">
-                                    Cabeceras en la fila 4; los datos (filas) deben comenzar abajo (fila 5 en general). Para importación de proveedores (botón "Importar Proveedores"), el import utiliza la fila 10 como inicio de datos.
-                                </small>
+                                <div class="alert alert-info mt-2 mb-0">
+                                    <strong><i class="fa fa-info-circle"></i> Estructura del Excel para Proveedores y Artículos:</strong>
+                                    <ul class="mb-0 mt-2">
+                                        <li><strong>Fila 4:</strong> Debe contener las cabeceras de columnas</li>
+                                        <li><strong>Fila 5 en adelante:</strong> Datos de proveedores y artículos</li>
+                                        <li><strong>Columnas requeridas:</strong>
+                                            <ul>
+                                                <li><strong>A:</strong> Jerarquía del producto</li>
+                                                <li><strong>B:</strong> Material (código del artículo)</li>
+                                                <li><strong>C:</strong> Descripción de material</li>
+                                                <li><strong>D:</strong> Proveedor (ID numérico)</li>
+                                                <li><strong>E:</strong> Nombre del Proveedor</li>
+                                                <li><strong>F:</strong> Ce.</li>
+                                                <li><strong>G:</strong> (columna adicional)</li>
+                                                <li><strong>H:</strong> Ctd. EM-DEV (cantidad)</li>
+                                                <li><strong>I:</strong> UMB (unidad de medida)</li>
+                                                <li><strong>J:</strong> Valor EM-DEV</li>
+                                                <li><strong>K-L:</strong> (columnas adicionales)</li>
+                                                <li><strong>M:</strong> Factor de conversión</li>
+                                                <li><strong>N:</strong> Total KG</li>
+                                                <li><strong>L (posición 11):</strong> MES (formato numérico)</li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                             <div class="mb-3" id="download_format_sin_fconversion" style="display: none;">
                                 <a href="{{ route('proveedores.descargar_formato_sin_fconversion') }}" class="btn btn-sm btn-outline-warning">
                                     <i class="fa fa-download mr-1"></i>Descargar Formato de Ejemplo (.xlsx)
                                 </a>
-                                <small class="form-text text-muted d-inline-block ml-2">
-                                    Formato sin factor de conversión. Cabeceras en la fila 1; los datos desde la fila 2.
-                                    Columnas: ML, Material, Jerarquía product., Descripción de material, Proveedor, Nombre del proveedor, Ce., Mes (formato: 9.2025), Ctd. EM-DEV, UMB, Valor EM-DEV
-                                </small>
+                                <div class="alert alert-warning mt-2 mb-0">
+                                    <strong><i class="fa fa-info-circle"></i> Estructura del Excel SIN Factor de Conversión:</strong>
+                                    <ul class="mb-0 mt-2">
+                                        <li><strong>Fila 1:</strong> Debe contener las cabeceras de columnas</li>
+                                        <li><strong>Fila 2 en adelante:</strong> Datos de proveedores y artículos</li>
+                                        <li><strong>Columnas requeridas en orden:</strong>
+                                            <ol>
+                                                <li><strong>A:</strong> ML</li>
+                                                <li><strong>B:</strong> Material (código del artículo)</li>
+                                                <li><strong>C:</strong> Jerarquía product.</li>
+                                                <li><strong>D:</strong> Descripción de material</li>
+                                                <li><strong>E:</strong> Proveedor (ID numérico)</li>
+                                                <li><strong>F:</strong> Nombre del proveedor</li>
+                                                <li><strong>G:</strong> Ce.</li>
+                                                <li><strong>H:</strong> Mes (formato: 9.2025 o similar)</li>
+                                                <li><strong>I:</strong> Ctd. EM-DEV (cantidad con decimales permitidos)</li>
+                                                <li><strong>J:</strong> UMB (unidad de medida)</li>
+                                                <li><strong>K:</strong> Valor EM-DEV</li>
+                                            </ol>
+                                        </li>
+                                        <li><strong>Importante:</strong> Se detendrá al encontrar 3 filas vacías consecutivas</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="mb-3" id="download_format_proveedores" style="display: none;">
+                                <div class="alert alert-primary mt-2 mb-0">
+                                    <strong><i class="fa fa-info-circle"></i> Estructura del Excel para Solo Proveedores:</strong>
+                                    <ul class="mb-0 mt-2">
+                                        <li><strong>Hoja requerida:</strong> "LISTADO GENERAL" (tercera hoja si no existe por nombre)</li>
+                                        <li><strong>Fila 10 en adelante:</strong> Datos de proveedores</li>
+                                        <li><strong>Columnas requeridas:</strong>
+                                            <ul>
+                                                <li><strong>F:</strong> ID del Proveedor (numérico)</li>
+                                                <li><strong>G:</strong> Nombre del Proveedor</li>
+                                            </ul>
+                                        </li>
+                                        <li><strong>Nota:</strong> Se omiten proveedores que ya existen en el sistema</li>
+                                    </ul>
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label for="archivo">Seleccionar Archivo</label>
@@ -520,9 +577,10 @@
             $('#importForm')[0].reset();
             $('.custom-file-label').html('Elegir archivo...');
             $('#importarArchivoModal').removeData('processing');
-            // Ocultar ambos botones de descarga por defecto
+            // Ocultar todos los botones de descarga por defecto
             $('#download_format_general').hide();
             $('#download_format_sin_fconversion').hide();
+            $('#download_format_proveedores').hide();
 
             // Restaurar configuración del modal
             var modalConfig = $('#importarArchivoModal').data('bs.modal');
@@ -539,14 +597,17 @@
             var button = $(event.relatedTarget); // Button that triggered the modal
             var importType = button.data('import-type') || 'general';
             $('#import_type_input').val(importType);
+            // Ocultar todos los formatos primero
+            $('#download_format_general').hide();
+            $('#download_format_sin_fconversion').hide();
+            $('#download_format_proveedores').hide();
             // Mostrar el botón de descarga apropiado según el tipo de importación
             if (importType === 'general') {
                 $('#download_format_general').show();
             } else if (importType === 'sin_fconversion') {
                 $('#download_format_sin_fconversion').show();
-            } else {
-                $('#download_format_general').hide();
-                $('#download_format_sin_fconversion').hide();
+            } else if (importType === 'proveedores') {
+                $('#download_format_proveedores').show();
             }
         }); // Script para manejar el loader durante la importación
         $('#importForm').on('submit', function(e) {
