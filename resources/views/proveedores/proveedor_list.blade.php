@@ -41,6 +41,18 @@
         margin-bottom: 5px;
     }
     
+    /* Anchos de columnas de la tabla de proveedores */
+    #table_proveedores th:nth-child(1),
+    #table_proveedores td:nth-child(1) { width: 100px !important; max-width: 100px !important; } /* Codigo */
+    #table_proveedores th:nth-child(4),
+    #table_proveedores td:nth-child(4) { width: 80px !important; max-width: 80px !important; } /* Historial */
+    #table_proveedores th:nth-child(5),
+    #table_proveedores td:nth-child(5) { width: 100px !important; } /* Ver Articulos */
+    #table_proveedores th:nth-child(6),
+    #table_proveedores td:nth-child(6) { width: 80px !important; } /* Editar */
+    #table_proveedores th:nth-child(7),
+    #table_proveedores td:nth-child(7) { width: 80px !important; } /* Eliminar */
+    
     /* 🔥 MODAL HISTORIAL FIJO - TAMAÑO VIEWPORT */
     #historialEmailsModal .modal-dialog {
         max-width: 95vw !important;
@@ -218,7 +230,8 @@
                 <th class="text-center">Codigo Proveedor</th>
                 <th class="text-center">Nombre Proveedor</th>
                 <th class="text-center">Email Proveedor</th>
-                <th class="text-center">Ver Historial Emails</th>
+                <th class="text-center">Familia</th>
+                <th class="text-center">Historial</th>
                 <th class="text-center">Ver Articulos</th>
                 <th class="text-center">Editar</th>
                 <th class="text-center">Eliminar</th>
@@ -227,6 +240,15 @@
                 <th><input type="text" class="form-control form-control-sm" placeholder="Buscar Código" /></th>
                 <th><input type="text" class="form-control form-control-sm" placeholder="Buscar Nombre" /></th>
                 <th><input type="text" class="form-control form-control-sm" placeholder="Buscar Email" /></th>
+                <th>
+                    <select class="form-control form-control-sm" id="filtro_familia">
+                        <option value="">Todas</option>
+                        <option value="ELABORADOS">ELABORADOS</option>
+                        <option value="PRODUCTOS DEL MAR">PRODUCTOS DEL MAR</option>
+                        <option value="CONSUMIBLES">CONSUMIBLES</option>
+                        <option value="Otros">Otros</option>
+                    </select>
+                </th>
                 <th></th>
                 <th></th>
                 <th></th>
@@ -241,6 +263,7 @@
                 <td class="text-center">{{ $proveedor->id_proveedor }}</td>
                 <td class="text-center">{{ $proveedor->nombre_proveedor }}</td>
                 <td class="text-center">{{ $proveedor->email_proveedor }}</td>
+                <td class="text-center">{{ $proveedor->familia ?? '' }}</td>
                 <td class="text-center">
                     <button type="button"
                         class="btn btn-info btn-sm open-history"
@@ -450,19 +473,20 @@
                             <select class="form-control" id="subfamilia" name="subfamilia">
                                 <option value="">Seleccionar...</option>
                                 <option value="Ambient">Ambient</option>
-                                <option value="Carne">Carne</option>
-                                <option value="Consumible">Consumible</option>
+                                <option value="Carnes">Carnes</option>
+                                <option value="Elaborados">Elaborados</option>
+                                <option value="Consumibles">Consumibles</option>
                                 <option value="Helados y Postres">Helados y Postres</option>
                                 <option value="Marisco">Marisco</option>
                                 <option value="Pescado">Pescado</option>
                                 <option value="Pescado y Marisco">Pescado y Marisco</option>
-                                <option value="Plato preparado">Plato preparado</option>
-                                <option value="postres">postres</option>
-                                <option value="precocinados">precocinados</option>
-                                <option value="precocinado y plato preparados">precocinado y plato preparados</option>
-                                <option value="Repostería">Repostería</option>
-                                <option value="servicios">servicios</option>
-                                <option value="Verdura">Verdura</option>
+                                <option value="Platos preparados">Platos preparados</option>
+                                <option value="Postres">Postres</option>
+                                <option value="Precocinados">Precocinados</option>
+                                <option value="Precocinados y platos preparados">Precocinados y platos preparados</option>
+                                <option value="Reposteria">Reposteria</option>
+                                <option value="Servicios">Servicios</option>
+                                <option value="Verduras">Verduras</option>
                                 <option value="Otros">Otros</option>
                             </select>
                         </div>
@@ -510,6 +534,41 @@
                             <input type="text" class="form-control" id="email_proveedor_edit"
                                 name="email_proveedor_edit" placeholder="ejemplo@correo.com">
                         </div>
+
+                        <div class="form-group">
+                            <label for="familia_edit">Familia</label>
+                            <select class="form-control" id="familia_edit" name="familia_edit">
+                                <option value="">Seleccionar...</option>
+                                <option value="ELABORADOS">ELABORADOS</option>
+                                <option value="PRODUCTOS DEL MAR">PRODUCTOS DEL MAR</option>
+                                <option value="CONSUMIBLES">CONSUMIBLES</option>
+                                <option value="Otros">Otros</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="subfamilia_edit">Subfamilia</label>
+                            <select class="form-control" id="subfamilia_edit" name="subfamilia_edit">
+                                <option value="">Seleccionar...</option>
+                                <option value="Ambient">Ambient</option>
+                                <option value="Carnes">Carnes</option>
+                                <option value="Consumibles">Consumibles</option>
+                                <option value="Elaborados">Elaborados</option>
+                                <option value="Helados y Postres">Helados y Postres</option>
+                                <option value="Marisco">Marisco</option>
+                                <option value="Pescado">Pescado</option>
+                                <option value="Pescado y Marisco">Pescado y Marisco</option>
+                                <option value="Platos preparados">Platos preparados</option>
+                                <option value="Postres">Postres</option>
+                                <option value="Precocinados">Precocinados</option>
+                                <option value="Precocinados y platos preparados">Precocinados y platos preparados</option>
+                                <option value="Reposteria">Reposteria</option>
+                                <option value="Servicios">Servicios</option>
+                                <option value="Verduras">Verduras</option>
+                                <option value="Otros">Otros</option>
+                            </select>
+                        </div>
+
                         <button type="submit" class="btn btn-primary">Guardar
                             Cambios</button>
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>

@@ -167,6 +167,11 @@
           proveedoresTable.column(i).search(this.value).draw();
         }
       });
+      
+      // Filtro desplegable para la columna de Familia (columna 3)
+      $("select", this).on("change", function () {
+        proveedoresTable.column(i).search(this.value).draw();
+      });
     });
 
   });
@@ -188,6 +193,8 @@
           $("#codigo_proveedor_edit").val(proveedor.id_proveedor);
           $("#nombre_proveedor_edit").val(proveedor.nombre_proveedor);
           $("#email_proveedor_edit").val(proveedor.email_proveedor);
+          $("#familia_edit").val(proveedor.familia || "");
+          $("#subfamilia_edit").val(proveedor.subfamilia || "");
           $("#userModal").modal("show");
         })
         .fail(function (xhr, status, error) {
