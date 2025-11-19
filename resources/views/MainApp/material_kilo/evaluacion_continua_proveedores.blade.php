@@ -239,6 +239,76 @@
             </div>
         </div>
 
+        <!-- Totales por Familia -->
+        <div class="row mb-4">
+            @php
+                // Calcular totales por familia
+                $total_kg_elaborados = $totales_por_proveedor->where('familia', 'ELABORADOS')->sum('total_kg_proveedor');
+                $total_kg_productos_mar = $totales_por_proveedor->where('familia', 'PRODUCTOS DEL MAR')->sum('total_kg_proveedor');
+                $total_kg_consumibles = $totales_por_proveedor->where('familia', 'CONSUMIBLES')->sum('total_kg_proveedor');
+            @endphp
+            
+            <div class="col-md-4">
+                <div class="card bg-dark text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fa fa-industry mr-2"></i>ELABORADOS
+                        </h5>
+                        <h3 class="card-text" id="total-kg-elaborados">
+                            {{ number_format($total_kg_elaborados, 2) }} kg
+                        </h3>
+                        <small class="text-white-50">
+                            @if($total_kg_elaborados > 0 && $totales_por_proveedor->sum('total_kg_proveedor') > 0)
+                                {{ number_format(($total_kg_elaborados / $totales_por_proveedor->sum('total_kg_proveedor')) * 100, 1) }}% del total
+                            @else
+                                0% del total
+                            @endif
+                        </small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fa fa-ship mr-2"></i>PRODUCTOS DEL MAR
+                        </h5>
+                        <h3 class="card-text" id="total-kg-productos-mar">
+                            {{ number_format($total_kg_productos_mar, 2) }} kg
+                        </h3>
+                        <small class="text-white-50">
+                            @if($total_kg_productos_mar > 0 && $totales_por_proveedor->sum('total_kg_proveedor') > 0)
+                                {{ number_format(($total_kg_productos_mar / $totales_por_proveedor->sum('total_kg_proveedor')) * 100, 1) }}% del total
+                            @else
+                                0% del total
+                            @endif
+                        </small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fa fa-shopping-cart mr-2"></i>CONSUMIBLES
+                        </h5>
+                        <h3 class="card-text" id="total-kg-consumibles">
+                            {{ number_format($total_kg_consumibles, 2) }} kg
+                        </h3>
+                        <small class="text-white-50">
+                            @if($total_kg_consumibles > 0 && $totales_por_proveedor->sum('total_kg_proveedor') > 0)
+                                {{ number_format(($total_kg_consumibles / $totales_por_proveedor->sum('total_kg_proveedor')) * 100, 1) }}% del total
+                            @else
+                                0% del total
+                            @endif
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Tabla de evaluación continua -->
         <table id="table_evaluacion_continua"
             class="mt-4 table table-hover table-striped table-bordered dataTable dtr-inline border-secondary"
