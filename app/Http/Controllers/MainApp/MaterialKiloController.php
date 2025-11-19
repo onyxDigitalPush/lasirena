@@ -955,6 +955,314 @@ class MaterialKiloController extends Controller
         ));
     }
 
+    public function exportEvaluacionContinuaExcel(Request $request)
+    {
+        $mes = $request->get('mes');
+        $año = $request->get('año', \Carbon\Carbon::now()->year);
+        $proveedor = $request->get('proveedor', '');
+        $idProveedor = $request->get('id_proveedor', '');
+        $familia = $request->get('familia', '');
+        $año = (int) $año;
+
+        // Reutilizar la misma lógica de consulta del método evaluacionContinuaProveedores
+        $query = DB::table('material_kilos')
+            ->join('proveedores', 'material_kilos.proveedor_id', '=', 'proveedores.id_proveedor')
+            ->select(
+                'proveedores.id_proveedor',
+                'proveedores.nombre_proveedor',
+                'proveedores.familia',
+                DB::raw('SUM(gp_ls_material_kilos.total_kg) as total_kg_proveedor'),
+                DB::raw('COUNT(gp_ls_material_kilos.id) as cantidad_registros')
+            )
+            ->where('material_kilos.año', $año);
+
+        if ($mes) {
+            $query->where('material_kilos.mes', $mes);
+        }
+        if ($proveedor && is_string($proveedor)) {
+            $query->where('proveedores.nombre_proveedor', $proveedor);
+        }
+        if ($idProveedor && is_string($idProveedor)) {
+            $query->where('proveedores.id_proveedor', 'LIKE', '%' . $idProveedor . '%');
+        }
+        if ($familia && is_string($familia)) {
+            $query->where('proveedores.familia', $familia);
+        }
+
+        $totales_por_proveedor = $query->groupBy('proveedores.id_proveedor', 'proveedores.nombre_proveedor', 'proveedores.familia')
+            ->orderBy('total_kg_proveedor', 'desc')
+            ->get();
+
+        // Obtener métricas
+        $metricas_por_proveedor = [];
+        if ($totales_por_proveedor->isNotEmpty()) {
+            $proveedores_ids = $totales_por_proveedor->pluck('id_proveedor')->toArray();
+            $metricas_query = ProveedorMetric::whereIn('proveedor_id', $proveedores_ids)
+                ->where('año', $año);
+
+            if ($mes) {
+                $metricas_query->where('mes', $mes);
+                $metricas = $metricas_query->get();
+                foreach ($metricas as $metrica) {
+                    $metricas_por_proveedor[$metrica->proveedor_id] = $metrica;
+                }
+            } else {
+                $metricas = $metricas_query->get();
+                $metricas_agrupadas = $metricas->groupBy('proveedor_id');
+                foreach ($metricas_agrupadas as $proveedor_id => $metricas_proveedor) {
+                    $promedio = new \stdClass();
+                    $promedio->proveedor_id = $proveedor_id;
+                    $promedio->rg1 = $metricas_proveedor->avg('rg1');
+                    $promedio->rl1 = $metricas_proveedor->avg('rl1');
+                    $promedio->dev1 = $metricas_proveedor->avg('dev1');
+                    $promedio->rok1 = $metricas_proveedor->avg('rok1');
+                    $promedio->ret1 = $metricas_proveedor->avg('ret1');
+                    $metricas_por_proveedor[$proveedor_id] = $promedio;
+                }
+            }
+        }
+
+        // Calcular indicadores y ponderados
+        foreach ($totales_por_proveedor as $prov) {
+            $metricas = isset($metricas_por_proveedor[$prov->id_proveedor])
+                ? $metricas_por_proveedor[$prov->id_proveedor]
+                : null;
+
+            if ($metricas && $prov->total_kg_proveedor > 0) {
+                $prov->rg_ind1 = ($metricas->rg1 ?? 0) * 1000000 / $prov->total_kg_proveedor;
+                $prov->rl_ind1 = ($metricas->rl1 ?? 0) * 1000000 / $prov->total_kg_proveedor;
+                $prov->dev_ind1 = ($metricas->dev1 ?? 0) * 1000000 / $prov->total_kg_proveedor;
+                $prov->rok_ind1 = ($metricas->rok1 ?? 0) * 1000000 / $prov->total_kg_proveedor;
+                $prov->ret_ind1 = ($metricas->ret1 ?? 0) * 1000000 / $prov->total_kg_proveedor;
+                $prov->total_ind1 = $prov->rg_ind1 + $prov->rl_ind1 + $prov->dev_ind1 + $prov->rok_ind1 + $prov->ret_ind1;
+
+                $prov->rg_pond1 = $prov->rg_ind1 * 0.30;
+                $prov->rl_pond1 = $prov->rl_ind1 * 0.05;
+                $prov->dev_pond1 = $prov->dev_ind1 * 0.20;
+                $prov->rok_pond1 = $prov->rok_ind1 * 0.10;
+                $prov->ret_pond1 = $prov->ret_ind1 * 0.35;
+                $prov->total_pond1 = $prov->rg_pond1 + $prov->rl_pond1 + $prov->dev_pond1 + $prov->rok_pond1 + $prov->ret_pond1;
+            } else {
+                $prov->rg_ind1 = $prov->rl_ind1 = $prov->dev_ind1 = $prov->rok_ind1 = $prov->ret_ind1 = $prov->total_ind1 = 0;
+                $prov->rg_pond1 = $prov->rl_pond1 = $prov->dev_pond1 = $prov->rok_pond1 = $prov->ret_pond1 = $prov->total_pond1 = 0;
+            }
+        }
+
+        // Calcular totales
+        $total_proveedores = $totales_por_proveedor->count();
+        $total_kg_general = $totales_por_proveedor->sum('total_kg_proveedor');
+        $total_kg_elaborados = $totales_por_proveedor->where('familia', 'ELABORADOS')->sum('total_kg_proveedor');
+        $total_kg_productos_mar = $totales_por_proveedor->where('familia', 'PRODUCTOS DEL MAR')->sum('total_kg_proveedor');
+        $total_kg_consumibles = $totales_por_proveedor->where('familia', 'CONSUMIBLES')->sum('total_kg_proveedor');
+
+        // Crear Spreadsheet
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Evaluación Continua');
+
+        // Título principal
+        $meses = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        $periodo = $mes ? $meses[$mes] . ' ' . $año : 'Todo el año ' . $año;
+        
+        $sheet->setCellValue('A1', 'EVALUACIÓN CONTINUA PROVEEDORES');
+        $sheet->mergeCells('A1:O1');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A1')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF4472C4');
+        $sheet->getStyle('A1')->getFont()->getColor()->setARGB('FFFFFFFF');
+
+        $sheet->setCellValue('A2', 'Valores Ponderados - Indicadores por Millón de KG');
+        $sheet->mergeCells('A2:O2');
+        $sheet->getStyle('A2')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A2')->getFont()->setItalic(true);
+
+        $sheet->setCellValue('A3', 'Período: ' . $periodo);
+        $sheet->mergeCells('A3:O3');
+        $sheet->getStyle('A3')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        // Cuadros de resumen (fila 5-6)
+        $row = 5;
+        
+        // Total Proveedores
+        $sheet->setCellValue('A' . $row, 'TOTAL PROVEEDORES');
+        $sheet->mergeCells('A' . $row . ':C' . $row);
+        $sheet->getStyle('A' . $row)->getFont()->setBold(true);
+        $sheet->getStyle('A' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF0070C0');
+        $sheet->getStyle('A' . $row)->getFont()->getColor()->setARGB('FFFFFFFF');
+        $sheet->setCellValue('A' . ($row + 1), $total_proveedores);
+        $sheet->mergeCells('A' . ($row + 1) . ':C' . ($row + 1));
+        $sheet->getStyle('A' . ($row + 1))->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A' . ($row + 1))->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        // Total KG General
+        $sheet->setCellValue('D' . $row, 'TOTAL KG GENERAL');
+        $sheet->mergeCells('D' . $row . ':F' . $row);
+        $sheet->getStyle('D' . $row)->getFont()->setBold(true);
+        $sheet->getStyle('D' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF00B050');
+        $sheet->getStyle('D' . $row)->getFont()->getColor()->setARGB('FFFFFFFF');
+        $sheet->setCellValue('D' . ($row + 1), number_format($total_kg_general, 2) . ' kg');
+        $sheet->mergeCells('D' . ($row + 1) . ':F' . ($row + 1));
+        $sheet->getStyle('D' . ($row + 1))->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('D' . ($row + 1))->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        // Periodo
+        $sheet->setCellValue('G' . $row, 'PERÍODO');
+        $sheet->mergeCells('G' . $row . ':I' . $row);
+        $sheet->getStyle('G' . $row)->getFont()->setBold(true);
+        $sheet->getStyle('G' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF00B0F0');
+        $sheet->getStyle('G' . $row)->getFont()->getColor()->setARGB('FFFFFFFF');
+        $sheet->setCellValue('G' . ($row + 1), $periodo);
+        $sheet->mergeCells('G' . ($row + 1) . ':I' . ($row + 1));
+        $sheet->getStyle('G' . ($row + 1))->getFont()->setBold(true);
+        $sheet->getStyle('G' . ($row + 1))->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        // Filtros Activos
+        $filtros_texto = '';
+        if ($proveedor) $filtros_texto .= 'Proveedor: ' . $proveedor . ' ';
+        if ($idProveedor) $filtros_texto .= 'ID: ' . $idProveedor . ' ';
+        if ($familia) $filtros_texto .= 'Familia: ' . $familia;
+        if (!$filtros_texto) $filtros_texto = 'Sin filtros aplicados';
+
+        $sheet->setCellValue('J' . $row, 'FILTROS ACTIVOS');
+        $sheet->mergeCells('J' . $row . ':O' . $row);
+        $sheet->getStyle('J' . $row)->getFont()->setBold(true);
+        $sheet->getStyle('J' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFC000');
+        $sheet->getStyle('J' . $row)->getFont()->getColor()->setARGB('FFFFFFFF');
+        $sheet->setCellValue('J' . ($row + 1), $filtros_texto);
+        $sheet->mergeCells('J' . ($row + 1) . ':O' . ($row + 1));
+        $sheet->getStyle('J' . ($row + 1))->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        // Totales por Familia (fila 8-9)
+        $row = 8;
+        
+        // ELABORADOS
+        $sheet->setCellValue('A' . $row, 'ELABORADOS');
+        $sheet->mergeCells('A' . $row . ':D' . $row);
+        $sheet->getStyle('A' . $row)->getFont()->setBold(true);
+        $sheet->getStyle('A' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF343A40');
+        $sheet->getStyle('A' . $row)->getFont()->getColor()->setARGB('FFFFFFFF');
+        $porcentaje_elab = $total_kg_general > 0 ? ($total_kg_elaborados / $total_kg_general) * 100 : 0;
+        $sheet->setCellValue('A' . ($row + 1), number_format($total_kg_elaborados, 2) . ' kg (' . number_format($porcentaje_elab, 1) . '%)');
+        $sheet->mergeCells('A' . ($row + 1) . ':D' . ($row + 1));
+        $sheet->getStyle('A' . ($row + 1))->getFont()->setBold(true);
+        $sheet->getStyle('A' . ($row + 1))->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        // PRODUCTOS DEL MAR
+        $sheet->setCellValue('F' . $row, 'PRODUCTOS DEL MAR');
+        $sheet->mergeCells('F' . $row . ':I' . $row);
+        $sheet->getStyle('F' . $row)->getFont()->setBold(true);
+        $sheet->getStyle('F' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF00B0F0');
+        $sheet->getStyle('F' . $row)->getFont()->getColor()->setARGB('FFFFFFFF');
+        $porcentaje_mar = $total_kg_general > 0 ? ($total_kg_productos_mar / $total_kg_general) * 100 : 0;
+        $sheet->setCellValue('F' . ($row + 1), number_format($total_kg_productos_mar, 2) . ' kg (' . number_format($porcentaje_mar, 1) . '%)');
+        $sheet->mergeCells('F' . ($row + 1) . ':I' . ($row + 1));
+        $sheet->getStyle('F' . ($row + 1))->getFont()->setBold(true);
+        $sheet->getStyle('F' . ($row + 1))->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        // CONSUMIBLES
+        $sheet->setCellValue('K' . $row, 'CONSUMIBLES');
+        $sheet->mergeCells('K' . $row . ':O' . $row);
+        $sheet->getStyle('K' . $row)->getFont()->setBold(true);
+        $sheet->getStyle('K' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF00B050');
+        $sheet->getStyle('K' . $row)->getFont()->getColor()->setARGB('FFFFFFFF');
+        $porcentaje_cons = $total_kg_general > 0 ? ($total_kg_consumibles / $total_kg_general) * 100 : 0;
+        $sheet->setCellValue('K' . ($row + 1), number_format($total_kg_consumibles, 2) . ' kg (' . number_format($porcentaje_cons, 1) . '%)');
+        $sheet->mergeCells('K' . ($row + 1) . ':O' . ($row + 1));
+        $sheet->getStyle('K' . ($row + 1))->getFont()->setBold(true);
+        $sheet->getStyle('K' . ($row + 1))->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        // Encabezados de tabla (fila 11-12)
+        $row = 11;
+        $headers1 = ['ID Proveedor', 'Nombre Proveedor', 'Total KG', 'Valores por Millón de KG - ' . $periodo, '', '', '', '', '', 'Valores Ponderados - ' . $periodo, '', '', '', '', ''];
+        $headers2 = ['', '', '', 'RG', 'RL', 'DEV', 'ROK', 'RET', 'TOTAL', 'RG', 'RL', 'DEV', 'ROK', 'RET', 'TOTAL'];
+        
+        $sheet->fromArray($headers1, null, 'A' . $row);
+        $sheet->mergeCells('A' . $row . ':A' . ($row + 1));
+        $sheet->mergeCells('B' . $row . ':B' . ($row + 1));
+        $sheet->mergeCells('C' . $row . ':C' . ($row + 1));
+        $sheet->mergeCells('D' . $row . ':I' . $row);
+        $sheet->mergeCells('J' . $row . ':O' . $row);
+
+        $sheet->fromArray($headers2, null, 'A' . ($row + 1));
+        
+        // Estilos de encabezados
+        $headerStyle = [
+            'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
+            'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER, 'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
+        ];
+        
+        $sheet->getStyle('A' . $row . ':C' . ($row + 1))->applyFromArray($headerStyle);
+        $sheet->getStyle('A' . $row . ':C' . ($row + 1))->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF4472C4');
+        
+        $sheet->getStyle('D' . $row . ':I' . ($row + 1))->applyFromArray($headerStyle);
+        $sheet->getStyle('D' . $row . ':I' . ($row + 1))->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF00B0F0');
+        
+        $sheet->getStyle('J' . $row . ':O' . ($row + 1))->applyFromArray($headerStyle);
+        $sheet->getStyle('J' . $row . ':O' . ($row + 1))->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFC000');
+
+        // Datos de proveedores
+        $row = 13;
+        foreach ($totales_por_proveedor as $prov) {
+            $sheet->setCellValue('A' . $row, $prov->id_proveedor);
+            $sheet->setCellValue('B' . $row, $prov->nombre_proveedor);
+            $sheet->setCellValue('C' . $row, number_format($prov->total_kg_proveedor, 2) . ' kg');
+            
+            $sheet->setCellValue('D' . $row, number_format($prov->rg_ind1, 2));
+            $sheet->setCellValue('E' . $row, number_format($prov->rl_ind1, 2));
+            $sheet->setCellValue('F' . $row, number_format($prov->dev_ind1, 2));
+            $sheet->setCellValue('G' . $row, number_format($prov->rok_ind1, 2));
+            $sheet->setCellValue('H' . $row, number_format($prov->ret_ind1, 2));
+            $sheet->setCellValue('I' . $row, number_format($prov->total_ind1, 2));
+            
+            $sheet->setCellValue('J' . $row, number_format($prov->rg_pond1, 2));
+            $sheet->setCellValue('K' . $row, number_format($prov->rl_pond1, 2));
+            $sheet->setCellValue('L' . $row, number_format($prov->dev_pond1, 2));
+            $sheet->setCellValue('M' . $row, number_format($prov->rok_pond1, 2));
+            $sheet->setCellValue('N' . $row, number_format($prov->ret_pond1, 2));
+            $sheet->setCellValue('O' . $row, number_format($prov->total_pond1, 2));
+            
+            // Alternar colores de fila
+            if ($row % 2 == 0) {
+                $sheet->getStyle('A' . $row . ':O' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF2F2F2');
+            }
+            
+            $sheet->getStyle('A' . $row . ':O' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $sheet->getStyle('A' . $row . ':O' . $row)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+            
+            $row++;
+        }
+
+        // Ajustar anchos de columna
+        $sheet->getColumnDimension('A')->setWidth(15);
+        $sheet->getColumnDimension('B')->setWidth(30);
+        $sheet->getColumnDimension('C')->setWidth(15);
+        foreach (range('D', 'O') as $col) {
+            $sheet->getColumnDimension($col)->setWidth(12);
+        }
+
+        // Limpiar buffer de salida antes de enviar el archivo
+        if (ob_get_length()) {
+            ob_end_clean();
+        }
+
+        // Generar archivo
+        $filename = 'evaluacion_continua_proveedores_' . ($mes ? $meses[$mes] . '_' : '') . $año . '.xlsx';
+        
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        header('Cache-Control: max-age=1');
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+        header('Cache-Control: cache, must-revalidate');
+        header('Pragma: public');
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save('php://output');
+        exit;
+    }
+
     public function incidenciasProveedores(Request $request)
     {
         $mes = $request->get('mes', 1); // Por defecto enero (mes 1)

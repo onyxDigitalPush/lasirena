@@ -216,6 +216,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/material-kilo/update', 'MaterialKiloController@update')->name('material_kilo.update');
         Route::get('/material_kilo/total-kg-proveedor', 'MaterialKiloController@totalKgPorProveedor')->name('material_kilo.total_kg_proveedor');
         Route::get('/material_kilo/evaluacion-continua-proveedores', 'MaterialKiloController@evaluacionContinuaProveedores')->name('material_kilo.evaluacion_continua_proveedores');
+        Route::get('/material_kilo/exportar-evaluacion-continua-excel', 'MaterialKiloController@exportEvaluacionContinuaExcel')->name('material_kilo.exportar_evaluacion_continua_excel');
         Route::get('/material_kilo/historial-incidencias-devoluciones', 'MaterialKiloController@historialIncidenciasYDevoluciones')->name('material_kilo.historial_incidencias_devoluciones');
         Route::get('/material_kilo/exportar-historial-excel', 'MaterialKiloController@exportarHistorialExcel')->name('material_kilo.exportar_historial_excel');
         

@@ -22,6 +22,9 @@
             </div>
         </div>
         <div class="page-title-actions text-white">
+            <button type="button" id="exportarExcel" class="m-2 btn btn-success">
+                <i class="fa fa-file-excel-o mr-2"></i>Exportar a Excel
+            </button>
             <a class="m-2 btn btn-primary" href="{{ route('material_kilo.index') }}">
                 <i class="fa fa-list mr-2"></i>Volver a Material Kilos
             </a>
