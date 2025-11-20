@@ -1142,7 +1142,7 @@ class MaterialKiloController extends Controller
         $sheet->getStyle('A' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF343A40');
         $sheet->getStyle('A' . $row)->getFont()->getColor()->setARGB('FFFFFFFF');
         $porcentaje_elab = $total_kg_general > 0 ? ($total_kg_elaborados / $total_kg_general) * 100 : 0;
-        $sheet->setCellValue('A' . ($row + 1), number_format($total_kg_elaborados, 2) . ' kg (' . number_format($porcentaje_elab, 1) . '%)');
+        $sheet->setCellValue('A' . ($row + 1), number_format($total_kg_elaborados, 2, ',', '.') . ' kg (' . number_format($porcentaje_elab, 1, ',', '.') . '%)');
         $sheet->mergeCells('A' . ($row + 1) . ':D' . ($row + 1));
         $sheet->getStyle('A' . ($row + 1))->getFont()->setBold(true);
         $sheet->getStyle('A' . ($row + 1))->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
@@ -1154,7 +1154,7 @@ class MaterialKiloController extends Controller
         $sheet->getStyle('F' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF00B0F0');
         $sheet->getStyle('F' . $row)->getFont()->getColor()->setARGB('FFFFFFFF');
         $porcentaje_mar = $total_kg_general > 0 ? ($total_kg_productos_mar / $total_kg_general) * 100 : 0;
-        $sheet->setCellValue('F' . ($row + 1), number_format($total_kg_productos_mar, 2) . ' kg (' . number_format($porcentaje_mar, 1) . '%)');
+        $sheet->setCellValue('F' . ($row + 1), number_format($total_kg_productos_mar, 2, ',', '.') . ' kg (' . number_format($porcentaje_mar, 1, ',', '.') . '%)');
         $sheet->mergeCells('F' . ($row + 1) . ':I' . ($row + 1));
         $sheet->getStyle('F' . ($row + 1))->getFont()->setBold(true);
         $sheet->getStyle('F' . ($row + 1))->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
@@ -1166,7 +1166,7 @@ class MaterialKiloController extends Controller
         $sheet->getStyle('K' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF00B050');
         $sheet->getStyle('K' . $row)->getFont()->getColor()->setARGB('FFFFFFFF');
         $porcentaje_cons = $total_kg_general > 0 ? ($total_kg_consumibles / $total_kg_general) * 100 : 0;
-        $sheet->setCellValue('K' . ($row + 1), number_format($total_kg_consumibles, 2) . ' kg (' . number_format($porcentaje_cons, 1) . '%)');
+        $sheet->setCellValue('K' . ($row + 1), number_format($total_kg_consumibles, 2, ',', '.') . ' kg (' . number_format($porcentaje_cons, 1, ',', '.') . '%)');
         $sheet->mergeCells('K' . ($row + 1) . ':O' . ($row + 1));
         $sheet->getStyle('K' . ($row + 1))->getFont()->setBold(true);
         $sheet->getStyle('K' . ($row + 1))->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
@@ -1239,6 +1239,128 @@ class MaterialKiloController extends Controller
         $sheet->getColumnDimension('C')->setWidth(15);
         foreach (range('D', 'O') as $col) {
             $sheet->getColumnDimension($col)->setWidth(12);
+        }
+
+        // ========================================
+        // TABLA AGRUPADA POR FAMILIA
+        // ========================================
+        
+        // Calcular totales y métricas por familia
+        $familias_data = [];
+        $familias = ['ELABORADOS', 'PRODUCTOS DEL MAR', 'CONSUMIBLES'];
+        
+        foreach ($familias as $fam) {
+            $proveedores_familia = $totales_por_proveedor->where('familia', $fam);
+            
+            if ($proveedores_familia->isEmpty()) {
+                continue;
+            }
+            
+            // Sumar directamente los valores ya calculados de cada proveedor
+            $total_kg_familia = $proveedores_familia->sum('total_kg_proveedor');
+            $rg_ind = $proveedores_familia->sum('rg_ind1');
+            $rl_ind = $proveedores_familia->sum('rl_ind1');
+            $dev_ind = $proveedores_familia->sum('dev_ind1');
+            $rok_ind = $proveedores_familia->sum('rok_ind1');
+            $ret_ind = $proveedores_familia->sum('ret_ind1');
+            $total_ind = $proveedores_familia->sum('total_ind1');
+            
+            $rg_pond = $proveedores_familia->sum('rg_pond1');
+            $rl_pond = $proveedores_familia->sum('rl_pond1');
+            $dev_pond = $proveedores_familia->sum('dev_pond1');
+            $rok_pond = $proveedores_familia->sum('rok_pond1');
+            $ret_pond = $proveedores_familia->sum('ret_pond1');
+            $total_pond = $proveedores_familia->sum('total_pond1');
+            
+            $familias_data[] = [
+                'familia' => $fam,
+                'total_kg' => $total_kg_familia,
+                'rg_ind' => $rg_ind,
+                'rl_ind' => $rl_ind,
+                'dev_ind' => $dev_ind,
+                'rok_ind' => $rok_ind,
+                'ret_ind' => $ret_ind,
+                'total_ind' => $total_ind,
+                'rg_pond' => $rg_pond,
+                'rl_pond' => $rl_pond,
+                'dev_pond' => $dev_pond,
+                'rok_pond' => $rok_pond,
+                'ret_pond' => $ret_pond,
+                'total_pond' => $total_pond,
+            ];
+        }
+        
+        // Agregar espacio y título para la tabla de familias
+        $row += 2; // Espacio después de la tabla de proveedores
+        
+        $sheet->setCellValue('A' . $row, 'RESUMEN POR FAMILIA');
+        $sheet->mergeCells('A' . $row . ':O' . $row);
+        $sheet->getStyle('A' . $row)->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A' . $row)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF4472C4');
+        $sheet->getStyle('A' . $row)->getFont()->getColor()->setARGB('FFFFFFFF');
+        
+        $row++;
+        
+        // Encabezados de tabla de familias
+        $headers_familia1 = ['Familia', 'Total KG', 'Valores por Millón de KG - ' . $periodo, '', '', '', '', '', 'Valores Ponderados - ' . $periodo, '', '', '', '', ''];
+        $headers_familia2 = ['', '', 'RG', 'RL', 'DEV', 'ROK', 'RET', 'TOTAL', 'RG', 'RL', 'DEV', 'ROK', 'RET', 'TOTAL'];
+        
+        $sheet->fromArray($headers_familia1, null, 'A' . $row);
+        $sheet->mergeCells('A' . $row . ':A' . ($row + 1));
+        $sheet->mergeCells('B' . $row . ':B' . ($row + 1));
+        $sheet->mergeCells('C' . $row . ':H' . $row);
+        $sheet->mergeCells('I' . $row . ':O' . $row);
+        
+        $sheet->fromArray($headers_familia2, null, 'A' . ($row + 1));
+        
+        // Estilos de encabezados
+        $sheet->getStyle('A' . $row . ':B' . ($row + 1))->applyFromArray($headerStyle);
+        $sheet->getStyle('A' . $row . ':B' . ($row + 1))->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF4472C4');
+        
+        $sheet->getStyle('C' . $row . ':H' . ($row + 1))->applyFromArray($headerStyle);
+        $sheet->getStyle('C' . $row . ':H' . ($row + 1))->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF00B0F0');
+        
+        $sheet->getStyle('I' . $row . ':O' . ($row + 1))->applyFromArray($headerStyle);
+        $sheet->getStyle('I' . $row . ':O' . ($row + 1))->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFC000');
+        
+        $row += 2;
+        
+        // Datos de familias
+        foreach ($familias_data as $fam_data) {
+            $sheet->setCellValue('A' . $row, $fam_data['familia']);
+            $sheet->setCellValue('B' . $row, number_format($fam_data['total_kg'], 2, ',', '.') . ' kg');
+            
+            $sheet->setCellValue('C' . $row, number_format($fam_data['rg_ind'], 2, ',', '.'));
+            $sheet->setCellValue('D' . $row, number_format($fam_data['rl_ind'], 2, ',', '.'));
+            $sheet->setCellValue('E' . $row, number_format($fam_data['dev_ind'], 2, ',', '.'));
+            $sheet->setCellValue('F' . $row, number_format($fam_data['rok_ind'], 2, ',', '.'));
+            $sheet->setCellValue('G' . $row, number_format($fam_data['ret_ind'], 2, ',', '.'));
+            $sheet->setCellValue('H' . $row, number_format($fam_data['total_ind'], 2, ',', '.'));
+            
+            $sheet->setCellValue('I' . $row, number_format($fam_data['rg_pond'], 2, ',', '.'));
+            $sheet->setCellValue('J' . $row, number_format($fam_data['rl_pond'], 2, ',', '.'));
+            $sheet->setCellValue('K' . $row, number_format($fam_data['dev_pond'], 2, ',', '.'));
+            $sheet->setCellValue('L' . $row, number_format($fam_data['rok_pond'], 2, ',', '.'));
+            $sheet->setCellValue('M' . $row, number_format($fam_data['ret_pond'], 2, ',', '.'));
+            $sheet->setCellValue('N' . $row, number_format($fam_data['total_pond'], 2, ',', '.'));
+            
+            // Color según familia
+            $colorFamilia = 'FFFFFFFF';
+            if ($fam_data['familia'] == 'ELABORADOS') {
+                $colorFamilia = 'FFE7E6E6';
+            } elseif ($fam_data['familia'] == 'PRODUCTOS DEL MAR') {
+                $colorFamilia = 'FFD9EDF7';
+            } elseif ($fam_data['familia'] == 'CONSUMIBLES') {
+                $colorFamilia = 'FFD5F4E6';
+            }
+            
+            $sheet->getStyle('A' . $row . ':N' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($colorFamilia);
+            $sheet->getStyle('A' . $row . ':N' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $sheet->getStyle('A' . $row . ':N' . $row)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('A' . $row . ':N' . $row)->getFont()->setBold(true);
+            
+            $row++;
         }
 
         // Limpiar buffer de salida antes de enviar el archivo
