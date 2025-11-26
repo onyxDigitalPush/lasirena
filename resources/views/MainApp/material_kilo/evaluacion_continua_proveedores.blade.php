@@ -258,11 +258,11 @@
                             <i class="fa fa-industry mr-2"></i>ELABORADOS
                         </h5>
                         <h3 class="card-text" id="total-kg-elaborados">
-                            {{ number_format($total_kg_elaborados, 2) }} kg
+                            {{ number_format($total_kg_elaborados, 2, ',', '.') }} kg
                         </h3>
                         <small class="text-white-50">
                             @if($total_kg_elaborados > 0 && $totales_por_proveedor->sum('total_kg_proveedor') > 0)
-                                {{ number_format(($total_kg_elaborados / $totales_por_proveedor->sum('total_kg_proveedor')) * 100, 1) }}% del total
+                                {{ number_format(($total_kg_elaborados / $totales_por_proveedor->sum('total_kg_proveedor')) * 100, 1, ',', '.') }}% del total
                             @else
                                 0% del total
                             @endif
@@ -278,11 +278,11 @@
                             <i class="fa fa-ship mr-2"></i>PRODUCTOS DEL MAR
                         </h5>
                         <h3 class="card-text" id="total-kg-productos-mar">
-                            {{ number_format($total_kg_productos_mar, 2) }} kg
+                            {{ number_format($total_kg_productos_mar, 2, ',', '.') }} kg
                         </h3>
                         <small class="text-white-50">
                             @if($total_kg_productos_mar > 0 && $totales_por_proveedor->sum('total_kg_proveedor') > 0)
-                                {{ number_format(($total_kg_productos_mar / $totales_por_proveedor->sum('total_kg_proveedor')) * 100, 1) }}% del total
+                                {{ number_format(($total_kg_productos_mar / $totales_por_proveedor->sum('total_kg_proveedor')) * 100, 1, ',', '.') }}% del total
                             @else
                                 0% del total
                             @endif
@@ -298,11 +298,11 @@
                             <i class="fa fa-shopping-cart mr-2"></i>CONSUMIBLES
                         </h5>
                         <h3 class="card-text" id="total-kg-consumibles">
-                            {{ number_format($total_kg_consumibles, 2) }} kg
+                            {{ number_format($total_kg_consumibles, 2, ',', '.') }} kg
                         </h3>
                         <small class="text-white-50">
                             @if($total_kg_consumibles > 0 && $totales_por_proveedor->sum('total_kg_proveedor') > 0)
-                                {{ number_format(($total_kg_consumibles / $totales_por_proveedor->sum('total_kg_proveedor')) * 100, 1) }}% del total
+                                {{ number_format(($total_kg_consumibles / $totales_por_proveedor->sum('total_kg_proveedor')) * 100, 1, ',', '.') }}% del total
                             @else
                                 0% del total
                             @endif
