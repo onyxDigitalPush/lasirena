@@ -73,6 +73,61 @@
 @section('main_content')
     <div class="col-12 bg-white">
         <div class='mt-4 mb-4'></div>
+        
+        <!-- Formulario de búsqueda backend -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <form method="GET" action="{{ route('materiales.index') }}" class="form-inline">
+                    <!-- Preservar filtro actual si existe -->
+                    @if(request('filtro'))
+                        <input type="hidden" name="filtro" value="{{ request('filtro') }}">
+                    @endif
+                    
+                    <div class="form-group mr-2 mb-2">
+                        <input type="text" 
+                               class="form-control form-control-sm" 
+                               name="buscar_codigo_material" 
+                               value="{{ request('buscar_codigo_material') }}"
+                               placeholder="Código Material">
+                    </div>
+                    
+                    <div class="form-group mr-2 mb-2">
+                        <input type="text" 
+                               class="form-control form-control-sm" 
+                               name="buscar_descripcion" 
+                               value="{{ request('buscar_descripcion') }}"
+                               placeholder="Descripción">
+                    </div>
+                    
+                    <div class="form-group mr-2 mb-2">
+                        <input type="text" 
+                               class="form-control form-control-sm" 
+                               name="buscar_codigo_proveedor" 
+                               value="{{ request('buscar_codigo_proveedor') }}"
+                               placeholder="Código Proveedor">
+                    </div>
+                    
+                    <div class="form-group mr-2 mb-2">
+                        <input type="text" 
+                               class="form-control form-control-sm" 
+                               name="buscar_nombre_proveedor" 
+                               value="{{ request('buscar_nombre_proveedor') }}"
+                               placeholder="Nombre Proveedor">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-sm mr-2 mb-2">
+                        <i class="fa fa-search"></i> Buscar
+                    </button>
+                    
+                    @if(request()->hasAny(['buscar_codigo_material', 'buscar_descripcion', 'buscar_codigo_proveedor', 'buscar_nombre_proveedor']))
+                        <a href="{{ route('materiales.index', request()->only('filtro')) }}" class="btn btn-secondary btn-sm mb-2">
+                            <i class="fa fa-times"></i> Limpiar
+                        </a>
+                    @endif
+                </form>
+            </div>
+        </div>
+        
         <table id="table_materiales_global"
             class="mt-4 table table-hover table-striped table-bordered dataTable dtr-inline border-secondary"
             style="width:100%">
@@ -85,15 +140,6 @@
                     <th class="text-center">Factor Conversion</th>
                     <th class="text-center">Editar</th>
                     <th class="text-center">Eliminar</th>
-                </tr>
-                <tr>
-                    <th><input type="text" class="form-control form-control-sm" placeholder="Buscar Código Material" /></th>
-                    <th><input type="text" class="form-control form-control-sm" placeholder="Buscar Descripción" /></th>
-                    <th><input type="text" class="form-control form-control-sm" placeholder="Buscar Código Proveedor" /></th>
-                    <th><input type="text" class="form-control form-control-sm" placeholder="Buscar Proveedor" /></th>
-                    <th></th>
-                    <th></th>
-                    <th></th>
                 </tr>
             </thead>
             <tbody>
