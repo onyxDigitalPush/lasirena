@@ -254,8 +254,8 @@
             <div class="col-md-4">
                 <div class="card bg-dark text-white">
                     <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="fa fa-industry mr-2"></i>ELABORADOS
+                        <h5 class="card-title text-white-50">
+                            <i class="fa fa-industry mr-2 "></i>ELABORADOS
                         </h5>
                         <h3 class="card-text" id="total-kg-elaborados">
                             {{ number_format($total_kg_elaborados, 2, ',', '.') }} kg

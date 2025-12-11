@@ -71,13 +71,14 @@ class MaterialController extends Controller
         $material->factor_conversion = $request->input('factor_conversion');
         $material->save();
         
+        // DESACTIVADO: No actualizar material_kilos automáticamente
         // Si se proporcionó un factor de conversión, actualizar material_kilos
-        if ($request->input('factor_conversion')) {
-            $registros_actualizados = $this->actualizarFactorConversionEnMaterialKilos($material->codigo, $request->input('factor_conversion'));
-            return redirect()->back()->with('success', 
-                "Material creado correctamente. Se actualizaron {$registros_actualizados} registros en material_kilos con el factor de conversión y se recalculó el total_kg."
-            );
-        }
+        // if ($request->input('factor_conversion')) {
+        //     $registros_actualizados = $this->actualizarFactorConversionEnMaterialKilos($material->codigo, $request->input('factor_conversion'));
+        //     return redirect()->back()->with('success', 
+        //         "Material creado correctamente. Se actualizaron {$registros_actualizados} registros en material_kilos con el factor de conversión y se recalculó el total_kg."
+        //     );
+        // }
         
         return redirect()->back()->with('success', 'Material creado correctamente.');
     }
@@ -92,13 +93,14 @@ class MaterialController extends Controller
         $material->factor_conversion = $request->input('factor_conversion');
         $material->save();
         
+        // DESACTIVADO: No actualizar material_kilos automáticamente
         // Si se proporcionó un factor de conversión, actualizar material_kilos
-        if ($request->input('factor_conversion')) {
-            $registros_actualizados = $this->actualizarFactorConversionEnMaterialKilos($material->codigo, $request->input('factor_conversion'));
-            return redirect()->route('materiales.index')->with('success', 
-                "Material creado correctamente. Se actualizaron {$registros_actualizados} registros en material_kilos con el factor de conversión y se recalculó el total_kg."
-            );
-        }
+        // if ($request->input('factor_conversion')) {
+        //     $registros_actualizados = $this->actualizarFactorConversionEnMaterialKilos($material->codigo, $request->input('factor_conversion'));
+        //     return redirect()->route('materiales.index')->with('success', 
+        //         "Material creado correctamente. Se actualizaron {$registros_actualizados} registros en material_kilos con el factor de conversión y se recalculó el total_kg."
+        //     );
+        // }
         
         return redirect()->route('materiales.index')->with('success', 'Material creado correctamente.');
     }
@@ -144,13 +146,14 @@ class MaterialController extends Controller
         $material->factor_conversion = $request->input('factor_conversion');
         $material->save();
         
+        // DESACTIVADO: No actualizar material_kilos automáticamente
         // Si se proporcionó un factor de conversión, actualizar material_kilos
-        if ($request->input('factor_conversion')) {
-            $registros_actualizados = $this->actualizarFactorConversionEnMaterialKilos($material->codigo, $request->input('factor_conversion'));
-            return redirect()->back()->with('success', 
-                "Material actualizado correctamente. Se actualizaron {$registros_actualizados} registros en material_kilos con el nuevo factor de conversión y se recalculó el total_kg (ctd_emdev × factor_conversion)."
-            );
-        }
+        // if ($request->input('factor_conversion')) {
+        //     $registros_actualizados = $this->actualizarFactorConversionEnMaterialKilos($material->codigo, $request->input('factor_conversion'));
+        //     return redirect()->back()->with('success', 
+        //         "Material actualizado correctamente. Se actualizaron {$registros_actualizados} registros en material_kilos con el nuevo factor de conversión y se recalculó el total_kg (ctd_emdev × factor_conversion)."
+        //     );
+        // }
         
         return redirect()->back()->with('success', 'Material actualizado correctamente.');
     }
