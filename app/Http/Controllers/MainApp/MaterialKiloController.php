@@ -2973,7 +2973,7 @@ class MaterialKiloController extends Controller
 
                     \Log::info("Procesando proveedor {$id_proveedor}, año {$año}, mes {$mes}");
 
-                    // Contar incidencias por clasificación
+                    // Contar RG1 en incidencias_proveedores
                     $rg1 = DB::table('incidencias_proveedores')
                         ->where('id_proveedor', $id_proveedor)
                         ->where('año', $año)
@@ -2981,33 +2981,54 @@ class MaterialKiloController extends Controller
                         ->where('clasificacion_incidencia', 'RG1')
                         ->count();
 
-                    $rl1 = DB::table('incidencias_proveedores')
+                    // Contar RL1 en AMBAS tablas (pueden estar en cualquiera)
+                    $rl1_incidencias = DB::table('incidencias_proveedores')
                         ->where('id_proveedor', $id_proveedor)
                         ->where('año', $año)
                         ->where('mes', $mes)
                         ->where('clasificacion_incidencia', 'RL1')
                         ->count();
+                    
+                    $rl1_devoluciones = DB::table('devoluciones_proveedores')
+                        ->where('codigo_proveedor', $id_proveedor)
+                        ->where('año', $año)
+                        ->where('mes', $mes)
+                        ->where('clasificacion_incidencia', 'RL1')
+                        ->count();
+                    
+                    $rl1 = $rl1_incidencias + $rl1_devoluciones;
 
-                    // Contar devoluciones por clasificación
-                    $dev1 = DB::table('devoluciones_proveedores')
+                    // Contar DEV1 en AMBAS tablas (pueden estar en cualquiera)
+                    $dev1_incidencias = DB::table('incidencias_proveedores')
                         ->where('id_proveedor', $id_proveedor)
                         ->where('año', $año)
                         ->where('mes', $mes)
-                        ->where('clasificacion_devolucion', 'DEV1')
+                        ->where('clasificacion_incidencia', 'DEV1')
                         ->count();
+                    
+                    $dev1_devoluciones = DB::table('devoluciones_proveedores')
+                        ->where('codigo_proveedor', $id_proveedor)
+                        ->where('año', $año)
+                        ->where('mes', $mes)
+                        ->where('clasificacion_incidencia', 'DEV1')
+                        ->count();
+                    
+                    $dev1 = $dev1_incidencias + $dev1_devoluciones;
 
+                    // Contar ROK1 en devoluciones_proveedores
                     $rok1 = DB::table('devoluciones_proveedores')
-                        ->where('id_proveedor', $id_proveedor)
+                        ->where('codigo_proveedor', $id_proveedor)
                         ->where('año', $año)
                         ->where('mes', $mes)
-                        ->where('clasificacion_devolucion', 'ROK1')
+                        ->where('clasificacion_incidencia', 'ROK1')
                         ->count();
 
+                    // Contar RET1 en devoluciones_proveedores
                     $ret1 = DB::table('devoluciones_proveedores')
-                        ->where('id_proveedor', $id_proveedor)
+                        ->where('codigo_proveedor', $id_proveedor)
                         ->where('año', $año)
                         ->where('mes', $mes)
-                        ->where('clasificacion_devolucion', 'RET1')
+                        ->where('clasificacion_incidencia', 'RET1')
                         ->count();
 
                     // Insertar o actualizar métricas

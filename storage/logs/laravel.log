@@ -109,3 +109,35 @@
 #20 {main}
 "} 
 [2025-12-11 15:51:18] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"ALIMENTBARNA SL","proveedor_type":"string","idProveedor":"45","idProveedor_type":"string","familia":"","familia_type":"string"} 
+[2025-12-11 20:04:19] local.ERROR: SQLSTATE[HY000] [1045] Access denied for user 'novaigrup_lasirena'@'localhost' (using password: YES) (SQL: select `proveedor_id` as `id_proveedor`, `año`, `mes` from `gp_ls_material_kilos` where `proveedor_id` = 45 and `año` = 2025 group by `proveedor_id`, `año`, `mes` order by `mes` asc) {"exception":"[object] (Illuminate\\Database\\QueryException(code: 1045): SQLSTATE[HY000] [1045] Access denied for user 'novaigrup_lasirena'@'localhost' (using password: YES) (SQL: select `proveedor_id` as `id_proveedor`, `año`, `mes` from `gp_ls_material_kilos` where `proveedor_id` = 45 and `año` = 2025 group by `proveedor_id`, `año`, `mes` order by `mes` asc) at C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:712)
+[stacktrace]
+#0 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('select `proveed...', Array, Object(Closure))
+#1 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(376): Illuminate\\Database\\Connection->run('select `proveed...', Array, Object(Closure))
+#2 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2414): Illuminate\\Database\\Connection->select('select `proveed...', Array, true)
+#3 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2402): Illuminate\\Database\\Query\\Builder->runSelect()
+#4 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2936): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#5 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2403): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#6 C:\\xampp7\\htdocs\\lasirena\ecalcular_proveedor_45.php(17): Illuminate\\Database\\Query\\Builder->get()
+#7 {main}
+
+[previous exception] [object] (PDOException(code: 1045): SQLSTATE[HY000] [1045] Access denied for user 'novaigrup_lasirena'@'localhost' (using password: YES) at C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connectors\\Connector.php:70)
+[stacktrace]
+#0 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connectors\\Connector.php(70): PDO->__construct('mysql:host=127....', 'novaigrup_lasir...', 'H4q!y35o', Array)
+#1 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connectors\\Connector.php(46): Illuminate\\Database\\Connectors\\Connector->createPdoConnection('mysql:host=127....', 'novaigrup_lasir...', 'H4q!y35o', Array)
+#2 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connectors\\MySqlConnector.php(24): Illuminate\\Database\\Connectors\\Connector->createConnection('mysql:host=127....', Array, Array)
+#3 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connectors\\ConnectionFactory.php(184): Illuminate\\Database\\Connectors\\MySqlConnector->connect(Array)
+#4 [internal function]: Illuminate\\Database\\Connectors\\ConnectionFactory->Illuminate\\Database\\Connectors\\{closure}()
+#5 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(1064): call_user_func(Object(Closure))
+#6 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(1100): Illuminate\\Database\\Connection->getPdo()
+#7 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(442): Illuminate\\Database\\Connection->getReadPdo()
+#8 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(368): Illuminate\\Database\\Connection->getPdoForSelect(true)
+#9 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(705): Illuminate\\Database\\Connection->Illuminate\\Database\\{closure}('select `proveed...', Array)
+#10 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('select `proveed...', Array, Object(Closure))
+#11 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(376): Illuminate\\Database\\Connection->run('select `proveed...', Array, Object(Closure))
+#12 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2414): Illuminate\\Database\\Connection->select('select `proveed...', Array, true)
+#13 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2402): Illuminate\\Database\\Query\\Builder->runSelect()
+#14 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2936): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#15 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2403): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#16 C:\\xampp7\\htdocs\\lasirena\ecalcular_proveedor_45.php(17): Illuminate\\Database\\Query\\Builder->get()
+#17 {main}
+"} 
