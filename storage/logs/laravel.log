@@ -1,33 +1,145 @@
-[2025-11-06 16:49:25] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string"} 
-[2025-11-06 17:02:35] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string","familia":"","familia_type":"string"} 
-[2025-11-06 17:03:36] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string","familia":"","familia_type":"string"} 
-[2025-11-06 17:04:00] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string","familia":"","familia_type":"string"} 
-[2025-11-07 16:35:41] local.INFO: Parámetros recibidos: {"orden":null,"filtro":null} 
-[2025-11-07 16:35:41] local.INFO: Aplicando ordenamiento: {"orden":null} 
-[2025-11-07 16:35:41] local.INFO: SQL generado: {"sql":"select `gp_ls_material_kilos`.`id`, `gp_ls_material_kilos`.`total_kg`, `gp_ls_proveedores`.`nombre_proveedor`, `gp_ls_materiales`.`descripcion` as `nombre_material`, `gp_ls_material_kilos`.`ctd_emdev`, `gp_ls_material_kilos`.`umb`, `gp_ls_material_kilos`.`ce`, `gp_ls_material_kilos`.`valor_emdev`, `gp_ls_material_kilos`.`factor_conversion`, `gp_ls_material_kilos`.`codigo_material`, `gp_ls_material_kilos`.`mes`, `gp_ls_material_kilos`.`proveedor_id` from `gp_ls_material_kilos` inner join `gp_ls_proveedores` on `gp_ls_material_kilos`.`proveedor_id` = `gp_ls_proveedores`.`id_proveedor` inner join `gp_ls_materiales` on `gp_ls_material_kilos`.`codigo_material` = `gp_ls_materiales`.`codigo` order by `gp_ls_material_kilos`.`id` asc","bindings":[]} 
-[2025-11-07 16:35:42] local.INFO: Total de registros encontrados con filtros: {"total":238152} 
-[2025-11-07 16:38:09] local.INFO: Parámetros recibidos: {"orden":null,"filtro":null} 
-[2025-11-07 16:38:09] local.INFO: Aplicando ordenamiento: {"orden":null} 
-[2025-11-07 16:38:09] local.INFO: SQL generado: {"sql":"select `gp_ls_material_kilos`.`id`, `gp_ls_material_kilos`.`total_kg`, `gp_ls_proveedores`.`nombre_proveedor`, `gp_ls_materiales`.`descripcion` as `nombre_material`, `gp_ls_material_kilos`.`ctd_emdev`, `gp_ls_material_kilos`.`umb`, `gp_ls_material_kilos`.`ce`, `gp_ls_material_kilos`.`valor_emdev`, `gp_ls_material_kilos`.`factor_conversion`, `gp_ls_material_kilos`.`codigo_material`, `gp_ls_material_kilos`.`mes`, `gp_ls_material_kilos`.`proveedor_id` from `gp_ls_material_kilos` inner join `gp_ls_proveedores` on `gp_ls_material_kilos`.`proveedor_id` = `gp_ls_proveedores`.`id_proveedor` inner join `gp_ls_materiales` on `gp_ls_material_kilos`.`codigo_material` = `gp_ls_materiales`.`codigo` where `gp_ls_material_kilos`.`codigo_material` LIKE ? order by `gp_ls_material_kilos`.`id` asc","bindings":["%41%"]} 
-[2025-11-07 16:38:10] local.INFO: Total de registros encontrados con filtros: {"total":3874} 
-[2025-11-07 17:01:43] local.INFO: Parámetros recibidos: {"orden":null,"filtro":null} 
-[2025-11-07 17:01:43] local.INFO: Aplicando ordenamiento: {"orden":null} 
-[2025-11-07 17:01:43] local.INFO: SQL generado: {"sql":"select `gp_ls_material_kilos`.`id`, `gp_ls_material_kilos`.`total_kg`, `gp_ls_proveedores`.`nombre_proveedor`, `gp_ls_materiales`.`descripcion` as `nombre_material`, `gp_ls_material_kilos`.`ctd_emdev`, `gp_ls_material_kilos`.`umb`, `gp_ls_material_kilos`.`ce`, `gp_ls_material_kilos`.`valor_emdev`, `gp_ls_material_kilos`.`factor_conversion`, `gp_ls_material_kilos`.`codigo_material`, `gp_ls_material_kilos`.`mes`, `gp_ls_material_kilos`.`proveedor_id` from `gp_ls_material_kilos` inner join `gp_ls_proveedores` on `gp_ls_material_kilos`.`proveedor_id` = `gp_ls_proveedores`.`id_proveedor` inner join `gp_ls_materiales` on `gp_ls_material_kilos`.`codigo_material` = `gp_ls_materiales`.`codigo` where `gp_ls_material_kilos`.`codigo_material` LIKE ? order by `gp_ls_material_kilos`.`id` asc","bindings":["%41%"]} 
-[2025-11-07 17:01:43] local.INFO: Total de registros encontrados con filtros: {"total":3874} 
-[2025-11-07 17:01:53] local.INFO: Parámetros recibidos: {"orden":null,"filtro":null} 
-[2025-11-07 17:01:53] local.INFO: Aplicando ordenamiento: {"orden":null} 
-[2025-11-07 17:01:53] local.INFO: SQL generado: {"sql":"select `gp_ls_material_kilos`.`id`, `gp_ls_material_kilos`.`total_kg`, `gp_ls_proveedores`.`nombre_proveedor`, `gp_ls_materiales`.`descripcion` as `nombre_material`, `gp_ls_material_kilos`.`ctd_emdev`, `gp_ls_material_kilos`.`umb`, `gp_ls_material_kilos`.`ce`, `gp_ls_material_kilos`.`valor_emdev`, `gp_ls_material_kilos`.`factor_conversion`, `gp_ls_material_kilos`.`codigo_material`, `gp_ls_material_kilos`.`mes`, `gp_ls_material_kilos`.`proveedor_id` from `gp_ls_material_kilos` inner join `gp_ls_proveedores` on `gp_ls_material_kilos`.`proveedor_id` = `gp_ls_proveedores`.`id_proveedor` inner join `gp_ls_materiales` on `gp_ls_material_kilos`.`codigo_material` = `gp_ls_materiales`.`codigo` order by `gp_ls_material_kilos`.`id` asc","bindings":[]} 
-[2025-11-07 17:01:54] local.INFO: Total de registros encontrados con filtros: {"total":238152} 
-[2025-11-07 17:02:04] local.INFO: Parámetros recibidos: {"orden":null,"filtro":null} 
-[2025-11-07 17:02:04] local.INFO: Filtro búsqueda exacta código material: {"codigo":"4152"} 
-[2025-11-07 17:02:04] local.INFO: Aplicando ordenamiento: {"orden":null} 
-[2025-11-07 17:02:04] local.INFO: SQL generado: {"sql":"select `gp_ls_material_kilos`.`id`, `gp_ls_material_kilos`.`total_kg`, `gp_ls_proveedores`.`nombre_proveedor`, `gp_ls_materiales`.`descripcion` as `nombre_material`, `gp_ls_material_kilos`.`ctd_emdev`, `gp_ls_material_kilos`.`umb`, `gp_ls_material_kilos`.`ce`, `gp_ls_material_kilos`.`valor_emdev`, `gp_ls_material_kilos`.`factor_conversion`, `gp_ls_material_kilos`.`codigo_material`, `gp_ls_material_kilos`.`mes`, `gp_ls_material_kilos`.`proveedor_id` from `gp_ls_material_kilos` inner join `gp_ls_proveedores` on `gp_ls_material_kilos`.`proveedor_id` = `gp_ls_proveedores`.`id_proveedor` inner join `gp_ls_materiales` on `gp_ls_material_kilos`.`codigo_material` = `gp_ls_materiales`.`codigo` where `gp_ls_material_kilos`.`codigo_material` = ? order by `gp_ls_material_kilos`.`id` asc","bindings":["4152"]} 
-[2025-11-07 17:02:05] local.INFO: Total de registros encontrados con filtros: {"total":6} 
-[2025-11-07 17:02:57] local.INFO: Parámetros recibidos: {"orden":null,"filtro":null} 
-[2025-11-07 17:02:57] local.INFO: Aplicando ordenamiento: {"orden":null} 
-[2025-11-07 17:02:57] local.INFO: SQL generado: {"sql":"select `gp_ls_material_kilos`.`id`, `gp_ls_material_kilos`.`total_kg`, `gp_ls_proveedores`.`nombre_proveedor`, `gp_ls_materiales`.`descripcion` as `nombre_material`, `gp_ls_material_kilos`.`ctd_emdev`, `gp_ls_material_kilos`.`umb`, `gp_ls_material_kilos`.`ce`, `gp_ls_material_kilos`.`valor_emdev`, `gp_ls_material_kilos`.`factor_conversion`, `gp_ls_material_kilos`.`codigo_material`, `gp_ls_material_kilos`.`mes`, `gp_ls_material_kilos`.`proveedor_id` from `gp_ls_material_kilos` inner join `gp_ls_proveedores` on `gp_ls_material_kilos`.`proveedor_id` = `gp_ls_proveedores`.`id_proveedor` inner join `gp_ls_materiales` on `gp_ls_material_kilos`.`codigo_material` = `gp_ls_materiales`.`codigo` order by `gp_ls_material_kilos`.`id` asc","bindings":[]} 
-[2025-11-07 17:02:58] local.INFO: Total de registros encontrados con filtros: {"total":238152} 
-[2025-11-10 16:37:30] local.INFO: Parámetros recibidos: {"orden":null,"filtro":null} 
-[2025-11-10 16:37:30] local.INFO: Aplicando ordenamiento: {"orden":null} 
-[2025-11-10 16:37:30] local.INFO: SQL generado: {"sql":"select `gp_ls_material_kilos`.`id`, `gp_ls_material_kilos`.`total_kg`, `gp_ls_proveedores`.`nombre_proveedor`, `gp_ls_materiales`.`descripcion` as `nombre_material`, `gp_ls_material_kilos`.`ctd_emdev`, `gp_ls_material_kilos`.`umb`, `gp_ls_material_kilos`.`ce`, `gp_ls_material_kilos`.`valor_emdev`, `gp_ls_material_kilos`.`factor_conversion`, `gp_ls_material_kilos`.`codigo_material`, `gp_ls_material_kilos`.`mes`, `gp_ls_material_kilos`.`proveedor_id` from `gp_ls_material_kilos` inner join `gp_ls_proveedores` on `gp_ls_material_kilos`.`proveedor_id` = `gp_ls_proveedores`.`id_proveedor` inner join `gp_ls_materiales` on `gp_ls_material_kilos`.`codigo_material` = `gp_ls_materiales`.`codigo` order by `gp_ls_material_kilos`.`id` asc","bindings":[]} 
-[2025-11-10 16:37:31] local.INFO: Total de registros encontrados con filtros: {"total":238152} 
+[2025-12-10 22:17:15] local.INFO: Factor de conversión y total_kg actualizados para material 4099. Registros afectados: 1  
+[2025-12-10 22:18:11] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string","familia":"","familia_type":"string"} 
+[2025-12-10 22:18:27] local.INFO: Factor de conversión y total_kg actualizados para material 4152. Registros afectados: 8  
+[2025-12-10 22:18:31] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string","familia":"","familia_type":"string"} 
+[2025-12-10 22:20:22] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string","familia":"","familia_type":"string"} 
+[2025-12-10 22:20:29] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string","familia":"","familia_type":"string"} 
+[2025-12-10 22:21:01] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"","idProveedor_type":"string","familia":"","familia_type":"string"} 
+[2025-12-10 22:36:25] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"45","idProveedor_type":"string","familia":"","familia_type":"string"} 
+[2025-12-10 22:36:33] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"ALIMENTBARNA SL","proveedor_type":"string","idProveedor":"45","idProveedor_type":"string","familia":"","familia_type":"string"} 
+[2025-12-10 22:41:10] local.ERROR: PHP Parse error: Syntax error, unexpected T_NS_SEPARATOR on line 1 {"exception":"[object] (Psy\\Exception\\ParseErrorException(code: 0): PHP Parse error: Syntax error, unexpected T_NS_SEPARATOR on line 1 at C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\Exception\\ParseErrorException.php:40)
+[stacktrace]
+#0 C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\CodeCleaner.php(340): Psy\\Exception\\ParseErrorException::fromParseError(Object(PhpParser\\Error))
+#1 C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\CodeCleaner.php(267): Psy\\CodeCleaner->parse('<?php \\\\ = DB::t...', false)
+#2 C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\Shell.php(853): Psy\\CodeCleaner->clean(Array, false)
+#3 C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\Shell.php(882): Psy\\Shell->addCode('\\\\ = DB::table('...', true)
+#4 C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\Shell.php(1251): Psy\\Shell->setCode('\\\\ = DB::table('...', true)
+#5 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\tinker\\src\\Console\\TinkerCommand.php(72): Psy\\Shell->execute('\\\\ = DB::table('...')
+#6 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(36): Laravel\\Tinker\\Console\\TinkerCommand->handle()
+#7 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Util.php(40): Illuminate\\Container\\BoundMethod::Illuminate\\Container\\{closure}()
+#8 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(93): Illuminate\\Container\\Util::unwrapIfClosure(Object(Closure))
+#9 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(37): Illuminate\\Container\\BoundMethod::callBoundMethod(Object(Illuminate\\Foundation\\Application), Array, Object(Closure))
+#10 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(653): Illuminate\\Container\\BoundMethod::call(Object(Illuminate\\Foundation\\Application), Array, Array, NULL)
+#11 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(136): Illuminate\\Container\\Container->call(Array)
+#12 C:\\xampp7\\htdocs\\lasirena\\vendor\\symfony\\console\\Command\\Command.php(298): Illuminate\\Console\\Command->execute(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#13 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(121): Symfony\\Component\\Console\\Command\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#14 C:\\xampp7\\htdocs\\lasirena\\vendor\\symfony\\console\\Application.php(1015): Illuminate\\Console\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#15 C:\\xampp7\\htdocs\\lasirena\\vendor\\symfony\\console\\Application.php(299): Symfony\\Component\\Console\\Application->doRunCommand(Object(Laravel\\Tinker\\Console\\TinkerCommand), Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#16 C:\\xampp7\\htdocs\\lasirena\\vendor\\symfony\\console\\Application.php(171): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#17 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Application.php(94): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#18 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(129): Illuminate\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#19 C:\\xampp7\\htdocs\\lasirena\\artisan(37): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#20 {main}
+"} 
+[2025-12-10 22:43:31] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"ALIMENTBARNA SL","proveedor_type":"string","idProveedor":"45","idProveedor_type":"string","familia":"","familia_type":"string"} 
+[2025-12-10 22:52:31] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"ALIMENTBARNA SL","proveedor_type":"string","idProveedor":"45","idProveedor_type":"string","familia":"","familia_type":"string"} 
+[2025-12-10 23:00:40] local.ERROR: PHP Parse error: Syntax error, unexpected T_NS_SEPARATOR on line 1 {"exception":"[object] (Psy\\Exception\\ParseErrorException(code: 0): PHP Parse error: Syntax error, unexpected T_NS_SEPARATOR on line 1 at C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\Exception\\ParseErrorException.php:40)
+[stacktrace]
+#0 C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\CodeCleaner.php(340): Psy\\Exception\\ParseErrorException::fromParseError(Object(PhpParser\\Error))
+#1 C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\CodeCleaner.php(267): Psy\\CodeCleaner->parse('<?php echo '===...', false)
+#2 C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\Shell.php(853): Psy\\CodeCleaner->clean(Array, false)
+#3 C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\Shell.php(882): Psy\\Shell->addCode('echo '=== C\\xC3\\x81LC...', true)
+#4 C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\Shell.php(1251): Psy\\Shell->setCode('echo '=== C\\xC3\\x81LC...', true)
+#5 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\tinker\\src\\Console\\TinkerCommand.php(72): Psy\\Shell->execute('echo '=== C\\xC3\\x81LC...')
+#6 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(36): Laravel\\Tinker\\Console\\TinkerCommand->handle()
+#7 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Util.php(40): Illuminate\\Container\\BoundMethod::Illuminate\\Container\\{closure}()
+#8 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(93): Illuminate\\Container\\Util::unwrapIfClosure(Object(Closure))
+#9 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(37): Illuminate\\Container\\BoundMethod::callBoundMethod(Object(Illuminate\\Foundation\\Application), Array, Object(Closure))
+#10 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(653): Illuminate\\Container\\BoundMethod::call(Object(Illuminate\\Foundation\\Application), Array, Array, NULL)
+#11 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(136): Illuminate\\Container\\Container->call(Array)
+#12 C:\\xampp7\\htdocs\\lasirena\\vendor\\symfony\\console\\Command\\Command.php(298): Illuminate\\Console\\Command->execute(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#13 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(121): Symfony\\Component\\Console\\Command\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#14 C:\\xampp7\\htdocs\\lasirena\\vendor\\symfony\\console\\Application.php(1015): Illuminate\\Console\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#15 C:\\xampp7\\htdocs\\lasirena\\vendor\\symfony\\console\\Application.php(299): Symfony\\Component\\Console\\Application->doRunCommand(Object(Laravel\\Tinker\\Console\\TinkerCommand), Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#16 C:\\xampp7\\htdocs\\lasirena\\vendor\\symfony\\console\\Application.php(171): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#17 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Application.php(94): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#18 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(129): Illuminate\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#19 C:\\xampp7\\htdocs\\lasirena\\artisan(37): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#20 {main}
+"} 
+[2025-12-11 14:45:48] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"ALIMENTBARNA SL","proveedor_type":"string","idProveedor":"45","idProveedor_type":"string","familia":"","familia_type":"string"} 
+[2025-12-11 14:48:31] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"ALIMENTBARNA SL","proveedor_type":"string","idProveedor":"45","idProveedor_type":"string","familia":"","familia_type":"string"} 
+[2025-12-11 15:33:16] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"ALIMENTBARNA SL","proveedor_type":"string","idProveedor":"45","idProveedor_type":"string","familia":"","familia_type":"string"} 
+[2025-12-11 15:44:45] local.ERROR: PHP Parse error: Syntax error, unexpected T_NS_SEPARATOR on line 1 {"exception":"[object] (Psy\\Exception\\ParseErrorException(code: 0): PHP Parse error: Syntax error, unexpected T_NS_SEPARATOR on line 1 at C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\Exception\\ParseErrorException.php:40)
+[stacktrace]
+#0 C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\CodeCleaner.php(340): Psy\\Exception\\ParseErrorException::fromParseError(Object(PhpParser\\Error))
+#1 C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\CodeCleaner.php(267): Psy\\CodeCleaner->parse('<?php echo 'Col...', false)
+#2 C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\Shell.php(853): Psy\\CodeCleaner->clean(Array, false)
+#3 C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\Shell.php(882): Psy\\Shell->addCode('echo 'Columnas ...', true)
+#4 C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\Shell.php(1251): Psy\\Shell->setCode('echo 'Columnas ...', true)
+#5 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\tinker\\src\\Console\\TinkerCommand.php(72): Psy\\Shell->execute('echo 'Columnas ...')
+#6 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(36): Laravel\\Tinker\\Console\\TinkerCommand->handle()
+#7 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Util.php(40): Illuminate\\Container\\BoundMethod::Illuminate\\Container\\{closure}()
+#8 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(93): Illuminate\\Container\\Util::unwrapIfClosure(Object(Closure))
+#9 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(37): Illuminate\\Container\\BoundMethod::callBoundMethod(Object(Illuminate\\Foundation\\Application), Array, Object(Closure))
+#10 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(653): Illuminate\\Container\\BoundMethod::call(Object(Illuminate\\Foundation\\Application), Array, Array, NULL)
+#11 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(136): Illuminate\\Container\\Container->call(Array)
+#12 C:\\xampp7\\htdocs\\lasirena\\vendor\\symfony\\console\\Command\\Command.php(298): Illuminate\\Console\\Command->execute(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#13 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(121): Symfony\\Component\\Console\\Command\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#14 C:\\xampp7\\htdocs\\lasirena\\vendor\\symfony\\console\\Application.php(1015): Illuminate\\Console\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#15 C:\\xampp7\\htdocs\\lasirena\\vendor\\symfony\\console\\Application.php(299): Symfony\\Component\\Console\\Application->doRunCommand(Object(Laravel\\Tinker\\Console\\TinkerCommand), Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#16 C:\\xampp7\\htdocs\\lasirena\\vendor\\symfony\\console\\Application.php(171): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#17 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Application.php(94): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#18 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(129): Illuminate\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#19 C:\\xampp7\\htdocs\\lasirena\\artisan(37): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#20 {main}
+"} 
+[2025-12-11 15:44:46] local.ERROR: PHP Parse error: Syntax error, unexpected T_NS_SEPARATOR on line 1 {"exception":"[object] (Psy\\Exception\\ParseErrorException(code: 0): PHP Parse error: Syntax error, unexpected T_NS_SEPARATOR on line 1 at C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\Exception\\ParseErrorException.php:40)
+[stacktrace]
+#0 C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\CodeCleaner.php(340): Psy\\Exception\\ParseErrorException::fromParseError(Object(PhpParser\\Error))
+#1 C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\CodeCleaner.php(267): Psy\\CodeCleaner->parse('<?php echo 'Col...', false)
+#2 C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\Shell.php(853): Psy\\CodeCleaner->clean(Array, false)
+#3 C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\Shell.php(882): Psy\\Shell->addCode('echo 'Columnas ...', true)
+#4 C:\\xampp7\\htdocs\\lasirena\\vendor\\psy\\psysh\\src\\Shell.php(1251): Psy\\Shell->setCode('echo 'Columnas ...', true)
+#5 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\tinker\\src\\Console\\TinkerCommand.php(72): Psy\\Shell->execute('echo 'Columnas ...')
+#6 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(36): Laravel\\Tinker\\Console\\TinkerCommand->handle()
+#7 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Util.php(40): Illuminate\\Container\\BoundMethod::Illuminate\\Container\\{closure}()
+#8 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(93): Illuminate\\Container\\Util::unwrapIfClosure(Object(Closure))
+#9 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(37): Illuminate\\Container\\BoundMethod::callBoundMethod(Object(Illuminate\\Foundation\\Application), Array, Object(Closure))
+#10 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(653): Illuminate\\Container\\BoundMethod::call(Object(Illuminate\\Foundation\\Application), Array, Array, NULL)
+#11 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(136): Illuminate\\Container\\Container->call(Array)
+#12 C:\\xampp7\\htdocs\\lasirena\\vendor\\symfony\\console\\Command\\Command.php(298): Illuminate\\Console\\Command->execute(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#13 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(121): Symfony\\Component\\Console\\Command\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#14 C:\\xampp7\\htdocs\\lasirena\\vendor\\symfony\\console\\Application.php(1015): Illuminate\\Console\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#15 C:\\xampp7\\htdocs\\lasirena\\vendor\\symfony\\console\\Application.php(299): Symfony\\Component\\Console\\Application->doRunCommand(Object(Laravel\\Tinker\\Console\\TinkerCommand), Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#16 C:\\xampp7\\htdocs\\lasirena\\vendor\\symfony\\console\\Application.php(171): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#17 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Application.php(94): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#18 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(129): Illuminate\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#19 C:\\xampp7\\htdocs\\lasirena\\artisan(37): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#20 {main}
+"} 
+[2025-12-11 15:51:18] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"ALIMENTBARNA SL","proveedor_type":"string","idProveedor":"45","idProveedor_type":"string","familia":"","familia_type":"string"} 
+[2025-12-11 20:04:19] local.ERROR: SQLSTATE[HY000] [1045] Access denied for user 'novaigrup_lasirena'@'localhost' (using password: YES) (SQL: select `proveedor_id` as `id_proveedor`, `año`, `mes` from `gp_ls_material_kilos` where `proveedor_id` = 45 and `año` = 2025 group by `proveedor_id`, `año`, `mes` order by `mes` asc) {"exception":"[object] (Illuminate\\Database\\QueryException(code: 1045): SQLSTATE[HY000] [1045] Access denied for user 'novaigrup_lasirena'@'localhost' (using password: YES) (SQL: select `proveedor_id` as `id_proveedor`, `año`, `mes` from `gp_ls_material_kilos` where `proveedor_id` = 45 and `año` = 2025 group by `proveedor_id`, `año`, `mes` order by `mes` asc) at C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:712)
+[stacktrace]
+#0 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('select `proveed...', Array, Object(Closure))
+#1 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(376): Illuminate\\Database\\Connection->run('select `proveed...', Array, Object(Closure))
+#2 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2414): Illuminate\\Database\\Connection->select('select `proveed...', Array, true)
+#3 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2402): Illuminate\\Database\\Query\\Builder->runSelect()
+#4 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2936): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#5 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2403): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#6 C:\\xampp7\\htdocs\\lasirena\
+ecalcular_proveedor_45.php(17): Illuminate\\Database\\Query\\Builder->get()
+#7 {main}
+
+[previous exception] [object] (PDOException(code: 1045): SQLSTATE[HY000] [1045] Access denied for user 'novaigrup_lasirena'@'localhost' (using password: YES) at C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connectors\\Connector.php:70)
+[stacktrace]
+#0 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connectors\\Connector.php(70): PDO->__construct('mysql:host=127....', 'novaigrup_lasir...', 'H4q!y35o', Array)
+#1 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connectors\\Connector.php(46): Illuminate\\Database\\Connectors\\Connector->createPdoConnection('mysql:host=127....', 'novaigrup_lasir...', 'H4q!y35o', Array)
+#2 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connectors\\MySqlConnector.php(24): Illuminate\\Database\\Connectors\\Connector->createConnection('mysql:host=127....', Array, Array)
+#3 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connectors\\ConnectionFactory.php(184): Illuminate\\Database\\Connectors\\MySqlConnector->connect(Array)
+#4 [internal function]: Illuminate\\Database\\Connectors\\ConnectionFactory->Illuminate\\Database\\Connectors\\{closure}()
+#5 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(1064): call_user_func(Object(Closure))
+#6 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(1100): Illuminate\\Database\\Connection->getPdo()
+#7 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(442): Illuminate\\Database\\Connection->getReadPdo()
+#8 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(368): Illuminate\\Database\\Connection->getPdoForSelect(true)
+#9 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(705): Illuminate\\Database\\Connection->Illuminate\\Database\\{closure}('select `proveed...', Array)
+#10 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('select `proveed...', Array, Object(Closure))
+#11 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(376): Illuminate\\Database\\Connection->run('select `proveed...', Array, Object(Closure))
+#12 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2414): Illuminate\\Database\\Connection->select('select `proveed...', Array, true)
+#13 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2402): Illuminate\\Database\\Query\\Builder->runSelect()
+#14 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2936): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#15 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2403): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#16 C:\\xampp7\\htdocs\\lasirena\
+ecalcular_proveedor_45.php(17): Illuminate\\Database\\Query\\Builder->get()
+#17 {main}
+"} 

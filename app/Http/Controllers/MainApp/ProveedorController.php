@@ -40,7 +40,7 @@ class ProveedorController extends Controller
 
     public function index()
     {
-        $array_proveedores = Proveedor::select('id_proveedor', 'nombre_proveedor', 'email_proveedor')
+        $array_proveedores = Proveedor::select('id_proveedor', 'nombre_proveedor', 'email_proveedor', 'familia', 'subfamilia')
             ->orderBy('id_proveedor', 'desc')
             ->get();
         return view('proveedores.proveedor_list', compact('array_proveedores'));
@@ -53,9 +53,9 @@ class ProveedorController extends Controller
     public function store(Request $request)
     {
         $rawEmails = trim($request->email_proveedor);
-        $rawEmails = str_replace([';', ' '], [',', ''], $rawEmails);
+        $rawEmails = str_replace([';', ' '], [';', ''], $rawEmails);
 
-        $emailsArray = array_filter(array_map('trim', explode(',', $rawEmails)));
+        $emailsArray = array_filter(array_map('trim', explode(';', $rawEmails)));
 
         foreach ($emailsArray as $email) {
             if (!preg_match('/^[^@]+@[^@]+\.[^@]+$/', $email)) {
@@ -63,7 +63,7 @@ class ProveedorController extends Controller
             }
         }
 
-        $emailsString = implode(',', $emailsArray);
+        $emailsString = implode(';', $emailsArray);
 
         // Validar longitud máxima
         if (strlen($emailsString) > 255) {
@@ -119,11 +119,11 @@ class ProveedorController extends Controller
             return redirect()->back()->with('error', 'Proveedor no encontrado.');
         }
 
-        // Normalizar emails igual que en store
+        // Normalizar emails igual que en store (conservar `;` como separador)
         $rawEmails = trim($request->email_proveedor_edit);
-        $rawEmails = str_replace([';', ' '], [',', ''], $rawEmails);
+        $rawEmails = str_replace([';', ' '], [';', ''], $rawEmails);
 
-        $emailsArray = array_filter(array_map('trim', explode(',', $rawEmails)));
+        $emailsArray = array_filter(array_map('trim', explode(';', $rawEmails)));
 
         foreach ($emailsArray as $email) {
             if (!preg_match('/^[^@]+@[^@]+\.[^@]+$/', $email)) {
@@ -131,7 +131,7 @@ class ProveedorController extends Controller
             }
         }
 
-        $emailsString = implode(',', $emailsArray);
+        $emailsString = implode(';', $emailsArray);
 
         // Validar longitud máxima
         if (strlen($emailsString) > 255) {
@@ -141,6 +141,8 @@ class ProveedorController extends Controller
         $proveedor->id_proveedor = $request->input('id_proveedor');
         $proveedor->nombre_proveedor = $request->input('nombre_proveedor_edit');
         $proveedor->email_proveedor = $emailsString;
+        $proveedor->familia = $request->input('familia_edit');
+        $proveedor->subfamilia = $request->input('subfamilia_edit');
         $proveedor->save();
         return redirect()->back()->with('success', 'Proveedor actualizado correctamente.');
     }

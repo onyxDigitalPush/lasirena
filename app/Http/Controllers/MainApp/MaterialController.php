@@ -17,7 +17,7 @@ class MaterialController extends Controller
         $query = Material::join('proveedores', 'materiales.proveedor_id', '=', 'proveedores.id_proveedor')
             ->select('materiales.*', 'proveedores.nombre_proveedor');
 
-        // Aplicar filtros
+        // Aplicar filtros por factor de conversión
         $filtro = request('filtro');
         if ($filtro == 'con_factor') {
             $query->whereNotNull('materiales.factor_conversion')
@@ -28,7 +28,28 @@ class MaterialController extends Controller
             $query->where('materiales.factor_conversion', '=', 0);
         }
 
+        // Aplicar filtros de búsqueda
+        if (request('buscar_codigo_material')) {
+            $query->where('materiales.codigo', 'like', '%' . request('buscar_codigo_material') . '%');
+        }
+        
+        if (request('buscar_descripcion')) {
+            $query->where('materiales.descripcion', 'like', '%' . request('buscar_descripcion') . '%');
+        }
+        
+        if (request('buscar_codigo_proveedor')) {
+            $query->where('materiales.proveedor_id', 'like', '%' . request('buscar_codigo_proveedor') . '%');
+        }
+        
+        if (request('buscar_nombre_proveedor')) {
+            $query->where('proveedores.nombre_proveedor', 'like', '%' . request('buscar_nombre_proveedor') . '%');
+        }
+
         $materiales = $query->orderBy('materiales.proveedor_id')->orderBy('materiales.codigo')->paginate(20);
+        
+        // Preservar parámetros de búsqueda y filtros en la paginación
+        $materiales->appends(request()->except('page'));
+        
         $proveedores = Proveedor::orderBy('nombre_proveedor')->get();
 
         return view('material.materiales_global_list', compact('materiales', 'proveedores'));
@@ -50,13 +71,14 @@ class MaterialController extends Controller
         $material->factor_conversion = $request->input('factor_conversion');
         $material->save();
         
+        // DESACTIVADO: No actualizar material_kilos automáticamente
         // Si se proporcionó un factor de conversión, actualizar material_kilos
-        if ($request->input('factor_conversion')) {
-            $registros_actualizados = $this->actualizarFactorConversionEnMaterialKilos($material->codigo, $request->input('factor_conversion'));
-            return redirect()->back()->with('success', 
-                "Material creado correctamente. Se actualizaron {$registros_actualizados} registros en material_kilos con el factor de conversión y se recalculó el total_kg."
-            );
-        }
+        // if ($request->input('factor_conversion')) {
+        //     $registros_actualizados = $this->actualizarFactorConversionEnMaterialKilos($material->codigo, $request->input('factor_conversion'));
+        //     return redirect()->back()->with('success', 
+        //         "Material creado correctamente. Se actualizaron {$registros_actualizados} registros en material_kilos con el factor de conversión y se recalculó el total_kg."
+        //     );
+        // }
         
         return redirect()->back()->with('success', 'Material creado correctamente.');
     }
@@ -71,13 +93,14 @@ class MaterialController extends Controller
         $material->factor_conversion = $request->input('factor_conversion');
         $material->save();
         
+        // DESACTIVADO: No actualizar material_kilos automáticamente
         // Si se proporcionó un factor de conversión, actualizar material_kilos
-        if ($request->input('factor_conversion')) {
-            $registros_actualizados = $this->actualizarFactorConversionEnMaterialKilos($material->codigo, $request->input('factor_conversion'));
-            return redirect()->route('materiales.index')->with('success', 
-                "Material creado correctamente. Se actualizaron {$registros_actualizados} registros en material_kilos con el factor de conversión y se recalculó el total_kg."
-            );
-        }
+        // if ($request->input('factor_conversion')) {
+        //     $registros_actualizados = $this->actualizarFactorConversionEnMaterialKilos($material->codigo, $request->input('factor_conversion'));
+        //     return redirect()->route('materiales.index')->with('success', 
+        //         "Material creado correctamente. Se actualizaron {$registros_actualizados} registros en material_kilos con el factor de conversión y se recalculó el total_kg."
+        //     );
+        // }
         
         return redirect()->route('materiales.index')->with('success', 'Material creado correctamente.');
     }
@@ -123,13 +146,14 @@ class MaterialController extends Controller
         $material->factor_conversion = $request->input('factor_conversion');
         $material->save();
         
+        // DESACTIVADO: No actualizar material_kilos automáticamente
         // Si se proporcionó un factor de conversión, actualizar material_kilos
-        if ($request->input('factor_conversion')) {
-            $registros_actualizados = $this->actualizarFactorConversionEnMaterialKilos($material->codigo, $request->input('factor_conversion'));
-            return redirect()->back()->with('success', 
-                "Material actualizado correctamente. Se actualizaron {$registros_actualizados} registros en material_kilos con el nuevo factor de conversión y se recalculó el total_kg (ctd_emdev × factor_conversion)."
-            );
-        }
+        // if ($request->input('factor_conversion')) {
+        //     $registros_actualizados = $this->actualizarFactorConversionEnMaterialKilos($material->codigo, $request->input('factor_conversion'));
+        //     return redirect()->back()->with('success', 
+        //         "Material actualizado correctamente. Se actualizaron {$registros_actualizados} registros en material_kilos con el nuevo factor de conversión y se recalculó el total_kg (ctd_emdev × factor_conversion)."
+        //     );
+        // }
         
         return redirect()->back()->with('success', 'Material actualizado correctamente.');
     }

@@ -251,4 +251,78 @@ $(document).ready(function () {
       $(".alert").fadeOut();
     }, 5000);
   }
+
+  // Botón de exportar a Excel
+  $("#exportarExcel").on("click", function () {
+    var mes = $("#filtro_mes").val();
+    var año = $("#filtro_año").val();
+    var proveedor = $("#filtro_proveedor").val();
+    var idProveedor = $("#filtro_id_proveedor").val();
+    var familia = $("#filtro_familia").val();
+
+    // Construir URL con parámetros
+    var baseUrl = window.appBaseUrl || "";
+    var url = new URL(
+      baseUrl + "/material_kilo/exportar-evaluacion-continua-excel",
+      window.location.origin
+    );
+
+    // Agregar parámetros
+    if (mes) {
+      url.searchParams.set("mes", mes);
+    }
+    if (año) {
+      url.searchParams.set("año", año);
+    }
+    if (proveedor) {
+      url.searchParams.set("proveedor", proveedor);
+    }
+    if (idProveedor) {
+      url.searchParams.set("id_proveedor", idProveedor);
+    }
+    if (familia) {
+      url.searchParams.set("familia", familia);
+    }
+
+    // Cambiar texto del botón mientras se exporta
+    var botonOriginal = $(this).html();
+    $(this).html(
+      '<i class="fa fa-spinner fa-spin mr-2"></i>Generando Excel...'
+    );
+    $(this).prop("disabled", true);
+
+    // Crear un iframe oculto para descargar el archivo
+    var iframe = document.createElement("iframe");
+    iframe.style.display = "none";
+    iframe.src = url.toString();
+    document.body.appendChild(iframe);
+
+    // Restaurar botón después de 3 segundos
+    var btnElement = $(this);
+    setTimeout(function () {
+      btnElement.html(botonOriginal);
+      btnElement.prop("disabled", false);
+      
+      // Mostrar mensaje de éxito
+      $("body").prepend(
+        '<div class="alert alert-success alert-dismissible fade show" role="alert" style="position: fixed; top: 10px; right: 10px; z-index: 9999; max-width: 400px;">' +
+          '<i class="fa fa-check-circle mr-2"></i>' +
+          "Excel generado exitosamente" +
+          '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+          '<span aria-hidden="true">&times;</span>' +
+          "</button>" +
+          "</div>"
+      );
+
+      // Auto-ocultar después de 3 segundos
+      setTimeout(function () {
+        $(".alert-success").fadeOut();
+      }, 3000);
+
+      // Remover iframe después de la descarga
+      setTimeout(function () {
+        document.body.removeChild(iframe);
+      }, 5000);
+    }, 3000);
+  });
 });

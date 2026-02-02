@@ -273,13 +273,6 @@
             </div>
         @endif
         
-        <!-- Debug temporal - remover después -->
-        <div class="alert alert-info">
-            <strong>Debug:</strong> 
-            Orden actual: {{ request('orden') ?? 'ninguno' }} | 
-            Filtro actual: {{ request('filtro') ?? 'ninguno' }} |
-            Total registros: {{ $array_material_kilo->total() }}
-        </div>
         
         <div class="col-12 bg-white">
             <div class='mt-4 mb-4'></div>

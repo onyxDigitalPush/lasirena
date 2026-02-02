@@ -22,6 +22,9 @@
             </div>
         </div>
         <div class="page-title-actions text-white">
+            <button type="button" id="exportarExcel" class="m-2 btn btn-success">
+                <i class="fa fa-file-excel-o mr-2"></i>Exportar a Excel
+            </button>
             <a class="m-2 btn btn-primary" href="{{ route('material_kilo.index') }}">
                 <i class="fa fa-list mr-2"></i>Volver a Material Kilos
             </a>
@@ -239,6 +242,76 @@
             </div>
         </div>
 
+        <!-- Totales por Familia -->
+        <div class="row mb-4">
+            @php
+                // Calcular totales por familia
+                $total_kg_elaborados = $totales_por_proveedor->where('familia', 'ELABORADOS')->sum('total_kg_proveedor');
+                $total_kg_productos_mar = $totales_por_proveedor->where('familia', 'PRODUCTOS DEL MAR')->sum('total_kg_proveedor');
+                $total_kg_consumibles = $totales_por_proveedor->where('familia', 'CONSUMIBLES')->sum('total_kg_proveedor');
+            @endphp
+            
+            <div class="col-md-4">
+                <div class="card bg-dark text-white">
+                    <div class="card-body">
+                        <h5 class="card-title text-white-50">
+                            <i class="fa fa-industry mr-2 "></i>ELABORADOS
+                        </h5>
+                        <h3 class="card-text" id="total-kg-elaborados">
+                            {{ number_format($total_kg_elaborados, 2, ',', '.') }} kg
+                        </h3>
+                        <small class="text-white-50">
+                            @if($total_kg_elaborados > 0 && $totales_por_proveedor->sum('total_kg_proveedor') > 0)
+                                {{ number_format(($total_kg_elaborados / $totales_por_proveedor->sum('total_kg_proveedor')) * 100, 1, ',', '.') }}% del total
+                            @else
+                                0% del total
+                            @endif
+                        </small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fa fa-ship mr-2"></i>PRODUCTOS DEL MAR
+                        </h5>
+                        <h3 class="card-text" id="total-kg-productos-mar">
+                            {{ number_format($total_kg_productos_mar, 2, ',', '.') }} kg
+                        </h3>
+                        <small class="text-white-50">
+                            @if($total_kg_productos_mar > 0 && $totales_por_proveedor->sum('total_kg_proveedor') > 0)
+                                {{ number_format(($total_kg_productos_mar / $totales_por_proveedor->sum('total_kg_proveedor')) * 100, 1, ',', '.') }}% del total
+                            @else
+                                0% del total
+                            @endif
+                        </small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fa fa-shopping-cart mr-2"></i>CONSUMIBLES
+                        </h5>
+                        <h3 class="card-text" id="total-kg-consumibles">
+                            {{ number_format($total_kg_consumibles, 2, ',', '.') }} kg
+                        </h3>
+                        <small class="text-white-50">
+                            @if($total_kg_consumibles > 0 && $totales_por_proveedor->sum('total_kg_proveedor') > 0)
+                                {{ number_format(($total_kg_consumibles / $totales_por_proveedor->sum('total_kg_proveedor')) * 100, 1, ',', '.') }}% del total
+                            @else
+                                0% del total
+                            @endif
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Tabla de evaluación continua -->
         <table id="table_evaluacion_continua"
             class="mt-4 table table-hover table-striped table-bordered dataTable dtr-inline border-secondary"
@@ -351,6 +424,192 @@
                         <td class="text-center">
                             <span class="badge badge-dark badge-lg">
                                 {{ number_format($proveedor->total_pond1, 2) }}
+                            </span>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+
+        <!-- Tabla Resumen por Familia -->
+        <div class="mt-5 mb-4">
+            <h4 class="text-center font-weight-bold bg-primary text-white p-3 mb-0">
+                <i class="fa fa-table mr-2"></i>RESUMEN POR FAMILIA
+            </h4>
+        </div>
+
+        @php
+            // Calcular totales y métricas por familia - Sumar valores ya calculados
+            $familias = ['ELABORADOS', 'PRODUCTOS DEL MAR', 'CONSUMIBLES'];
+            $familias_data = [];
+            
+            foreach ($familias as $familia_nombre) {
+                $proveedores_familia = $totales_por_proveedor->where('familia', $familia_nombre);
+                
+                if ($proveedores_familia->isEmpty()) {
+                    continue;
+                }
+                
+                // Sumar directamente los valores ya calculados de cada proveedor
+                $total_kg_familia = $proveedores_familia->sum('total_kg_proveedor');
+                $rg_ind = $proveedores_familia->sum('rg_ind1');
+                $rl_ind = $proveedores_familia->sum('rl_ind1');
+                $dev_ind = $proveedores_familia->sum('dev_ind1');
+                $rok_ind = $proveedores_familia->sum('rok_ind1');
+                $ret_ind = $proveedores_familia->sum('ret_ind1');
+                $total_ind = $proveedores_familia->sum('total_ind1');
+                
+                $rg_pond = $proveedores_familia->sum('rg_pond1');
+                $rl_pond = $proveedores_familia->sum('rl_pond1');
+                $dev_pond = $proveedores_familia->sum('dev_pond1');
+                $rok_pond = $proveedores_familia->sum('rok_pond1');
+                $ret_pond = $proveedores_familia->sum('ret_pond1');
+                $total_pond = $proveedores_familia->sum('total_pond1');
+                
+                $familias_data[] = [
+                    'familia' => $familia_nombre,
+                    'total_kg' => $total_kg_familia,
+                    'rg_ind' => $rg_ind,
+                    'rl_ind' => $rl_ind,
+                    'dev_ind' => $dev_ind,
+                    'rok_ind' => $rok_ind,
+                    'ret_ind' => $ret_ind,
+                    'total_ind' => $total_ind,
+                    'rg_pond' => $rg_pond,
+                    'rl_pond' => $rl_pond,
+                    'dev_pond' => $dev_pond,
+                    'rok_pond' => $rok_pond,
+                    'ret_pond' => $ret_pond,
+                    'total_pond' => $total_pond,
+                ];
+            }
+        @endphp
+
+        <table class="table table-hover table-striped table-bordered border-secondary" style="width:100%">
+            <thead>
+                <tr>
+                    <th class="text-center" rowspan="2">Familia</th>
+                    <th class="text-center" rowspan="2">Total KG</th>
+                    <th class="text-center bg-info text-white" colspan="6">
+                        Valores por Millón de KG - 
+                        @if($mes)
+                            {{ $meses[$mes] ?? 'Mes' }} {{ $año }}
+                        @else
+                            Todo el año {{ $año }}
+                        @endif
+                    </th>
+                    <th class="text-center bg-warning" colspan="6">
+                        Valores Ponderados - 
+                        @if($mes)
+                            {{ $meses[$mes] ?? 'Mes' }} {{ $año }}
+                        @else
+                            Todo el año {{ $año }}
+                        @endif
+                    </th>
+                </tr>
+                <tr>
+                    <th class="text-center bg-info text-white">RG</th>
+                    <th class="text-center bg-info text-white">RL</th>
+                    <th class="text-center bg-info text-white">DEV</th>
+                    <th class="text-center bg-info text-white">ROK</th>
+                    <th class="text-center bg-info text-white">RET</th>
+                    <th class="text-center bg-info text-white">TOTAL</th>
+                    <th class="text-center bg-warning">RG</th>
+                    <th class="text-center bg-warning">RL</th>
+                    <th class="text-center bg-warning">DEV</th>
+                    <th class="text-center bg-warning">ROK</th>
+                    <th class="text-center bg-warning">RET</th>
+                    <th class="text-center bg-warning">TOTAL</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($familias_data as $fam_data)
+                    @php
+                        // Definir colores según familia
+                        $bgClass = '';
+                        $iconClass = '';
+                        if ($fam_data['familia'] == 'ELABORADOS') {
+                            $bgClass = 'bg-dark text-white';
+                            $iconClass = 'fa-industry';
+                        } elseif ($fam_data['familia'] == 'PRODUCTOS DEL MAR') {
+                            $bgClass = 'bg-info text-white';
+                            $iconClass = 'fa-ship';
+                        } elseif ($fam_data['familia'] == 'CONSUMIBLES') {
+                            $bgClass = 'bg-success text-white';
+                            $iconClass = 'fa-shopping-cart';
+                        }
+                    @endphp
+                    <tr>
+                        <td class="text-center {{ $bgClass }} font-weight-bold">
+                            <i class="fa {{ $iconClass }} mr-2"></i>{{ $fam_data['familia'] }}
+                        </td>
+                        <td class="text-center">
+                            <span class="badge badge-success badge-lg">
+                                {{ number_format($fam_data['total_kg'], 2, ',', '.') }} kg
+                            </span>
+                        </td>
+                        
+                        <!-- Indicadores por millón de KG -->
+                        <td class="text-center">
+                            <span class="badge badge-info">
+                                {{ number_format($fam_data['rg_ind'], 2, ',', '.') }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge badge-info">
+                                {{ number_format($fam_data['rl_ind'], 2, ',', '.') }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge badge-info">
+                                {{ number_format($fam_data['dev_ind'], 2, ',', '.') }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge badge-info">
+                                {{ number_format($fam_data['rok_ind'], 2, ',', '.') }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge badge-info">
+                                {{ number_format($fam_data['ret_ind'], 2, ',', '.') }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge badge-primary badge-lg">
+                                {{ number_format($fam_data['total_ind'], 2, ',', '.') }}
+                            </span>
+                        </td>
+                        
+                        <!-- Valores ponderados -->
+                        <td class="text-center">
+                            <span class="badge badge-warning">
+                                {{ number_format($fam_data['rg_pond'], 2, ',', '.') }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge badge-warning">
+                                {{ number_format($fam_data['rl_pond'], 2, ',', '.') }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge badge-warning">
+                                {{ number_format($fam_data['dev_pond'], 2, ',', '.') }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge badge-warning">
+                                {{ number_format($fam_data['rok_pond'], 2, ',', '.') }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge badge-warning">
+                                {{ number_format($fam_data['ret_pond'], 2, ',', '.') }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge badge-dark badge-lg">
+                                {{ number_format($fam_data['total_pond'], 2, ',', '.') }}
                             </span>
                         </td>
                     </tr>

@@ -1,19 +1,14 @@
-//filtros tabla
+//Configuración de tabla
 $(document).ready(function () {
   // Inicializa DataTable con Bootstrap 4
+  // Deshabilitamos la búsqueda y paginación de DataTables para usar la de Laravel
   var table = $("#table_materiales_global").DataTable({
     orderCellsTop: true,
     fixedHeader: true,
+    searching: false, // Deshabilitar búsqueda de DataTables
+    paging: false, // Deshabilitar paginación de DataTables (usamos la de Laravel)
+    info: false, // Deshabilitar información de registros
     order: [[2, 'asc'], [0, 'asc']] // Ordenar por código de proveedor y luego por código de material
-  });
-
-  // Aplica los filtros por columna (solo para las columnas con input)
-  $("#table_materiales_global thead tr:eq(1) th").each(function (i) {
-    $("input", this).on("keyup change", function () {
-      if (table.column(i).search() !== this.value) {
-        table.column(i).search(this.value).draw();
-      }
-    });
   });
 });
 
