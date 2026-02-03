@@ -157,3 +157,50 @@ ecalcular_proveedor_45.php(17): Illuminate\\Database\\Query\\Builder->get()
 [2026-02-03 16:00:07] local.INFO: SQL generado: {"sql":"select `gp_ls_material_kilos`.`id`, `gp_ls_material_kilos`.`total_kg`, `gp_ls_proveedores`.`nombre_proveedor`, `gp_ls_materiales`.`descripcion` as `nombre_material`, `gp_ls_material_kilos`.`ctd_emdev`, `gp_ls_material_kilos`.`umb`, `gp_ls_material_kilos`.`ce`, `gp_ls_material_kilos`.`valor_emdev`, `gp_ls_material_kilos`.`factor_conversion`, `gp_ls_material_kilos`.`codigo_material`, `gp_ls_material_kilos`.`mes`, `gp_ls_material_kilos`.`proveedor_id` from `gp_ls_material_kilos` inner join `gp_ls_proveedores` on `gp_ls_material_kilos`.`proveedor_id` = `gp_ls_proveedores`.`id_proveedor` inner join `gp_ls_materiales` on `gp_ls_material_kilos`.`codigo_material` = `gp_ls_materiales`.`codigo` order by `gp_ls_material_kilos`.`id` asc","bindings":[]} 
 [2026-02-03 16:00:12] local.INFO: Total de registros encontrados con filtros: {"total":273956} 
 [2026-02-03 16:05:14] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"257","idProveedor_type":"string","familia":"","familia_type":"string"} 
+[2026-02-03 16:11:33] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"257","idProveedor_type":"string","familia":"","familia_type":"string"} 
+[2026-02-03 16:12:25] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":null,"año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"257","idProveedor_type":"string","familia":"","familia_type":"string"} 
+[2026-02-03 16:20:26] local.INFO: Variables recibidas en evaluacionContinuaProveedores {"mes":"10","año":2025,"proveedor":"","proveedor_type":"string","idProveedor":"257","idProveedor_type":"string","familia":"","familia_type":"string"} 
+[2026-02-03 16:26:14] local.ERROR: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'descripcion' in 'field list' (SQL: select `id`, `clasificacion_incidencia`, `descripcion`, `cantidad` from `gp_ls_devoluciones_proveedores` where `codigo_proveedor` = 257 and `año` = 2025 and `mes` = 10) {"exception":"[object] (Illuminate\\Database\\QueryException(code: 42S22): SQLSTATE[42S22]: Column not found: 1054 Unknown column 'descripcion' in 'field list' (SQL: select `id`, `clasificacion_incidencia`, `descripcion`, `cantidad` from `gp_ls_devoluciones_proveedores` where `codigo_proveedor` = 257 and `año` = 2025 and `mes` = 10) at C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:712)
+[stacktrace]
+#0 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('select `id`, `c...', Array, Object(Closure))
+#1 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(376): Illuminate\\Database\\Connection->run('select `id`, `c...', Array, Object(Closure))
+#2 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2414): Illuminate\\Database\\Connection->select('select `id`, `c...', Array, true)
+#3 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2402): Illuminate\\Database\\Query\\Builder->runSelect()
+#4 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2936): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#5 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2403): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#6 C:\\xampp7\\htdocs\\lasirena\ecalcular_proveedor_257.php(28): Illuminate\\Database\\Query\\Builder->get(Array)
+#7 {main}
+
+[previous exception] [object] (PDOException(code: 42S22): SQLSTATE[42S22]: Column not found: 1054 Unknown column 'descripcion' in 'field list' at C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:368)
+[stacktrace]
+#0 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(368): PDO->prepare('select `id`, `c...')
+#1 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(705): Illuminate\\Database\\Connection->Illuminate\\Database\\{closure}('select `id`, `c...', Array)
+#2 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('select `id`, `c...', Array, Object(Closure))
+#3 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(376): Illuminate\\Database\\Connection->run('select `id`, `c...', Array, Object(Closure))
+#4 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2414): Illuminate\\Database\\Connection->select('select `id`, `c...', Array, true)
+#5 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2402): Illuminate\\Database\\Query\\Builder->runSelect()
+#6 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2936): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#7 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2403): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#8 C:\\xampp7\\htdocs\\lasirena\ecalcular_proveedor_257.php(28): Illuminate\\Database\\Query\\Builder->get(Array)
+#9 {main}
+"} 
+[2026-02-03 16:27:29] local.ERROR: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'lasirena.gp_ls_gp_ls_proveedor_metrics' doesn't exist (SQL: select exists(select * from `gp_ls_gp_ls_proveedor_metrics` where (`proveedor_id` = 257 and `año` = 2025 and `mes` = 10)) as `exists`) {"exception":"[object] (Illuminate\\Database\\QueryException(code: 42S02): SQLSTATE[42S02]: Base table or view not found: 1146 Table 'lasirena.gp_ls_gp_ls_proveedor_metrics' doesn't exist (SQL: select exists(select * from `gp_ls_gp_ls_proveedor_metrics` where (`proveedor_id` = 257 and `año` = 2025 and `mes` = 10)) as `exists`) at C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:712)
+[stacktrace]
+#0 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('select exists(s...', Array, Object(Closure))
+#1 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(376): Illuminate\\Database\\Connection->run('select exists(s...', Array, Object(Closure))
+#2 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2736): Illuminate\\Database\\Connection->select('select exists(s...', Array, true)
+#3 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3097): Illuminate\\Database\\Query\\Builder->exists()
+#4 C:\\xampp7\\htdocs\\lasirena\ecalcular_proveedor_257.php(109): Illuminate\\Database\\Query\\Builder->updateOrInsert(Array, Array)
+#5 {main}
+
+[previous exception] [object] (PDOException(code: 42S02): SQLSTATE[42S02]: Base table or view not found: 1146 Table 'lasirena.gp_ls_gp_ls_proveedor_metrics' doesn't exist at C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:368)
+[stacktrace]
+#0 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(368): PDO->prepare('select exists(s...')
+#1 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(705): Illuminate\\Database\\Connection->Illuminate\\Database\\{closure}('select exists(s...', Array)
+#2 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('select exists(s...', Array, Object(Closure))
+#3 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(376): Illuminate\\Database\\Connection->run('select exists(s...', Array, Object(Closure))
+#4 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2736): Illuminate\\Database\\Connection->select('select exists(s...', Array, true)
+#5 C:\\xampp7\\htdocs\\lasirena\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3097): Illuminate\\Database\\Query\\Builder->exists()
+#6 C:\\xampp7\\htdocs\\lasirena\ecalcular_proveedor_257.php(109): Illuminate\\Database\\Query\\Builder->updateOrInsert(Array, Array)
+#7 {main}
+"} 

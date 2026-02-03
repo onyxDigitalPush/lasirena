@@ -17,7 +17,7 @@
             </div>
             <div>Evaluación Continua Proveedores
                 <div class="page-title-subheading">
-                    Valores Ponderados - Indicadores por Millón de KG
+                    Valores Ponderados - Número de Incidencias
                 </div>
             </div>
         </div>
@@ -344,7 +344,7 @@
                     <th class="text-center" rowspan="2">Nombre Proveedor</th>
                     <th class="text-center" rowspan="2">Total KG</th>
                     <th class="text-center bg-info text-white" colspan="6">
-                        Valores - 
+                        Valores - Número de Incidencias
                         @if($mes)
                             {{ $meses[$mes] ?? 'Mes' }} {{ $año }}
                         @else
@@ -551,7 +551,7 @@
                     <th class="text-center" rowspan="2">Familia</th>
                     <th class="text-center" rowspan="2">Total KG</th>
                     <th class="text-center bg-info text-white" colspan="6">
-                        Valores por Millón de KG - 
+                        Valores - Número de Incidencias
                         @if($mes)
                             {{ $meses[$mes] ?? 'Mes' }} {{ $año }}
                         @else

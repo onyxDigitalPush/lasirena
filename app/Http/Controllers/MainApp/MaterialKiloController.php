@@ -884,13 +884,13 @@ class MaterialKiloController extends Controller
                 ? $metricas_por_proveedor[$proveedor->id_proveedor]
                 : null;
 
-            if ($metricas && $proveedor->total_kg_proveedor > 0) {
-                // Cálculos de indicadores (valores * 1000000 / total_kg)
-                $proveedor->rg_ind1 = ($metricas->rg1 ?? 0) * 1000000 / $proveedor->total_kg_proveedor;
-                $proveedor->rl_ind1 = ($metricas->rl1 ?? 0) * 1000000 / $proveedor->total_kg_proveedor;
-                $proveedor->dev_ind1 = ($metricas->dev1 ?? 0) * 1000000 / $proveedor->total_kg_proveedor;
-                $proveedor->rok_ind1 = ($metricas->rok1 ?? 0) * 1000000 / $proveedor->total_kg_proveedor;
-                $proveedor->ret_ind1 = ($metricas->ret1 ?? 0) * 1000000 / $proveedor->total_kg_proveedor;
+            if ($metricas) {
+                // Solo el número de incidencias (sin normalizar)
+                $proveedor->rg_ind1 = ($metricas->rg1 ?? 0);
+                $proveedor->rl_ind1 = ($metricas->rl1 ?? 0);
+                $proveedor->dev_ind1 = ($metricas->dev1 ?? 0);
+                $proveedor->rok_ind1 = ($metricas->rok1 ?? 0);
+                $proveedor->ret_ind1 = ($metricas->ret1 ?? 0);
                 $proveedor->total_ind1 = $proveedor->rg_ind1 + $proveedor->rl_ind1 + $proveedor->dev_ind1 + $proveedor->rok_ind1 + $proveedor->ret_ind1;
 
                 // Cálculos de ponderados (usando los valores por millón * porcentajes)
@@ -1028,12 +1028,13 @@ class MaterialKiloController extends Controller
                 ? $metricas_por_proveedor[$prov->id_proveedor]
                 : null;
 
-            if ($metricas && $prov->total_kg_proveedor > 0) {
-                $prov->rg_ind1 = ($metricas->rg1 ?? 0) * 1000000 / $prov->total_kg_proveedor;
-                $prov->rl_ind1 = ($metricas->rl1 ?? 0) * 1000000 / $prov->total_kg_proveedor;
-                $prov->dev_ind1 = ($metricas->dev1 ?? 0) * 1000000 / $prov->total_kg_proveedor;
-                $prov->rok_ind1 = ($metricas->rok1 ?? 0) * 1000000 / $prov->total_kg_proveedor;
-                $prov->ret_ind1 = ($metricas->ret1 ?? 0) * 1000000 / $prov->total_kg_proveedor;
+            if ($metricas) {
+                // Solo el número de incidencias (sin normalizar)
+                $prov->rg_ind1 = ($metricas->rg1 ?? 0);
+                $prov->rl_ind1 = ($metricas->rl1 ?? 0);
+                $prov->dev_ind1 = ($metricas->dev1 ?? 0);
+                $prov->rok_ind1 = ($metricas->rok1 ?? 0);
+                $prov->ret_ind1 = ($metricas->ret1 ?? 0);
                 $prov->total_ind1 = $prov->rg_ind1 + $prov->rl_ind1 + $prov->dev_ind1 + $prov->rok_ind1 + $prov->ret_ind1;
 
                 $prov->rg_pond1 = $prov->rg_ind1 * 0.30;
