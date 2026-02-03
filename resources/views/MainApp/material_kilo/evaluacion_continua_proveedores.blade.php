@@ -249,9 +249,12 @@
                 $total_kg_elaborados = $totales_por_proveedor->where('familia', 'ELABORADOS')->sum('total_kg_proveedor');
                 $total_kg_productos_mar = $totales_por_proveedor->where('familia', 'PRODUCTOS DEL MAR')->sum('total_kg_proveedor');
                 $total_kg_consumibles = $totales_por_proveedor->where('familia', 'CONSUMIBLES')->sum('total_kg_proveedor');
+                // Calcular sin familia: Total - (suma de las 3 familias)
+                $total_kg_general = $totales_por_proveedor->sum('total_kg_proveedor');
+                $total_kg_sin_familia = $total_kg_general - ($total_kg_elaborados + $total_kg_productos_mar + $total_kg_consumibles);
             @endphp
             
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card bg-dark text-white">
                     <div class="card-body">
                         <h5 class="card-title text-white-50">
@@ -261,8 +264,8 @@
                             {{ number_format($total_kg_elaborados, 2, ',', '.') }} kg
                         </h3>
                         <small class="text-white-50">
-                            @if($total_kg_elaborados > 0 && $totales_por_proveedor->sum('total_kg_proveedor') > 0)
-                                {{ number_format(($total_kg_elaborados / $totales_por_proveedor->sum('total_kg_proveedor')) * 100, 1, ',', '.') }}% del total
+                            @if($total_kg_elaborados > 0 && $total_kg_general > 0)
+                                {{ number_format(($total_kg_elaborados / $total_kg_general) * 100, 1, ',', '.') }}% del total
                             @else
                                 0% del total
                             @endif
@@ -271,7 +274,7 @@
                 </div>
             </div>
             
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card bg-info text-white">
                     <div class="card-body">
                         <h5 class="card-title">
@@ -281,8 +284,8 @@
                             {{ number_format($total_kg_productos_mar, 2, ',', '.') }} kg
                         </h3>
                         <small class="text-white-50">
-                            @if($total_kg_productos_mar > 0 && $totales_por_proveedor->sum('total_kg_proveedor') > 0)
-                                {{ number_format(($total_kg_productos_mar / $totales_por_proveedor->sum('total_kg_proveedor')) * 100, 1, ',', '.') }}% del total
+                            @if($total_kg_productos_mar > 0 && $total_kg_general > 0)
+                                {{ number_format(($total_kg_productos_mar / $total_kg_general) * 100, 1, ',', '.') }}% del total
                             @else
                                 0% del total
                             @endif
@@ -291,7 +294,7 @@
                 </div>
             </div>
             
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card bg-success text-white">
                     <div class="card-body">
                         <h5 class="card-title">
@@ -301,8 +304,28 @@
                             {{ number_format($total_kg_consumibles, 2, ',', '.') }} kg
                         </h3>
                         <small class="text-white-50">
-                            @if($total_kg_consumibles > 0 && $totales_por_proveedor->sum('total_kg_proveedor') > 0)
-                                {{ number_format(($total_kg_consumibles / $totales_por_proveedor->sum('total_kg_proveedor')) * 100, 1, ',', '.') }}% del total
+                            @if($total_kg_consumibles > 0 && $total_kg_general > 0)
+                                {{ number_format(($total_kg_consumibles / $total_kg_general) * 100, 1, ',', '.') }}% del total
+                            @else
+                                0% del total
+                            @endif
+                        </small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card bg-secondary text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fa fa-question-circle mr-2"></i>SIN FAMILIA
+                        </h5>
+                        <h3 class="card-text" id="total-kg-sin-familia">
+                            {{ number_format($total_kg_sin_familia, 2, ',', '.') }} kg
+                        </h3>
+                        <small class="text-white-50">
+                            @if($total_kg_sin_familia > 0 && $total_kg_general > 0)
+                                {{ number_format(($total_kg_sin_familia / $total_kg_general) * 100, 1, ',', '.') }}% del total
                             @else
                                 0% del total
                             @endif
@@ -321,7 +344,7 @@
                     <th class="text-center" rowspan="2">Nombre Proveedor</th>
                     <th class="text-center" rowspan="2">Total KG</th>
                     <th class="text-center bg-info text-white" colspan="6">
-                        Valores por Millón de KG - 
+                        Valores - 
                         @if($mes)
                             {{ $meses[$mes] ?? 'Mes' }} {{ $año }}
                         @else
@@ -481,6 +504,43 @@
                     'rok_pond' => $rok_pond,
                     'ret_pond' => $ret_pond,
                     'total_pond' => $total_pond,
+                ];
+            }
+            
+            // Calcular "Sin familia" - proveedores que no tienen ninguna de las 3 familias o tienen NULL
+            $proveedores_sin_familia = $totales_por_proveedor->whereNotIn('familia', ['ELABORADOS', 'PRODUCTOS DEL MAR', 'CONSUMIBLES']);
+            
+            if ($proveedores_sin_familia->isNotEmpty()) {
+                $total_kg_sin_fam = $proveedores_sin_familia->sum('total_kg_proveedor');
+                $rg_ind_sin_fam = $proveedores_sin_familia->sum('rg_ind1');
+                $rl_ind_sin_fam = $proveedores_sin_familia->sum('rl_ind1');
+                $dev_ind_sin_fam = $proveedores_sin_familia->sum('dev_ind1');
+                $rok_ind_sin_fam = $proveedores_sin_familia->sum('rok_ind1');
+                $ret_ind_sin_fam = $proveedores_sin_familia->sum('ret_ind1');
+                $total_ind_sin_fam = $proveedores_sin_familia->sum('total_ind1');
+                
+                $rg_pond_sin_fam = $proveedores_sin_familia->sum('rg_pond1');
+                $rl_pond_sin_fam = $proveedores_sin_familia->sum('rl_pond1');
+                $dev_pond_sin_fam = $proveedores_sin_familia->sum('dev_pond1');
+                $rok_pond_sin_fam = $proveedores_sin_familia->sum('rok_pond1');
+                $ret_pond_sin_fam = $proveedores_sin_familia->sum('ret_pond1');
+                $total_pond_sin_fam = $proveedores_sin_familia->sum('total_pond1');
+                
+                $familias_data[] = [
+                    'familia' => 'SIN FAMILIA',
+                    'total_kg' => $total_kg_sin_fam,
+                    'rg_ind' => $rg_ind_sin_fam,
+                    'rl_ind' => $rl_ind_sin_fam,
+                    'dev_ind' => $dev_ind_sin_fam,
+                    'rok_ind' => $rok_ind_sin_fam,
+                    'ret_ind' => $ret_ind_sin_fam,
+                    'total_ind' => $total_ind_sin_fam,
+                    'rg_pond' => $rg_pond_sin_fam,
+                    'rl_pond' => $rl_pond_sin_fam,
+                    'dev_pond' => $dev_pond_sin_fam,
+                    'rok_pond' => $rok_pond_sin_fam,
+                    'ret_pond' => $ret_pond_sin_fam,
+                    'total_pond' => $total_pond_sin_fam,
                 ];
             }
         @endphp

@@ -94,9 +94,9 @@
                         <td class="text-center">{{ $material->descripcion }} </td>
                         <td class="text-center">
                             @if($material->factor_conversion !== null && $material->factor_conversion > 0)
-                                <span class="badge badge-success">{{ number_format($material->factor_conversion, 2) }}</span>
+                                <span class="badge badge-success">{{ number_format($material->factor_conversion, 2, ',', '.') }}</span>
                             @elseif($material->factor_conversion == 0)
-                                <span class="badge badge-danger">{{ number_format($material->factor_conversion, 2) }}</span>
+                                <span class="badge badge-danger">{{ number_format($material->factor_conversion, 2, ',', '.') }}</span>
                             @else
                                 <span class="badge badge-warning">Sin Factor</span>
                             @endif
